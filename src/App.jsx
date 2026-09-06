@@ -268,11 +268,9 @@ function FactView({ fact, categoryName, onReset }) {
   const articleRef = useRef(null)
   const [readingProgress, setReadingProgress] = useState(0)
   const breakdown = fact.in_depth_breakdown || {}
-  const hasContext = Boolean(fact.detailed_explanation || fact.history || fact.why_it_matters)
+  const hasContext = Boolean(fact.core_mechanics || fact.history || fact.why_it_matters)
   const hasMechanics = Boolean(
-    fact.how_it_works
-    || breakdown.scientific_or_technical_detail
-    || breakdown.key_mechanisms_or_types?.length
+    breakdown.key_mechanisms_or_types?.length
     || breakdown.step_by_step_process?.length,
   )
   const hasWorld = Boolean(
@@ -359,15 +357,13 @@ function FactView({ fact, categoryName, onReset }) {
             <div className="disclosure-list">
               {hasContext && (
                 <Disclosure title="The story and its significance" description="Background, origins, and why this matters" open>
-                  <ReadingBlock title="The deeper story" text={fact.detailed_explanation} />
+                  <ReadingBlock title="How it works" text={fact.core_mechanics} />
                   <ReadingBlock title="How it began" text={fact.history} />
                   <ReadingBlock title="Why it matters" text={fact.why_it_matters} />
                 </Disclosure>
               )}
               {hasMechanics && (
-                <Disclosure title="How it works" description="Mechanisms, technical detail, and process">
-                  <ReadingBlock text={fact.how_it_works} />
-                  <ReadingBlock title="Technical detail" text={breakdown.scientific_or_technical_detail} />
+                <Disclosure title="Mechanisms and process" description="Types, variants, and step-by-step detail">
                   {breakdown.key_mechanisms_or_types?.length > 0 && (
                     <ReadingBlock title="Mechanisms and types">
                       <ul>{breakdown.key_mechanisms_or_types.map((item) => <li key={item}>{item}</li>)}</ul>
