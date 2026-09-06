@@ -56,6 +56,69 @@ function CloseIcon() {
   )
 }
 
+function CopyIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="8" y="8" width="11" height="11" rx="2" />
+      <path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2" />
+    </svg>
+  )
+}
+
+const MARKDOWN_ELEMENTS = [
+  'p', 'strong', 'em', 'ul', 'ol', 'li', 'blockquote', 'code', 'pre',
+  'a', 'hr', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+]
+
+function normalizeMarkdown(value) {
+  if (typeof value !== 'string') return ''
+  return value
+    .replace(/\r\n?/g, '\n')
+    .replace(/\\r\\n|\\n|\\r/g, '\n')
+    .replace(/\\t/g, '\t')
+    .trim()
+}
+
+function MarkdownHeading({ children }) {
+  return <h4 className="markdown-heading">{children}</h4>
+}
+
+function MarkdownLink({ href = '', children, ...props }) {
+  const external = /^https?:\/\//i.test(href)
+  return (
+    <a
+      href={href}
+      target={external ? '_blank' : undefined}
+      rel={external ? 'noreferrer' : undefined}
+      {...props}
+    >
+      {children}
+    </a>
+  )
+}
+
+const MARKDOWN_COMPONENTS = {
+  h1: MarkdownHeading,
+  h2: MarkdownHeading,
+  h3: MarkdownHeading,
+  h4: MarkdownHeading,
+  h5: MarkdownHeading,
+  h6: MarkdownHeading,
+  a: MarkdownLink,
+}
+
+function MarkdownContent({ children }) {
+  return (
+    <ReactMarkdown
+      allowedElements={MARKDOWN_ELEMENTS}
+      unwrapDisallowed
+      components={MARKDOWN_COMPONENTS}
+    >
+      {normalizeMarkdown(children)}
+    </ReactMarkdown>
+  )
+}
+
 function SearchForm({ categories, selectedId, setSelectedId, onSubmit, loading }) {
   return (
     <form className="search-form" onSubmit={onSubmit}>
@@ -213,11 +276,17 @@ function HistoryDialog({
 }
 
 function Meta({ fact }) {
+  const generatedAt = fact.generated_at ? new Date(fact.generated_at) : null
+  const readableDate = generatedAt && !Number.isNaN(generatedAt.valueOf())
+    ? historyDate.format(generatedAt)
+    : null
   const values = [
     ['Year', fact.key_year],
     ['Reading', fact.read_time_seconds ? `${Math.max(1, Math.round(fact.read_time_seconds / 60))} min` : null],
     ['Level', fact.difficulty_level],
     ['Curiosity', fact.fun_rating ? `${fact.fun_rating}/10` : null],
+    ['Region', fact.region],
+    ['Discovered', readableDate],
   ].filter(([, value]) => value)
 
   if (!values.length) return null
@@ -243,7 +312,7 @@ function ReadingBlock({ title, text, children }) {
   return (
     <div className="reading-block">
       {title && <h3>{title}</h3>}
-      {text && <ReactMarkdown>{text}</ReactMarkdown>}
+      {text && <MarkdownContent>{text}</MarkdownContent>}
       {children}
     </div>
   )
@@ -267,19 +336,36 @@ function Disclosure({ title, description, children, open = false }) {
 function FactView({ fact, categoryName, onReset }) {
   const articleRef = useRef(null)
   const [readingProgress, setReadingProgress] = useState(0)
+  const [copyStatus, setCopyStatus] = useState('idle')
   const breakdown = fact.in_depth_breakdown || {}
-  const hasContext = Boolean(fact.core_mechanics || fact.history || fact.why_it_matters)
+  const storyText = fact.detailed_explanation
+  const mechanicsText = fact.core_mechanics || fact.how_it_works
+  const technicalText = breakdown.scientific_or_technical_detail
+  const hasContext = Boolean(storyText || fact.history || fact.why_it_matters)
   const hasMechanics = Boolean(
-    breakdown.key_mechanisms_or_types?.length
+    mechanicsText || technicalText || breakdown.key_mechanisms_or_types?.length
     || breakdown.step_by_step_process?.length,
   )
   const hasWorld = Boolean(
-    breakdown.real_world_application || fact.impact_on_india || fact.cultural_significance,
+    breakdown.real_world_application || fact.impact_on_india
+    || fact.cultural_significance || fact.global_comparison,
   )
   const hasSurprises = Boolean(
-    breakdown.fascinating_trivia?.length || fact.common_misconceptions?.length,
+    breakdown.fascinating_trivia?.length || fact.common_misconceptions?.length
+    || fact.visual_suggestion,
   )
   const hasExplore = hasContext || hasMechanics || hasWorld || hasSurprises
+  const hasTaxonomy = fact.tags?.length > 0 || fact.related_categories?.length > 0
+
+  async function copyShareText() {
+    try {
+      await navigator.clipboard.writeText(normalizeMarkdown(fact.share_text))
+      setCopyStatus('copied')
+    } catch {
+      setCopyStatus('error')
+    }
+    window.setTimeout(() => setCopyStatus('idle'), 2200)
+  }
 
   useEffect(() => {
     let frame
@@ -309,7 +395,10 @@ function FactView({ fact, categoryName, onReset }) {
     <article className="fact-view" ref={articleRef}>
       <nav className="fact-nav" aria-label="Fact controls">
         <a href="#fact-top" className="fact-wordmark"><span aria-hidden="true" />Unknown Index</a>
-        <span className="fact-category">{categoryName}</span>
+        <span className="fact-category">
+          {fact.emoji_icon && <span className="fact-emoji" aria-hidden="true">{fact.emoji_icon}</span>}
+          {categoryName}
+        </span>
         <button type="button" onClick={onReset}>Search another topic</button>
         <span className="reading-progress" aria-hidden="true">
           <i style={{ transform: `scaleX(${readingProgress})` }} />
@@ -333,8 +422,15 @@ function FactView({ fact, categoryName, onReset }) {
       <div className="fact-body">
         <section className="fact-overview" id="overview">
           <h2>The short version</h2>
-          <p>{fact.summary || fact.headline_fact}</p>
+          <MarkdownContent>{fact.summary || fact.headline_fact}</MarkdownContent>
         </section>
+
+        {fact.did_you_know && (
+          <aside className="did-you-know">
+            <h2>Did you know?</h2>
+            <div><MarkdownContent>{fact.did_you_know}</MarkdownContent></div>
+          </aside>
+        )}
 
         {(fact.quote || fact.key_figure || fact.key_stat) && (
           <aside className="fact-signal">
@@ -356,14 +452,16 @@ function FactView({ fact, categoryName, onReset }) {
             </div>
             <div className="disclosure-list">
               {hasContext && (
-                <Disclosure title="The story and its significance" description="Background, origins, and why this matters" open>
-                  <ReadingBlock title="How it works" text={fact.core_mechanics} />
+                <Disclosure title="The story and its significance" description="Background, origins, and why this matters">
+                  <ReadingBlock title="The full story" text={storyText} />
                   <ReadingBlock title="How it began" text={fact.history} />
                   <ReadingBlock title="Why it matters" text={fact.why_it_matters} />
                 </Disclosure>
               )}
               {hasMechanics && (
-                <Disclosure title="Mechanisms and process" description="Types, variants, and step-by-step detail">
+                <Disclosure title="How it works" description="Mechanisms, variants, and step-by-step detail">
+                  <ReadingBlock text={mechanicsText} />
+                  <ReadingBlock title="Technical detail" text={technicalText} />
                   {breakdown.key_mechanisms_or_types?.length > 0 && (
                     <ReadingBlock title="Mechanisms and types">
                       <ul>{breakdown.key_mechanisms_or_types.map((item) => <li key={item}>{item}</li>)}</ul>
@@ -377,10 +475,11 @@ function FactView({ fact, categoryName, onReset }) {
                 </Disclosure>
               )}
               {hasWorld && (
-                <Disclosure title="In the world" description="Applications, India, and cultural context">
+                <Disclosure title="In the world" description="Applications, regions, and cultural context">
                   <ReadingBlock title="Real-world application" text={breakdown.real_world_application} />
                   <ReadingBlock title="Impact on India" text={fact.impact_on_india} />
                   <ReadingBlock title="Cultural significance" text={fact.cultural_significance} />
+                  <ReadingBlock title="Global comparison" text={fact.global_comparison} />
                 </Disclosure>
               )}
               {hasSurprises && (
@@ -395,6 +494,7 @@ function FactView({ fact, categoryName, onReset }) {
                       <ul>{fact.common_misconceptions.map((item) => <li key={item}>{item}</li>)}</ul>
                     </ReadingBlock>
                   )}
+                  <ReadingBlock title="Picture the idea" text={fact.visual_suggestion} />
                 </Disclosure>
               )}
             </div>
@@ -424,6 +524,39 @@ function FactView({ fact, categoryName, onReset }) {
               <p>The essential ideas, distilled.</p>
             </div>
             <ul>{fact.learning_takeaways.map((item) => <li key={item}>{item}</li>)}</ul>
+          </section>
+        )}
+
+        {hasTaxonomy && (
+          <section className="fact-taxonomy" aria-label="Fact classification">
+            {fact.tags?.length > 0 && (
+              <div>
+                <h2>Filed under</h2>
+                <ul>{fact.tags.map((tag) => <li key={tag}>{tag}</li>)}</ul>
+              </div>
+            )}
+            {fact.related_categories?.length > 0 && (
+              <div>
+                <h2>Related subjects</h2>
+                <ul>{fact.related_categories.map((category) => <li key={category}>{formatCategory(category)}</li>)}</ul>
+              </div>
+            )}
+          </section>
+        )}
+
+        {fact.share_text && (
+          <section className="share-section">
+            <div>
+              <h2>Pass it on</h2>
+              <p>{normalizeMarkdown(fact.share_text)}</p>
+            </div>
+            <button type="button" onClick={copyShareText}>
+              <CopyIcon />
+              <span>{copyStatus === 'copied' ? 'Copied' : copyStatus === 'error' ? 'Copy failed' : 'Copy fact'}</span>
+            </button>
+            <span className="sr-only" role="status" aria-live="polite">
+              {copyStatus === 'copied' ? 'Fact copied to clipboard.' : copyStatus === 'error' ? 'Could not copy the fact.' : ''}
+            </span>
           </section>
         )}
 
