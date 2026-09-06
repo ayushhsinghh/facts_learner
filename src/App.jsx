@@ -417,7 +417,7 @@ function FactView({ fact, categoryName, onReset }) {
   return (
     <article className="fact-view" ref={articleRef}>
       <nav className="fact-nav" aria-label="Fact controls">
-        <a href="/" className="fact-wordmark"><span aria-hidden="true" />Unknown Index</a>
+        <a href="/" className="fact-wordmark"><span aria-hidden="true" />The Curiosity Archive</a>
         <span className="fact-category">
           {fact.emoji_icon && <span className="fact-emoji" aria-hidden="true">{fact.emoji_icon}</span>}
           {categoryName}
@@ -761,7 +761,7 @@ export default function App() {
     <main className={`discovery-page is-${status}`}>
       <AmbientField />
       <header className="site-header">
-        <a href="/" aria-label="Unknown Index home"><span />Unknown Index</a>
+        <a href="/" aria-label="The Curiosity Archive home"><span />The Curiosity Archive</a>
         <p>One fact at a time</p>
       </header>
 
