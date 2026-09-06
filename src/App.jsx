@@ -185,11 +185,14 @@ function formatCategory(value) {
 
 function HistoryDialog({
   dialogRef,
+  categories,
+  category,
   facts,
   state,
   error,
   hasMore,
   onClose,
+  onCategoryChange,
   onSelect,
   onRetry,
   onLoadMore,
@@ -212,6 +215,24 @@ function HistoryDialog({
           </button>
         </header>
 
+        <div className="history-filter">
+          <label htmlFor="history-category">Filter by category</label>
+          <div className="history-filter-control">
+            <select
+              id="history-category"
+              value={category}
+              onChange={(event) => onCategoryChange(event.target.value)}
+              disabled={state === 'loading' || state === 'loading-more'}
+            >
+              <option value="">All categories</option>
+              {categories.map((item) => (
+                <option key={item.id} value={item.id}>{item.name}</option>
+              ))}
+            </select>
+            <span className="select-mark" aria-hidden="true" />
+          </div>
+        </div>
+
         <div className="history-content">
           {state === 'loading' && (
             <div className="history-loading" role="status">
@@ -229,8 +250,10 @@ function HistoryDialog({
 
           {state === 'ready' && facts.length === 0 && (
             <div className="history-message">
-              <p>No facts have been discovered yet.</p>
-              <button type="button" onClick={onClose}>Start the first search</button>
+              <p>{category ? `No ${formatCategory(category)} facts have been discovered yet.` : 'No facts have been discovered yet.'}</p>
+              {category
+                ? <button type="button" onClick={() => onCategoryChange('')}>Show all categories</button>
+                : <button type="button" onClick={onClose}>Start the first search</button>}
             </div>
           )}
 
@@ -394,7 +417,7 @@ function FactView({ fact, categoryName, onReset }) {
   return (
     <article className="fact-view" ref={articleRef}>
       <nav className="fact-nav" aria-label="Fact controls">
-        <a href="#fact-top" className="fact-wordmark"><span aria-hidden="true" />Unknown Index</a>
+        <a href="/" className="fact-wordmark"><span aria-hidden="true" />Unknown Index</a>
         <span className="fact-category">
           {fact.emoji_icon && <span className="fact-emoji" aria-hidden="true">{fact.emoji_icon}</span>}
           {categoryName}
@@ -509,9 +532,11 @@ function FactView({ fact, categoryName, onReset }) {
             </div>
             <ol className="timeline-track">{fact.timeline.map((item) => (
               <li key={`${item.year}-${item.event}`}>
-                <span className="timeline-node" aria-hidden="true" />
                 <time>{item.year}</time>
-                <p>{item.event}</p>
+                <div className="timeline-entry">
+                  <span className="timeline-node" aria-hidden="true" />
+                  <p>{item.event}</p>
+                </div>
               </li>
             ))}</ol>
           </section>
@@ -589,6 +614,7 @@ export default function App() {
   const [historyState, setHistoryState] = useState('idle')
   const [historyError, setHistoryError] = useState('')
   const [historyHasMore, setHistoryHasMore] = useState(false)
+  const [historyCategory, setHistoryCategory] = useState('')
   const requestRef = useRef(null)
   const historyRequestRef = useRef(null)
   const historyDialogRef = useRef(null)
@@ -670,7 +696,7 @@ export default function App() {
     }
   }
 
-  async function loadHistory(append = false) {
+  async function loadHistory({ append = false, category = historyCategory } = {}) {
     historyRequestRef.current?.abort()
     const controller = new AbortController()
     historyRequestRef.current = controller
@@ -681,10 +707,12 @@ export default function App() {
       const result = await fetchHistory({
         limit: 20,
         skip: append ? historyFacts.length : 0,
+        category,
         signal: controller.signal,
       })
       setHistoryFacts((current) => append ? [...current, ...result.facts] : result.facts)
-      setHistoryHasMore(result.facts.length === 20)
+      const visibleCount = (append ? historyFacts.length : 0) + result.facts.length
+      setHistoryHasMore(visibleCount < result.count)
       setHistoryState('ready')
     } catch (requestError) {
       if (requestError.name === 'AbortError') return
@@ -696,6 +724,12 @@ export default function App() {
   function openHistory() {
     if (!historyDialogRef.current?.open) historyDialogRef.current?.showModal()
     if (historyState === 'idle') loadHistory()
+  }
+
+  function changeHistoryCategory(category) {
+    setHistoryCategory(category)
+    setHistoryFacts([])
+    loadHistory({ category })
   }
 
   function closeHistory() {
@@ -758,19 +792,21 @@ export default function App() {
 
       <footer className="site-footer">
         <span>Generated when you ask</span>
-        <span>No account required.</span>
       </footer>
 
       <HistoryDialog
         dialogRef={historyDialogRef}
+        categories={categories}
+        category={historyCategory}
         facts={historyFacts}
         state={historyState}
         error={historyError}
         hasMore={historyHasMore}
         onClose={closeHistory}
+        onCategoryChange={changeHistoryCategory}
         onSelect={selectHistoryFact}
-        onRetry={() => loadHistory(false)}
-        onLoadMore={() => loadHistory(true)}
+        onRetry={() => loadHistory()}
+        onLoadMore={() => loadHistory({ append: true })}
       />
     </main>
   )

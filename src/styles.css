@@ -85,6 +85,12 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
 .history-header { flex: 0 0 auto; display: flex; align-items: start; justify-content: space-between; gap: 30px; padding: 34px 38px 28px; border-bottom: 1px solid #2c3444; }
 .history-header h2 { margin: 0; font: 400 clamp(2.1rem, 5vw, 3.3rem)/1 var(--serif); letter-spacing: -.02em; }
 .history-header p { margin: 11px 0 0; color: #aeb5c5; font-size: .8rem; }
+.history-filter { flex: 0 0 auto; min-height: 68px; display: flex; align-items: center; justify-content: space-between; gap: 24px; padding: 12px 38px; border-bottom: 1px solid #252c39; }
+.history-filter label { color: #9ba5bc; font-size: .68rem; letter-spacing: .1em; text-transform: uppercase; }
+.history-filter-control { position: relative; width: min(230px, 55%); }
+.history-filter select { width: 100%; height: 42px; appearance: none; padding: 0 42px 0 14px; color: #e4e6ec; background: #141a25; border: 1px solid #3b4558; border-radius: 12px; cursor: pointer; font-size: .76rem; }
+.history-filter select:disabled { cursor: wait; opacity: .62; }
+.history-filter .select-mark { right: 17px; top: 15px; }
 .history-close { flex: 0 0 auto; width: 38px; height: 38px; display: grid; place-items: center; color: #c7ccda; background: transparent; border: 1px solid #424b5e; border-radius: 50%; cursor: pointer; }
 .history-close:hover { color: white; border-color: var(--signal); }
 .history-close svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.5; }
@@ -196,13 +202,17 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
 .reading-block hr { margin: 34px 0; border: 0; border-top: 1px solid #c8c9c4; }
 .process-list { list-style: decimal; }
 
-.timeline-track { position: relative; margin: 42px 0 0; padding: 0; list-style: none; }
+.timeline-track { margin: 38px 0 0; padding: 0; list-style: none; }
 .timeline-section .section-intro h2 { color: var(--archive-ink); }
-.timeline-track::before { content: ''; position: absolute; left: 116px; top: 13px; bottom: 13px; width: 1px; background: var(--archive-line); }
-.timeline-track li { position: relative; display: grid; grid-template-columns: 86px 22px minmax(0, 1fr); gap: 20px; align-items: start; padding: 18px 0; }
-.timeline-node { position: relative; z-index: 1; width: 9px; height: 9px; margin: 5px auto 0; background: var(--reading-paper); border: 1px solid var(--archive-ink); transform: rotate(45deg); }
-.timeline-track time { color: var(--archive-ink); font-size: .74rem; font-weight: 600; letter-spacing: .06em; text-align: right; font-variant-numeric: tabular-nums; }
-.timeline-track p { max-width: 62ch; margin: 0; color: #454b56; line-height: 1.65; }
+.timeline-track li { display: grid; grid-template-columns: 120px minmax(0, 1fr); gap: 48px; align-items: start; }
+.timeline-track li + li { margin-top: 10px; }
+.timeline-track time { padding-top: 29px; color: var(--archive-ink); font-size: .77rem; font-weight: 600; letter-spacing: .045em; line-height: 1.35; text-align: right; font-variant-numeric: tabular-nums; overflow-wrap: normal; }
+.timeline-entry { position: relative; min-height: 96px; padding: 25px 0 27px; border-bottom: 1px solid #d2d2cc; }
+.timeline-entry::before { content: ''; position: absolute; left: -25px; top: 0; bottom: -11px; width: 1px; background: var(--archive-line); }
+.timeline-track li:first-child .timeline-entry::before { top: 34px; }
+.timeline-track li:last-child .timeline-entry::before { bottom: calc(100% - 35px); }
+.timeline-node { position: absolute; z-index: 1; left: -29px; top: 31px; width: 9px; height: 9px; background: var(--reading-paper); border: 1px solid var(--archive-ink); transform: rotate(45deg); }
+.timeline-track p { max-width: 62ch; margin: 0; color: #454b56; font-size: 1rem; line-height: 1.68; }
 
 .takeaway-section { margin-inline: -42px; padding: 44px 42px 48px; background: var(--archive-wash); }
 .takeaway-section .section-intro { border-color: var(--archive-line); }
@@ -281,9 +291,15 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
   .disclosure summary small { max-width: 35ch; }
   .reading-block { margin-left: 0; }
   .disclosure-content { padding-bottom: 40px; }
-  .timeline-track::before { left: 77px; }
-  .timeline-track li { grid-template-columns: 58px 14px minmax(0, 1fr); gap: 12px; }
-  .timeline-track time { font-size: .68rem; }
+  .timeline-track { margin-top: 28px; }
+  .timeline-track li { grid-template-columns: 74px minmax(0, 1fr); gap: 30px; }
+  .timeline-track time { padding-top: 23px; font-size: .68rem; line-height: 1.3; }
+  .timeline-entry { min-height: 88px; padding: 20px 0 24px; }
+  .timeline-entry::before { left: -16px; bottom: -11px; }
+  .timeline-track li:first-child .timeline-entry::before { top: 28px; }
+  .timeline-track li:last-child .timeline-entry::before { bottom: calc(100% - 29px); }
+  .timeline-node { left: -20px; top: 25px; }
+  .timeline-track p { font-size: .94rem; line-height: 1.62; }
   .takeaway-section ul { grid-template-columns: 1fr; }
   .fact-taxonomy { grid-template-columns: 1fr; gap: 28px; }
   .share-section { margin-inline: -20px; padding: 30px 24px; grid-template-columns: 1fr; }
@@ -292,6 +308,8 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
   .history-dialog { width: calc(100% - 20px); max-height: calc(100svh - 20px); }
   .history-panel { max-height: calc(100svh - 20px); }
   .history-header { padding: 28px 22px 22px; }
+  .history-filter { align-items: stretch; flex-direction: column; gap: 8px; padding: 14px 22px 16px; }
+  .history-filter-control { width: 100%; }
   .history-list button { padding: 21px 62px 22px 22px; }
   .history-list strong { font-size: 1.35rem; }
   .history-item-arrow { right: 22px; }

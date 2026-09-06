@@ -150,7 +150,7 @@ Near-black and mineral-white establish the nocturnal index. Restrained blue-viol
 
 The discovery surface fills at least one small viewport height and centers a single column within an `820px` maximum. Header and footer are pinned to the viewport edges with fluid inline padding; the category form narrows to `600px` and uses a two-column select/action arrangement on wide screens. Ambient geometry may cross the composition, but it is fixed behind content and never participates in interaction.
 
-The fact reveal uses a sticky `68px` navigation bar, a compact anchored contents strip, a dark full-width hero, and a warm reading canvas capped at `920px`. The one-minute summary, a compact “Did you know?” note, and key evidence stay visible. Long material is grouped into four closed semantic native disclosures so the reader chooses the depth: story, mechanics, world context, and surprises. API-authored Markdown is normalized at the rendering boundary so escaped line breaks become real headings, paragraphs, and lists. Timelines, takeaways, taxonomy, share copy, metadata, quotations, and references remain part of this single document flow rather than becoming cards.
+The fact reveal uses a sticky `68px` navigation bar, a compact anchored contents strip, a dark full-width hero, and a warm reading canvas capped at `920px`. The one-minute summary, a compact “Did you know?” note, and key evidence stay visible. Long material is grouped into four closed semantic native disclosures so the reader chooses the depth: story, mechanics, world context, and surprises. API-authored Markdown is normalized at the rendering boundary so escaped line breaks become real headings, paragraphs, and lists. The timeline uses a dedicated date gutter beside an uninterrupted event rail, keeping long historical ranges separate from its line and markers. Takeaways, taxonomy, share copy, metadata, quotations, and references remain part of this single document flow rather than becoming cards.
 
 At `720px` and below, the header's secondary phrase is removed, the search controls stack, progress details become one column, and the anchored contents strip scrolls horizontally. Fact metadata wraps, disclosures retain full-width tap targets, takeaway and taxonomy items become one column, timelines reduce their year rail, and the dark evidence and share insets deliberately bleed to the reading canvas edges. Minimum page width is `320px`; principal horizontal content padding is `20px`–`24px` on small screens.
 
@@ -193,14 +193,14 @@ Controls use gently rounded `12px` corners and rectangular proportions. Signatur
 ### Previous Discoveries Trigger and Index
 
 - **Trigger:** A quiet underlined action beneath the primary form uses the same thin-stroke icon language and never competes with fact generation.
-- **Index:** A native `<dialog>` opens a nocturnal, scroll-contained list. Each full-width row exposes category, generated date, title, and headline before a circular arrow affordance; rows are divided by hairlines rather than rendered as cards.
-- **States:** Fetch only on first open. Provide composed loading, empty, error, retry, and incremental-loading states. Selecting a row closes the dialog and sends the complete historical fact into the established reader without starting a generation job.
+- **Index:** A native `<dialog>` opens a nocturnal, scroll-contained list. A compact category selector requests server-filtered history before the list; each full-width row exposes category, generated date, title, and headline before a circular arrow affordance. Rows are divided by hairlines rather than rendered as cards.
+- **States:** Fetch on first open and whenever the category changes. Provide composed loading, filtered-empty, error, retry, and incremental-loading states. Selecting a row closes the dialog and sends the complete historical fact into the established reader without starting a generation job.
 - **Responsive:** The dialog retains a small viewport margin, a fixed header and footer, and an independently scrolling list on compact screens.
 
 ### Wordmark and Utility Navigation
 
 - **Style:** Small tracked uppercase DM Sans. The wordmark begins with an outlined blue-violet diamond; the fact view changes to a sticky near-black bar with category context and an understated underlined reset action.
-- **Behavior:** The opening header and footer remain peripheral. On small screens, remove the secondary header phrase before reducing the wordmark.
+- **Behavior:** Both wordmarks are real home links; the reader link returns to `/` rather than targeting its own hero fragment. The opening header and single-line footer remain peripheral. On small screens, remove the secondary header phrase before reducing the wordmark.
 
 ### Orbital Search Instrument
 
