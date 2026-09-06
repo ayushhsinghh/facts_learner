@@ -587,7 +587,7 @@ function FactView({ fact, onReset }) {
         return
       }
 
-      window.responsiveVoice.speak(sentences[index].text, 'UK English Female', {
+      window.responsiveVoice.speak(sentences[index].text, 'Hindi Female', {
         onstart: () => {
           if (run !== speechRunRef.current) return
           setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
