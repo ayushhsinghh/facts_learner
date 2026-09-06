@@ -12,7 +12,7 @@ React + Vite. Deployment target is not yet confirmed.
 
 ## Users
 
-General curious learners who want to discover an interesting fact without creating an account or managing a learning history.
+General curious learners who want to discover an interesting fact without creating an account or managing a personal learning history. They may also revisit the shared index of facts generated previously.
 
 ## Product Purpose
 
@@ -35,7 +35,7 @@ Visitors arrive anonymously, choose from API-provided categories, wait while a f
 - Generation is limited to 10 requests per day per IP; category listing is limited to 30 requests per minute.
 - Category identifiers are at most 50 characters and use alphanumeric characters plus underscores.
 - Jobs expire after 24 hours.
-- No accounts and no saved learning history.
+- No accounts and no user-specific saved learning history; previously generated public facts remain browsable.
 
 ## Brand Commitments
 
@@ -50,5 +50,5 @@ API contract: `/Users/ayushsingh/Documents/api_documentation.md`. No testimonial
 - Make curiosity the primary interaction, not configuration.
 - Turn generation time into anticipation with honest progress communication.
 - Reveal depth progressively so a fact is inviting before it becomes encyclopedic.
-- Keep the entire experience useful without identity, accounts, or history.
+- Keep the entire experience useful without identity, accounts, or personal history.
 - Preserve clarity and accessibility inside the mysterious atmosphere.

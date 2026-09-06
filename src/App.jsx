@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
-import { fetchCategories, getFactStatus, startFact } from './api.js'
+import { fetchCategories, fetchHistory, getFactStatus, startFact } from './api.js'
 
 const FALLBACK_CATEGORIES = [
   { id: 'space', name: 'Space' },
@@ -35,6 +35,22 @@ function ArrowIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M5 12h13M13 6l6 6-6 6" />
+    </svg>
+  )
+}
+
+function HistoryIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 12a8 8 0 1 0 2.35-5.65L4 8.7M4 4v4.7h4.7M12 7.5V12l3 2" />
+    </svg>
+  )
+}
+
+function CloseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m6 6 12 12M18 6 6 18" />
     </svg>
   )
 }
@@ -90,6 +106,111 @@ function SearchRitual({ categoryName, elapsed }) {
   )
 }
 
+const historyDate = new Intl.DateTimeFormat('en', {
+  day: 'numeric',
+  month: 'short',
+  year: 'numeric',
+})
+
+function formatCategory(value) {
+  if (!value) return 'Fact'
+  return value
+    .replaceAll('_', ' ')
+    .replace(/\b\w/g, (character) => character.toUpperCase())
+}
+
+function HistoryDialog({
+  dialogRef,
+  facts,
+  state,
+  error,
+  hasMore,
+  onClose,
+  onSelect,
+  onRetry,
+  onLoadMore,
+}) {
+  return (
+    <dialog
+      className="history-dialog"
+      ref={dialogRef}
+      aria-labelledby="history-title"
+      onClick={(event) => event.target === event.currentTarget && onClose()}
+    >
+      <div className="history-panel">
+        <header className="history-header">
+          <div>
+            <h2 id="history-title">Previously discovered</h2>
+            <p>Facts already waiting in the index.</p>
+          </div>
+          <button type="button" className="history-close" onClick={onClose} aria-label="Close previous facts">
+            <CloseIcon />
+          </button>
+        </header>
+
+        <div className="history-content">
+          {state === 'loading' && (
+            <div className="history-loading" role="status">
+              <span aria-hidden="true" />
+              <p>Opening the previous pages…</p>
+            </div>
+          )}
+
+          {state === 'error' && (
+            <div className="history-message" role="alert">
+              <p>{error || 'The previous facts could not be opened.'}</p>
+              <button type="button" onClick={onRetry}>Try again</button>
+            </div>
+          )}
+
+          {state === 'ready' && facts.length === 0 && (
+            <div className="history-message">
+              <p>No facts have been discovered yet.</p>
+              <button type="button" onClick={onClose}>Start the first search</button>
+            </div>
+          )}
+
+          {facts.length > 0 && (
+            <ol className="history-list">
+              {facts.map((item, index) => {
+                const generatedAt = item.generated_at ? new Date(item.generated_at) : null
+                const readableDate = generatedAt && !Number.isNaN(generatedAt.valueOf())
+                  ? historyDate.format(generatedAt)
+                  : 'Earlier discovery'
+                return (
+                  <li key={`${item.generated_at || index}-${item.topic || 'fact'}`}>
+                    <button type="button" onClick={() => onSelect(item)}>
+                      <span className="history-item-meta">
+                        <span>{formatCategory(item.category)}</span>
+                        <time dateTime={item.generated_at || undefined}>{readableDate}</time>
+                      </span>
+                      <strong>{item.topic || 'Untitled discovery'}</strong>
+                      {item.headline_fact && <p>{item.headline_fact}</p>}
+                      <span className="history-item-arrow"><ArrowIcon /></span>
+                    </button>
+                  </li>
+                )
+              })}
+            </ol>
+          )}
+        </div>
+
+        {facts.length > 0 && (
+          <footer className="history-footer">
+            <span>{facts.length} {facts.length === 1 ? 'fact' : 'facts'} shown</span>
+            {hasMore && (
+              <button type="button" onClick={onLoadMore} disabled={state === 'loading-more'}>
+                {state === 'loading-more' ? 'Opening more…' : 'Load more'}
+              </button>
+            )}
+            {error && state === 'ready' && <span role="alert">{error}</span>}
+          </footer>
+        )}
+      </div>
+    </dialog>
+  )
+}
+
 function Meta({ fact }) {
   const values = [
     ['Year', fact.key_year],
@@ -108,99 +229,219 @@ function Meta({ fact }) {
   )
 }
 
-function ProseSection({ title, text, children, className = '' }) {
+function ChevronIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="m7 10 5 5 5-5" />
+    </svg>
+  )
+}
+
+function ReadingBlock({ title, text, children }) {
   if (!text && !children) return null
   return (
-    <section className={`prose-section ${className}`}>
-      <h2>{title}</h2>
+    <div className="reading-block">
+      {title && <h3>{title}</h3>}
       {text && <p>{text}</p>}
       {children}
-    </section>
+    </div>
+  )
+}
+
+function Disclosure({ title, description, children, open = false }) {
+  return (
+    <details className="disclosure" open={open}>
+      <summary>
+        <span>
+          <strong>{title}</strong>
+          <small>{description}</small>
+        </span>
+        <span className="disclosure-mark"><ChevronIcon /></span>
+      </summary>
+      <div className="disclosure-content">{children}</div>
+    </details>
   )
 }
 
 function FactView({ fact, categoryName, onReset }) {
+  const articleRef = useRef(null)
+  const [readingProgress, setReadingProgress] = useState(0)
   const breakdown = fact.in_depth_breakdown || {}
+  const hasContext = Boolean(fact.detailed_explanation || fact.history || fact.why_it_matters)
+  const hasMechanics = Boolean(
+    fact.how_it_works
+    || breakdown.scientific_or_technical_detail
+    || breakdown.key_mechanisms_or_types?.length
+    || breakdown.step_by_step_process?.length,
+  )
+  const hasWorld = Boolean(
+    breakdown.real_world_application || fact.impact_on_india || fact.cultural_significance,
+  )
+  const hasSurprises = Boolean(
+    breakdown.fascinating_trivia?.length || fact.common_misconceptions?.length,
+  )
+  const hasExplore = hasContext || hasMechanics || hasWorld || hasSurprises
+
+  useEffect(() => {
+    let frame
+    const updateProgress = () => {
+      const article = articleRef.current
+      if (!article) return
+      const start = article.offsetTop
+      const distance = Math.max(1, article.scrollHeight - window.innerHeight)
+      const next = Math.min(1, Math.max(0, (window.scrollY - start) / distance))
+      setReadingProgress(next)
+    }
+    const onScroll = () => {
+      window.cancelAnimationFrame(frame)
+      frame = window.requestAnimationFrame(updateProgress)
+    }
+    updateProgress()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => {
+      window.cancelAnimationFrame(frame)
+      window.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onScroll)
+    }
+  }, [])
 
   return (
-    <article className="fact-view">
+    <article className="fact-view" ref={articleRef}>
       <nav className="fact-nav" aria-label="Fact controls">
-        <span>{categoryName}</span>
+        <a href="#fact-top" className="fact-wordmark"><span aria-hidden="true" />Unknown Index</a>
+        <span className="fact-category">{categoryName}</span>
         <button type="button" onClick={onReset}>Search another topic</button>
+        <span className="reading-progress" aria-hidden="true">
+          <i style={{ transform: `scaleX(${readingProgress})` }} />
+        </span>
       </nav>
 
-      <header className="fact-hero">
+      <header className="fact-hero" id="fact-top">
         <h1>{fact.topic}</h1>
         <p>{fact.headline_fact}</p>
         <Meta fact={fact} />
       </header>
 
-      <div className="reading-line" aria-hidden="true"><span /></div>
+      <nav className="reading-nav" aria-label="On this page">
+        <span>Read</span>
+        <a href="#overview">Overview</a>
+        {hasExplore && <a href="#explore">Explore deeper</a>}
+        {fact.timeline?.length > 0 && <a href="#timeline">Timeline</a>}
+        {fact.learning_takeaways?.length > 0 && <a href="#remember">Remember</a>}
+      </nav>
 
       <div className="fact-body">
-        <ProseSection title="In a minute" text={fact.summary} className="opening" />
-        <ProseSection title="The deeper story" text={fact.detailed_explanation} />
-        <ProseSection title="How it began" text={fact.history} />
-        <ProseSection title="Why it matters" text={fact.why_it_matters} />
-        <ProseSection title="How it works" text={fact.how_it_works} />
-        <ProseSection title="Technical detail" text={breakdown.scientific_or_technical_detail} />
-        <ProseSection title="In the real world" text={breakdown.real_world_application} />
-        <ProseSection title="Impact on India" text={fact.impact_on_india} />
-        <ProseSection title="Cultural significance" text={fact.cultural_significance} />
+        <section className="fact-overview" id="overview">
+          <h2>The short version</h2>
+          <p>{fact.summary || fact.headline_fact}</p>
+        </section>
 
-        {breakdown.key_mechanisms_or_types?.length > 0 && (
-          <ProseSection title="Mechanisms and types">
-            <ul>{breakdown.key_mechanisms_or_types.map((item) => <li key={item}>{item}</li>)}</ul>
-          </ProseSection>
+        {(fact.quote || fact.key_figure || fact.key_stat) && (
+          <aside className="fact-signal">
+            {fact.quote && <blockquote>“{fact.quote}”</blockquote>}
+            {(fact.key_figure || fact.key_stat) && (
+              <dl>
+                {fact.key_figure && <div><dt>Key figure</dt><dd>{fact.key_figure}</dd></div>}
+                {fact.key_stat && <div><dt>Key statistic</dt><dd>{fact.key_stat}</dd></div>}
+              </dl>
+            )}
+          </aside>
         )}
-        {breakdown.fascinating_trivia?.length > 0 && (
-          <ProseSection title="Unexpected details">
-            <ul>{breakdown.fascinating_trivia.map((item) => <li key={item}>{item}</li>)}</ul>
-          </ProseSection>
-        )}
-        {fact.common_misconceptions?.length > 0 && (
-          <ProseSection title="Common misconceptions">
-            <ul>{fact.common_misconceptions.map((item) => <li key={item}>{item}</li>)}</ul>
-          </ProseSection>
-        )}
-        {breakdown.step_by_step_process?.length > 0 && (
-          <ProseSection title="How the pieces move">
-            <ol>{breakdown.step_by_step_process.map((item) => <li key={item}>{item}</li>)}</ol>
-          </ProseSection>
+
+        {hasExplore && (
+          <section className="explore-section" id="explore">
+            <div className="section-intro">
+              <h2>Explore deeper</h2>
+              <p>Open only the parts you want to follow.</p>
+            </div>
+            <div className="disclosure-list">
+              {hasContext && (
+                <Disclosure title="The story and its significance" description="Background, origins, and why this matters" open>
+                  <ReadingBlock title="The deeper story" text={fact.detailed_explanation} />
+                  <ReadingBlock title="How it began" text={fact.history} />
+                  <ReadingBlock title="Why it matters" text={fact.why_it_matters} />
+                </Disclosure>
+              )}
+              {hasMechanics && (
+                <Disclosure title="How it works" description="Mechanisms, technical detail, and process">
+                  <ReadingBlock text={fact.how_it_works} />
+                  <ReadingBlock title="Technical detail" text={breakdown.scientific_or_technical_detail} />
+                  {breakdown.key_mechanisms_or_types?.length > 0 && (
+                    <ReadingBlock title="Mechanisms and types">
+                      <ul>{breakdown.key_mechanisms_or_types.map((item) => <li key={item}>{item}</li>)}</ul>
+                    </ReadingBlock>
+                  )}
+                  {breakdown.step_by_step_process?.length > 0 && (
+                    <ReadingBlock title="The process">
+                      <ol className="process-list">{breakdown.step_by_step_process.map((item) => <li key={item}>{item}</li>)}</ol>
+                    </ReadingBlock>
+                  )}
+                </Disclosure>
+              )}
+              {hasWorld && (
+                <Disclosure title="In the world" description="Applications, India, and cultural context">
+                  <ReadingBlock title="Real-world application" text={breakdown.real_world_application} />
+                  <ReadingBlock title="Impact on India" text={fact.impact_on_india} />
+                  <ReadingBlock title="Cultural significance" text={fact.cultural_significance} />
+                </Disclosure>
+              )}
+              {hasSurprises && (
+                <Disclosure title="Surprises and misconceptions" description="The details that are easy to miss">
+                  {breakdown.fascinating_trivia?.length > 0 && (
+                    <ReadingBlock title="Unexpected details">
+                      <ul>{breakdown.fascinating_trivia.map((item) => <li key={item}>{item}</li>)}</ul>
+                    </ReadingBlock>
+                  )}
+                  {fact.common_misconceptions?.length > 0 && (
+                    <ReadingBlock title="Common misconceptions">
+                      <ul>{fact.common_misconceptions.map((item) => <li key={item}>{item}</li>)}</ul>
+                    </ReadingBlock>
+                  )}
+                </Disclosure>
+              )}
+            </div>
+          </section>
         )}
 
         {fact.timeline?.length > 0 && (
-          <section className="timeline-section">
-            <h2>Across time</h2>
-            <ol>{fact.timeline.map((item) => (
-              <li key={`${item.year}-${item.event}`}><time>{item.year}</time><p>{item.event}</p></li>
+          <section className="timeline-section" id="timeline">
+            <div className="section-intro">
+              <h2>Across time</h2>
+              <p>The moments that shaped this story.</p>
+            </div>
+            <ol className="timeline-track">{fact.timeline.map((item) => (
+              <li key={`${item.year}-${item.event}`}>
+                <span className="timeline-node" aria-hidden="true" />
+                <time>{item.year}</time>
+                <p>{item.event}</p>
+              </li>
             ))}</ol>
           </section>
         )}
 
         {fact.learning_takeaways?.length > 0 && (
-          <section className="takeaway-section">
-            <h2>What to remember</h2>
+          <section className="takeaway-section" id="remember">
+            <div className="section-intro">
+              <h2>Keep these with you</h2>
+              <p>The essential ideas, distilled.</p>
+            </div>
             <ul>{fact.learning_takeaways.map((item) => <li key={item}>{item}</li>)}</ul>
           </section>
         )}
 
-        {(fact.quote || fact.key_figure || fact.key_stat) && (
-          <aside className="fact-aside">
-            {fact.quote && <blockquote>“{fact.quote}”</blockquote>}
-            <div>
-              {fact.key_figure && <p><span>Key figure</span>{fact.key_figure}</p>}
-              {fact.key_stat && <p><span>Key statistic</span>{fact.key_stat}</p>}
-            </div>
-          </aside>
+        {fact.sources_or_references?.length > 0 && (
+          <details className="source-section">
+            <summary>Sources and references <span>{fact.sources_or_references.length}</span></summary>
+            <ul>{fact.sources_or_references.map((source) => <li key={source}>{source}</li>)}</ul>
+          </details>
         )}
 
-        {fact.sources_or_references?.length > 0 && (
-          <section className="source-section">
-            <h2>References returned with this fact</h2>
-            <ul>{fact.sources_or_references.map((source) => <li key={source}>{source}</li>)}</ul>
-          </section>
-        )}
+        <footer className="fact-end">
+          <span aria-hidden="true" />
+          <p>Curiosity is better when it continues.</p>
+          <button type="button" onClick={onReset}>Discover another fact <ArrowIcon /></button>
+        </footer>
       </div>
     </article>
   )
@@ -214,7 +455,13 @@ export default function App() {
   const [fact, setFact] = useState(null)
   const [error, setError] = useState('')
   const [elapsed, setElapsed] = useState(0)
+  const [historyFacts, setHistoryFacts] = useState([])
+  const [historyState, setHistoryState] = useState('idle')
+  const [historyError, setHistoryError] = useState('')
+  const [historyHasMore, setHistoryHasMore] = useState(false)
   const requestRef = useRef(null)
+  const historyRequestRef = useRef(null)
+  const historyDialogRef = useRef(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -244,7 +491,10 @@ export default function App() {
     return () => window.clearInterval(timer)
   }, [status])
 
-  useEffect(() => () => requestRef.current?.abort(), [])
+  useEffect(() => () => {
+    requestRef.current?.abort()
+    historyRequestRef.current?.abort()
+  }, [])
 
   const selectedCategory = useMemo(
     () => categories.find((category) => category.id === selectedId),
@@ -290,6 +540,47 @@ export default function App() {
     }
   }
 
+  async function loadHistory(append = false) {
+    historyRequestRef.current?.abort()
+    const controller = new AbortController()
+    historyRequestRef.current = controller
+    setHistoryState(append ? 'loading-more' : 'loading')
+    setHistoryError('')
+
+    try {
+      const result = await fetchHistory({
+        limit: 20,
+        skip: append ? historyFacts.length : 0,
+        signal: controller.signal,
+      })
+      setHistoryFacts((current) => append ? [...current, ...result.facts] : result.facts)
+      setHistoryHasMore(result.facts.length === 20)
+      setHistoryState('ready')
+    } catch (requestError) {
+      if (requestError.name === 'AbortError') return
+      setHistoryError(requestError.message || 'The previous facts could not be opened.')
+      setHistoryState(append && historyFacts.length ? 'ready' : 'error')
+    }
+  }
+
+  function openHistory() {
+    if (!historyDialogRef.current?.open) historyDialogRef.current?.showModal()
+    if (historyState === 'idle') loadHistory()
+  }
+
+  function closeHistory() {
+    historyDialogRef.current?.close()
+  }
+
+  function selectHistoryFact(item) {
+    setSelectedId(item.category || '')
+    setFact(item)
+    setError('')
+    setStatus('completed')
+    closeHistory()
+    window.scrollTo({ top: 0, behavior: 'smooth' })
+  }
+
   function reset() {
     requestRef.current?.abort()
     setStatus('idle')
@@ -324,6 +615,11 @@ export default function App() {
               onSubmit={handleSearch}
               loading={categoryState === 'loading'}
             />
+            <button type="button" className="history-trigger" onClick={openHistory}>
+              <HistoryIcon />
+              <span>Browse previous discoveries</span>
+              <ArrowIcon />
+            </button>
             {categoryState === 'fallback' && <p className="quiet-note">The live index is unavailable, so a smaller collection is shown.</p>}
             {error && <div className="error-message" role="alert"><strong>The search went dark.</strong><span>{error}</span></div>}
           </section>
@@ -332,8 +628,20 @@ export default function App() {
 
       <footer className="site-footer">
         <span>Generated when you ask</span>
-        <span>No account. No history.</span>
+        <span>No account required.</span>
       </footer>
+
+      <HistoryDialog
+        dialogRef={historyDialogRef}
+        facts={historyFacts}
+        state={historyState}
+        error={historyError}
+        hasMore={historyHasMore}
+        onClose={closeHistory}
+        onSelect={selectHistoryFact}
+        onRetry={() => loadHistory(false)}
+        onLoadMore={() => loadHistory(true)}
+      />
     </main>
   )
 }
