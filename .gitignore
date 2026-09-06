@@ -1,0 +1,14 @@
+node_modules/
+dist/
+*.tsbuildinfo
+.playwright-cli/
+output/playwright/
+vite.config.js
+vite.config.d.ts
+.agent
+.agents
+.claude
+.codex
+.gemini
+.impeccable
+.opencode
