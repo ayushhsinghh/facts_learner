@@ -1,15 +1,58 @@
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { fetchCategories, fetchHistory, getFactStatus, startFact } from './api.js'
 
 const FALLBACK_CATEGORIES = [
+  { id: 'food', name: 'Food' },
   { id: 'space', name: 'Space' },
   { id: 'history', name: 'History' },
+  { id: 'technology', name: 'Technology' },
   { id: 'science', name: 'Science' },
-  { id: 'nature', name: 'Nature' },
-  { id: 'food', name: 'Food' },
   { id: 'india', name: 'India' },
+  { id: 'country', name: 'Country' },
+  { id: 'indian_politics', name: 'Indian Politics' },
+  { id: 'indian_constitution', name: 'Indian Constitution' },
+  { id: 'indian_laws', name: 'Indian Laws' },
+  { id: 'nature', name: 'Nature' },
+  { id: 'medicine', name: 'Medicine' },
+  { id: 'economics', name: 'Economics' },
+  { id: 'geography', name: 'Geography' },
+  { id: 'culture', name: 'Culture' },
+  { id: 'mathematics', name: 'Mathematics' },
+  { id: 'psychology', name: 'Psychology' },
+  { id: 'fashion', name: 'Fashion' },
+  { id: 'art', name: 'Art' },
+  { id: 'architecture', name: 'Architecture' },
+  { id: 'music', name: 'Music' },
+  { id: 'sports', name: 'Sports' },
+  { id: 'defense', name: 'Defense' },
+  { id: 'languages', name: 'Languages' },
+  { id: 'mythology', name: 'Mythology' },
+  { id: 'agriculture', name: 'Agriculture' },
+  { id: 'transport', name: 'Transport' },
+  { id: 'cinema', name: 'Cinema' },
+  { id: 'philosophy', name: 'Philosophy' },
 ]
+
+const CATEGORY_GROUPS = [
+  { label: 'Science & discovery', ids: ['space', 'science', 'technology', 'medicine', 'nature', 'mathematics', 'psychology'] },
+  { label: 'Places & society', ids: ['india', 'country', 'geography', 'economics', 'agriculture', 'transport', 'defense', 'sports'] },
+  { label: 'India & public life', ids: ['indian_politics', 'indian_constitution', 'indian_laws'] },
+  { label: 'Culture & ideas', ids: ['history', 'culture', 'languages', 'mythology', 'philosophy'] },
+  { label: 'Arts & everyday life', ids: ['food', 'fashion', 'art', 'architecture', 'music', 'cinema'] },
+]
+
+function groupCategories(categories) {
+  const byId = new Map(categories.map((category) => [category.id, category]))
+  const groups = CATEGORY_GROUPS.map((group) => ({
+    label: group.label,
+    items: group.ids.map((id) => byId.get(id)).filter(Boolean),
+  })).filter((group) => group.items.length)
+  const groupedIds = new Set(CATEGORY_GROUPS.flatMap((group) => group.ids))
+  const more = categories.filter((category) => !groupedIds.has(category.id))
+  if (more.length) groups.push({ label: 'More subjects', items: more })
+  return groups
+}
 
 function wait(ms, signal) {
   return new Promise((resolve, reject) => {
@@ -120,27 +163,33 @@ function MarkdownContent({ children }) {
 }
 
 function SearchForm({ categories, selectedId, setSelectedId, onSubmit, loading }) {
+  const groups = groupCategories(categories)
+
   return (
     <form className="search-form" onSubmit={onSubmit}>
-      <label htmlFor="category">Choose a topic</label>
+      <button type="submit" disabled={loading || categories.length === 0}>
+        <span>Tell me a fact</span>
+        <ArrowIcon />
+      </button>
       <div className="search-control">
+        <label className="sr-only" htmlFor="category">Choose a category</label>
         <select
           id="category"
           value={selectedId}
           onChange={(event) => setSelectedId(event.target.value)}
           disabled={loading}
         >
-          <option value="">Select a category</option>
-          {categories.map((category) => (
-            <option key={category.id} value={category.id}>{category.name}</option>
+          <option value="">Any category</option>
+          {groups.map((group) => (
+            <optgroup key={group.label} label={group.label}>
+              {group.items.map((category) => (
+                <option key={category.id} value={category.id}>{category.name}</option>
+              ))}
+            </optgroup>
           ))}
         </select>
         <span className="select-mark" aria-hidden="true" />
       </div>
-      <button type="submit" disabled={!selectedId || loading}>
-        <span>Find me a fact</span>
-        <ArrowIcon />
-      </button>
     </form>
   )
 }
@@ -197,6 +246,8 @@ function HistoryDialog({
   onRetry,
   onLoadMore,
 }) {
+  const categoryGroups = groupCategories(categories)
+
   return (
     <dialog
       className="history-dialog"
@@ -225,8 +276,12 @@ function HistoryDialog({
               disabled={state === 'loading' || state === 'loading-more'}
             >
               <option value="">All categories</option>
-              {categories.map((item) => (
-                <option key={item.id} value={item.id}>{item.name}</option>
+              {categoryGroups.map((group) => (
+                <optgroup key={group.label} label={group.label}>
+                  {group.items.map((item) => (
+                    <option key={item.id} value={item.id}>{item.name}</option>
+                  ))}
+                </optgroup>
               ))}
             </select>
             <span className="select-mark" aria-hidden="true" />
@@ -356,7 +411,7 @@ function Disclosure({ title, description, children, open = false }) {
   )
 }
 
-function FactView({ fact, categoryName, onReset }) {
+function FactView({ fact, onReset }) {
   const articleRef = useRef(null)
   const [readingProgress, setReadingProgress] = useState(0)
   const [copyStatus, setCopyStatus] = useState('idle')
@@ -416,16 +471,16 @@ function FactView({ fact, categoryName, onReset }) {
 
   return (
     <article className="fact-view" ref={articleRef}>
+      <span className="reading-progress" aria-hidden="true">
+        <i style={{ transform: `scaleX(${readingProgress})` }} />
+      </span>
       <nav className="fact-nav" aria-label="Fact controls">
         <a href="/" className="fact-wordmark"><span aria-hidden="true" />The Curiosity Archive</a>
         <span className="fact-category">
           {fact.emoji_icon && <span className="fact-emoji" aria-hidden="true">{fact.emoji_icon}</span>}
-          {categoryName}
+          {formatCategory(fact.category)}
         </span>
         <button type="button" onClick={onReset}>Search another topic</button>
-        <span className="reading-progress" aria-hidden="true">
-          <i style={{ transform: `scaleX(${readingProgress})` }} />
-        </span>
       </nav>
 
       <header className="fact-hero" id="fact-top">
@@ -610,6 +665,7 @@ export default function App() {
   const [fact, setFact] = useState(null)
   const [error, setError] = useState('')
   const [elapsed, setElapsed] = useState(0)
+  const [activeCategoryName, setActiveCategoryName] = useState('')
   const [historyFacts, setHistoryFacts] = useState([])
   const [historyState, setHistoryState] = useState('idle')
   const [historyError, setHistoryError] = useState('')
@@ -652,14 +708,14 @@ export default function App() {
     historyRequestRef.current?.abort()
   }, [])
 
-  const selectedCategory = useMemo(
-    () => categories.find((category) => category.id === selectedId),
-    [categories, selectedId],
-  )
-
   async function handleSearch(event) {
     event.preventDefault()
-    if (!selectedId || status === 'processing') return
+    if (!categories.length || status === 'processing') return
+
+    const category = selectedId
+      ? categories.find((item) => item.id === selectedId)
+      : categories[Math.floor(Math.random() * categories.length)]
+    if (!category) return
 
     requestRef.current?.abort()
     const controller = new AbortController()
@@ -668,9 +724,10 @@ export default function App() {
     setError('')
     setFact(null)
     setElapsed(0)
+    setActiveCategoryName(category.name || formatCategory(category.id))
 
     try {
-      const job = await startFact(selectedId, controller.signal)
+      const job = await startFact(category.id, controller.signal)
       if (!job?.job_id) throw new Error('The search began without a traceable job. Please try again.')
 
       while (!controller.signal.aborted) {
@@ -751,10 +808,11 @@ export default function App() {
     setFact(null)
     setError('')
     setElapsed(0)
+    setActiveCategoryName('')
   }
 
   if (status === 'completed' && fact) {
-    return <FactView fact={fact} categoryName={selectedCategory?.name || fact.category} onReset={reset} />
+    return <FactView fact={fact} onReset={reset} />
   }
 
   return (
@@ -767,11 +825,10 @@ export default function App() {
 
       <div className="center-stage">
         {status === 'processing' ? (
-          <SearchRitual categoryName={selectedCategory?.name || 'the unknown'} elapsed={elapsed} />
+          <SearchRitual categoryName={activeCategoryName || 'the unknown'} elapsed={elapsed} />
         ) : (
           <section className="discovery-intro">
             <h1>What are you curious about?</h1>
-            <p>Choose a subject. We’ll search beyond the obvious and return with one fact worth keeping.</p>
             <SearchForm
               categories={categories}
               selectedId={selectedId}

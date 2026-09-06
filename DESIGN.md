@@ -150,9 +150,9 @@ Near-black and mineral-white establish the nocturnal index. Restrained blue-viol
 
 The discovery surface fills at least one small viewport height and centers a single column within an `820px` maximum. Header and footer are pinned to the viewport edges with fluid inline padding; the category form narrows to `600px` and uses a two-column select/action arrangement on wide screens. Ambient geometry may cross the composition, but it is fixed behind content and never participates in interaction.
 
-The fact reveal uses a sticky `68px` navigation bar, a compact anchored contents strip, a dark full-width hero, and a warm reading canvas capped at `920px`. The one-minute summary, a compact “Did you know?” note, and key evidence stay visible. Long material is grouped into four closed semantic native disclosures so the reader chooses the depth: story, mechanics, world context, and surprises. API-authored Markdown is normalized at the rendering boundary so escaped line breaks become real headings, paragraphs, and lists. The timeline uses a dedicated date gutter beside an uninterrupted event rail, keeping long historical ranges separate from its line and markers. Takeaways, taxonomy, share copy, metadata, quotations, and references remain part of this single document flow rather than becoming cards.
+The fact reveal starts with a static `68px` utility header, followed by a dark full-width hero, a compact in-flow contents strip, and a warm reading canvas capped at `920px`. The header is visible only at the document top and scrolls away normally; a two-pixel reading-progress line is the sole fixed element. The one-minute summary, a compact “Did you know?” note, and key evidence stay visible. Long material is grouped into four closed semantic native disclosures so the reader chooses the depth: story, mechanics, world context, and surprises. API-authored Markdown is normalized at the rendering boundary so escaped line breaks become real headings, paragraphs, and lists. The timeline uses a dedicated date gutter beside an uninterrupted event rail, keeping long historical ranges separate from its line and markers. Takeaways, taxonomy, share copy, metadata, quotations, and references remain part of this single document flow rather than becoming cards.
 
-At `720px` and below, the header's secondary phrase is removed, the search controls stack, progress details become one column, and the anchored contents strip scrolls horizontally. Fact metadata wraps, disclosures retain full-width tap targets, takeaway and taxonomy items become one column, timelines reduce their year rail, and the dark evidence and share insets deliberately bleed to the reading canvas edges. Minimum page width is `320px`; principal horizontal content padding is `20px`–`24px` on small screens.
+At `720px` and below, the discovery header's secondary phrase is removed, the search controls stack, progress details become one column, and the in-flow contents strip scrolls horizontally. Fact metadata wraps, disclosures retain full-width tap targets, takeaway and taxonomy items become one column, timelines reduce their year rail, and the dark evidence and share insets deliberately bleed to the reading canvas edges. Minimum page width is `320px`; principal horizontal content padding is `20px`–`24px` on small screens.
 
 **The Center-to-Column Rule.** The journey begins as a centered moment and resolves into a vertically paced reading document; do not introduce sidebars, card grids, or persistent multi-panel navigation.
 
@@ -185,10 +185,11 @@ Controls use gently rounded `12px` corners and rectangular proportions. Signatur
 
 ### Category Select
 
-- **Style:** Raised Night fill, a one-pixel slate border, Mineral Paper text, and a custom cold-blue diamond chevron.
-- **Shape:** Matches the button at `64px` high with `12px` corners.
+- **Role:** Category is an optional preference, never a gate. The centered “Tell me a fact” action leads; a compact “Any category” select beneath it randomly chooses from the current API response unless the visitor specifies a subject. Categories are grouped into readable domains, with unknown future API categories retained under “More subjects.”
+- **Style:** The small secondary select uses Raised Night fill, a one-pixel slate border, Mineral Paper text, and a custom cold-blue diamond chevron. It relies on direct control copy rather than explanatory text.
+- **Shape:** The primary action is `64px` high; the category control is deliberately quieter at `42px`. Both use `12px` corners.
 - **Focus:** All selects, buttons, and links receive a `2px` Cold Signal outline offset by `5px`.
-- **Disabled:** Reduce opacity to `0.6` and communicate waiting with the cursor.
+- **Disabled:** While categories load, reduce opacity to `0.6` and communicate waiting with the cursor. Once loaded, the primary “Tell me a fact” action is enabled whether or not a custom subject is chosen.
 
 ### Previous Discoveries Trigger and Index
 
