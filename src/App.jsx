@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react'
+import ReactMarkdown from 'react-markdown'
 import { fetchCategories, fetchHistory, getFactStatus, startFact } from './api.js'
 
 const FALLBACK_CATEGORIES = [
@@ -242,7 +243,7 @@ function ReadingBlock({ title, text, children }) {
   return (
     <div className="reading-block">
       {title && <h3>{title}</h3>}
-      {text && <p>{text}</p>}
+      {text && <ReactMarkdown>{text}</ReactMarkdown>}
       {children}
     </div>
   )

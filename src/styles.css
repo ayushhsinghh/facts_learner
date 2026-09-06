@@ -176,6 +176,7 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
 .reading-block + .reading-block { margin-top: 38px; padding-top: 36px; border-top: 1px solid #d7d7d2; }
 .reading-block h3 { margin: 0 0 12px; color: #252b36; font: 400 1.25rem/1.25 var(--serif); }
 .reading-block p, .reading-block li { margin: 0; color: #4a505b; font-size: 1rem; line-height: 1.78; }
+.reading-block p + p { margin-top: 1em; }
 .reading-block ul, .reading-block ol { margin: 0; padding-left: 1.25rem; }
 .reading-block li + li { margin-top: 12px; }
 .process-list { list-style: decimal; }
