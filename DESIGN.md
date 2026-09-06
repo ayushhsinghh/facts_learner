@@ -212,6 +212,7 @@ Controls use gently rounded `12px` corners and rectangular proportions. Signatur
 ### Fact Metadata and Reading Sections
 
 - **Style:** Metadata uses compact uppercase labels and serif values above a hairline. The summary remains open; secondary text is organized into native `<details>` elements with clear titles, scope hints, circular chevrons, and a pale indigo open state.
+- **Paragraph narration:** Factual paragraphs end with a discreet circular speaker control instead of using a page-level player. Playback begins only from that control, highlights the active sentence directly in the original paragraph, and stops when the same control is pressed again, another paragraph starts, or the reader leaves the fact.
 - **Responsive:** Metadata wraps naturally; every disclosure retains a large tap target and its content returns to the full reading width below `720px`.
 
 ### Reading Timeline

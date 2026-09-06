@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useId, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { fetchCategories, fetchHistory, getFactStatus, startFact } from './api.js'
 
@@ -108,26 +108,11 @@ function CopyIcon() {
   )
 }
 
-function PlayIcon() {
+function SpeakerIcon({ active = false }) {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m9 6 9 6-9 6V6Z" />
-    </svg>
-  )
-}
-
-function PauseIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M9 7v10M15 7v10" />
-    </svg>
-  )
-}
-
-function StopIcon() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <rect x="7" y="7" width="10" height="10" rx="1" />
+      <path d="M5 10v4h3l4 3V7l-4 3H5Z" />
+      {active ? <path d="M16 9v6M19 10.5v3" /> : <path d="M15.5 9.5a4 4 0 0 1 0 5M18 7a7 7 0 0 1 0 10" />}
     </svg>
   )
 }
@@ -146,219 +131,15 @@ function normalizeMarkdown(value) {
     .trim()
 }
 
-function markdownToSpeech(value) {
-  return normalizeMarkdown(value)
-    .replace(/!\[([^\]]*)\]\([^)]+\)/g, '$1')
-    .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
-    .replace(/^#{1,6}\s+/gm, '')
-    .replace(/[`*_>~]/g, '')
-    .replace(/^\s*[-+]\s+/gm, '')
-    .replace(/^\s*\d+[.)]\s+/gm, '')
-    .replace(/\s+/g, ' ')
-    .trim()
-}
-
-function joinSpeechParts(parts) {
-  return parts.map(markdownToSpeech).filter(Boolean).join(' ')
-}
-
-function splitIntoSentences(text) {
+function getSentenceRanges(text) {
   if (!text) return []
-  return text.match(/[^.!?]+(?:[.!?]+[”"']?|$)/g)?.map((part) => part.trim()).filter(Boolean) || [text]
-}
-
-function getNarrationSections(fact) {
-  const breakdown = fact.in_depth_breakdown || {}
-  const sections = [
-    {
-      id: 'short',
-      label: 'The short version',
-      text: joinSpeechParts([fact.headline_fact, fact.summary]),
-    },
-    {
-      id: 'story',
-      label: 'The story',
-      text: joinSpeechParts([fact.detailed_explanation, fact.history, fact.why_it_matters]),
-    },
-    {
-      id: 'mechanics',
-      label: 'How it works',
-      text: joinSpeechParts([
-        fact.core_mechanics || fact.how_it_works,
-        breakdown.scientific_or_technical_detail,
-        ...(breakdown.key_mechanisms_or_types || []),
-        ...(breakdown.step_by_step_process || []),
-      ]),
-    },
-    {
-      id: 'world',
-      label: 'In the world',
-      text: joinSpeechParts([
-        breakdown.real_world_application,
-        fact.impact_on_india,
-        fact.cultural_significance,
-        fact.global_comparison,
-      ]),
-    },
-    {
-      id: 'surprises',
-      label: 'Surprises',
-      text: joinSpeechParts([
-        fact.did_you_know,
-        ...(breakdown.fascinating_trivia || []),
-        ...(fact.common_misconceptions || []),
-      ]),
-    },
-    {
-      id: 'timeline',
-      label: 'Across time',
-      text: joinSpeechParts((fact.timeline || []).map((item) => `${item.year}. ${item.event}`)),
-    },
-    {
-      id: 'takeaways',
-      label: 'Key takeaways',
-      text: joinSpeechParts(fact.learning_takeaways || []),
-    },
-  ]
-
-  return sections.filter((section) => section.text)
-}
-
-function VoiceReader({ fact, onStopRef }) {
-  const sections = getNarrationSections(fact)
-  const [sectionId, setSectionId] = useState(sections[0]?.id || '')
-  const [playbackState, setPlaybackState] = useState('idle')
-  const [activeSentence, setActiveSentence] = useState(-1)
-  const [error, setError] = useState('')
-  const runRef = useRef(0)
-  const selected = sections.find((section) => section.id === sectionId) || sections[0]
-  const sentences = splitIntoSentences(selected?.text)
-
-  function stop() {
-    runRef.current += 1
-    window.responsiveVoice?.cancel()
-    setPlaybackState('idle')
-    setActiveSentence(-1)
-  }
-
-  function speakSentence(index, run) {
-    if (run !== runRef.current) return
-    if (index >= sentences.length) {
-      setPlaybackState('finished')
-      setActiveSentence(-1)
-      return
-    }
-
-    window.responsiveVoice.speak(sentences[index], 'UK English Female', {
-      onstart: () => {
-        if (run === runRef.current) {
-          setActiveSentence(index)
-          setPlaybackState('playing')
-        }
-      },
-      onend: () => speakSentence(index + 1, run),
-      onerror: () => {
-        if (run !== runRef.current) return
-        setPlaybackState('error')
-        setError('Audio could not start. Check your connection and try again.')
-      },
-    })
-  }
-
-  function listen() {
-    if (!window.responsiveVoice) {
-      setPlaybackState('error')
-      setError('The voice reader did not load. Refresh the page and try again.')
-      return
-    }
-    stop()
-    const run = runRef.current
-    setError('')
-    setPlaybackState('loading')
-    speakSentence(0, run)
-  }
-
-  function togglePause() {
-    if (playbackState === 'paused') {
-      window.responsiveVoice?.resume()
-      setPlaybackState('playing')
-    } else {
-      window.responsiveVoice?.pause()
-      setPlaybackState('paused')
-    }
-  }
-
-  useEffect(() => {
-    onStopRef.current = stop
-    const cancelOnPageExit = () => {
-      runRef.current += 1
-      window.responsiveVoice?.cancel()
-    }
-    window.addEventListener('pagehide', cancelOnPageExit)
-    return () => {
-      runRef.current += 1
-      window.responsiveVoice?.cancel()
-      window.removeEventListener('pagehide', cancelOnPageExit)
-      onStopRef.current = null
-    }
-  }, [onStopRef])
-
-  useEffect(() => {
-    stop()
-  }, [fact])
-
-  if (!selected) return null
-
-  const isActive = ['loading', 'playing', 'paused'].includes(playbackState)
-
-  return (
-    <section className="voice-reader" aria-labelledby="voice-reader-title">
-      <div className="voice-reader-heading">
-        <h2 id="voice-reader-title">Listen</h2>
-        <span aria-live="polite">
-          {playbackState === 'loading' ? 'Preparing audio' : playbackState === 'playing' ? 'Reading' : playbackState === 'paused' ? 'Paused' : playbackState === 'finished' ? 'Finished' : ''}
-        </span>
-      </div>
-      <div className="voice-reader-controls">
-        <label>
-          <span className="sr-only">Section to read</span>
-          <select
-            value={sectionId}
-            onChange={(event) => {
-              stop()
-              setSectionId(event.target.value)
-            }}
-          >
-            {sections.map((section) => <option key={section.id} value={section.id}>{section.label}</option>)}
-          </select>
-        </label>
-        {!isActive && (
-          <button type="button" className="voice-reader-primary" onClick={listen}>
-            <PlayIcon /> <span>{playbackState === 'finished' ? 'Listen again' : 'Listen'}</span>
-          </button>
-        )}
-        {isActive && (
-          <>
-            <button type="button" className="voice-reader-primary" onClick={togglePause} disabled={playbackState === 'loading'}>
-              {playbackState === 'paused' ? <PlayIcon /> : <PauseIcon />}
-              <span>{playbackState === 'paused' ? 'Resume' : 'Pause'}</span>
-            </button>
-            <button type="button" className="voice-reader-stop" onClick={stop} aria-label="Stop listening">
-              <StopIcon /> <span>Stop</span>
-            </button>
-          </>
-        )}
-      </div>
-      {error && <p className="voice-reader-error" role="alert">{error}</p>}
-      {isActive && (
-        <p className="voice-reader-transcript" aria-label={`Transcript for ${selected.label}`}>
-          {sentences.map((sentence, index) => (
-            <span key={`${index}-${sentence.slice(0, 24)}`} className={index === activeSentence ? 'is-reading' : ''}>{sentence}{' '}</span>
-          ))}
-        </p>
-      )}
-    </section>
-  )
+  const expression = /[^.!?]+(?:[.!?]+[”"']?|$)/g
+  return [...text.matchAll(expression)].map((match) => {
+    const leadingSpace = match[0].search(/\S/)
+    const value = match[0].trim()
+    const start = match.index + Math.max(0, leadingSpace)
+    return { text: value, start, end: start + value.length }
+  }).filter((sentence) => sentence.text)
 }
 
 function MarkdownHeading({ children }) {
@@ -389,12 +170,94 @@ const MARKDOWN_COMPONENTS = {
   a: MarkdownLink,
 }
 
-function MarkdownContent({ children }) {
+function highlightSentence(root, sentence) {
+  if (!root || !sentence || !window.CSS?.highlights || typeof window.Highlight !== 'function') return
+  const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT)
+  const range = document.createRange()
+  let node = walker.nextNode()
+  let offset = 0
+  let startNode = null
+  let startOffset = 0
+  let endNode = null
+  let endOffset = 0
+
+  while (node) {
+    const nextOffset = offset + node.textContent.length
+    if (!startNode && sentence.start >= offset && sentence.start <= nextOffset) {
+      startNode = node
+      startOffset = Math.min(node.textContent.length, sentence.start - offset)
+    }
+    if (sentence.end >= offset && sentence.end <= nextOffset) {
+      endNode = node
+      endOffset = Math.min(node.textContent.length, sentence.end - offset)
+      break
+    }
+    offset = nextOffset
+    node = walker.nextNode()
+  }
+
+  if (!startNode || !endNode) return
+  range.setStart(startNode, startOffset)
+  range.setEnd(endNode, endOffset)
+  window.CSS.highlights.set('spoken-text', new window.Highlight(range))
+}
+
+function NarratedParagraph({ paragraphId, narration, children, ...props }) {
+  const paragraphRef = useRef(null)
+  const active = narration?.paragraphId === paragraphId
+  const sentence = active ? narration.sentences[narration.sentenceIndex] : null
+  const reading = active && ['loading', 'playing'].includes(narration.status)
+  const hasRangeHighlight = typeof window !== 'undefined'
+    && Boolean(window.CSS?.highlights)
+    && typeof window.Highlight === 'function'
+
+  useEffect(() => {
+    if (!active || !sentence) return undefined
+    highlightSentence(paragraphRef.current, sentence)
+    return () => window.CSS?.highlights?.delete('spoken-text')
+  }, [active, sentence])
+
+  return (
+    <p ref={paragraphRef} className={`narrated-paragraph${active ? ' is-active' : ''}${hasRangeHighlight ? ' has-range-highlight' : ''}`} {...props}>
+      {children}
+      {narration && (
+        <button
+          type="button"
+          className="paragraph-listen"
+          onClick={() => narration.toggle(paragraphId, paragraphRef.current?.textContent || '')}
+          aria-label={reading ? 'Stop reading this paragraph' : 'Listen to this paragraph'}
+          aria-pressed={reading}
+          title={reading ? 'Stop reading' : 'Listen to this paragraph'}
+        >
+          <SpeakerIcon active={reading} />
+        </button>
+      )}
+    </p>
+  )
+}
+
+function MarkdownContent({ children, narration }) {
+  const contentId = useId()
+  const components = narration
+    ? {
+        ...MARKDOWN_COMPONENTS,
+        p: ({ node, children: paragraphChildren, ...props }) => (
+          <NarratedParagraph
+            paragraphId={`${contentId}-${node?.position?.start?.offset || 0}`}
+            narration={narration}
+            {...props}
+          >
+            {paragraphChildren}
+          </NarratedParagraph>
+        ),
+      }
+    : MARKDOWN_COMPONENTS
+
   return (
     <ReactMarkdown
       allowedElements={MARKDOWN_ELEMENTS}
       unwrapDisallowed
-      components={MARKDOWN_COMPONENTS}
+      components={components}
     >
       {normalizeMarkdown(children)}
     </ReactMarkdown>
@@ -624,12 +487,12 @@ function ChevronIcon() {
   )
 }
 
-function ReadingBlock({ title, text, children }) {
+function ReadingBlock({ title, text, children, narration }) {
   if (!text && !children) return null
   return (
     <div className="reading-block">
       {title && <h3>{title}</h3>}
-      {text && <MarkdownContent>{text}</MarkdownContent>}
+      {text && <MarkdownContent narration={narration}>{text}</MarkdownContent>}
       {children}
     </div>
   )
@@ -653,8 +516,16 @@ function Disclosure({ title, description, children, open = false }) {
 function FactView({ fact, onReset }) {
   const articleRef = useRef(null)
   const stopVoiceRef = useRef(null)
+  const speechRunRef = useRef(0)
   const [readingProgress, setReadingProgress] = useState(0)
   const [copyStatus, setCopyStatus] = useState('idle')
+  const [narrationState, setNarrationState] = useState({
+    paragraphId: null,
+    status: 'idle',
+    sentenceIndex: -1,
+    sentences: [],
+    error: '',
+  })
   const breakdown = fact.in_depth_breakdown || {}
   const storyText = fact.detailed_explanation
   const mechanicsText = fact.core_mechanics || fact.how_it_works
@@ -674,6 +545,75 @@ function FactView({ fact, onReset }) {
   )
   const hasExplore = hasContext || hasMechanics || hasWorld || hasSurprises
   const hasTaxonomy = fact.tags?.length > 0 || fact.related_categories?.length > 0
+
+  function stopNarration() {
+    speechRunRef.current += 1
+    window.responsiveVoice?.cancel()
+    window.CSS?.highlights?.delete('spoken-text')
+    setNarrationState({ paragraphId: null, status: 'idle', sentenceIndex: -1, sentences: [], error: '' })
+  }
+
+  function toggleNarration(paragraphId, paragraphText) {
+    if (narrationState.paragraphId === paragraphId && ['loading', 'playing'].includes(narrationState.status)) {
+      stopNarration()
+      return
+    }
+
+    if (!window.responsiveVoice) {
+      setNarrationState({
+        paragraphId,
+        status: 'error',
+        sentenceIndex: -1,
+        sentences: [],
+        error: 'The voice reader did not load. Refresh the page and try again.',
+      })
+      return
+    }
+
+    const text = paragraphText.trim()
+    const sentences = getSentenceRanges(text)
+    if (!sentences.length) return
+
+    speechRunRef.current += 1
+    const run = speechRunRef.current
+    window.responsiveVoice.cancel()
+    setNarrationState({ paragraphId, status: 'loading', sentenceIndex: -1, sentences, error: '' })
+
+    const speakSentence = (index) => {
+      if (run !== speechRunRef.current) return
+      if (index >= sentences.length) {
+        window.CSS?.highlights?.delete('spoken-text')
+        setNarrationState({ paragraphId: null, status: 'idle', sentenceIndex: -1, sentences: [], error: '' })
+        return
+      }
+
+      window.responsiveVoice.speak(sentences[index].text, 'UK English Female', {
+        onstart: () => {
+          if (run !== speechRunRef.current) return
+          setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
+        },
+        onend: () => speakSentence(index + 1),
+        onerror: () => {
+          if (run !== speechRunRef.current) return
+          window.CSS?.highlights?.delete('spoken-text')
+          setNarrationState({
+            paragraphId,
+            status: 'error',
+            sentenceIndex: -1,
+            sentences,
+            error: 'This paragraph could not be played. Check your connection and try again.',
+          })
+        },
+      })
+    }
+
+    speakSentence(0)
+  }
+
+  const narration = {
+    ...narrationState,
+    toggle: toggleNarration,
+  }
 
   function leaveFact() {
     stopVoiceRef.current?.()
@@ -714,6 +654,22 @@ function FactView({ fact, onReset }) {
     }
   }, [])
 
+  useEffect(() => {
+    stopVoiceRef.current = stopNarration
+    const cancelOnPageExit = () => {
+      speechRunRef.current += 1
+      window.responsiveVoice?.cancel()
+    }
+    window.addEventListener('pagehide', cancelOnPageExit)
+    return () => {
+      speechRunRef.current += 1
+      window.responsiveVoice?.cancel()
+      window.CSS?.highlights?.delete('spoken-text')
+      window.removeEventListener('pagehide', cancelOnPageExit)
+      stopVoiceRef.current = null
+    }
+  }, [fact])
+
   return (
     <article className="fact-view" ref={articleRef}>
       <span className="reading-progress" aria-hidden="true">
@@ -730,7 +686,7 @@ function FactView({ fact, onReset }) {
 
       <header className="fact-hero" id="fact-top">
         <h1>{fact.topic}</h1>
-        <p>{fact.headline_fact}</p>
+        <NarratedParagraph paragraphId="headline" narration={narration}>{fact.headline_fact}</NarratedParagraph>
         <Meta fact={fact} />
       </header>
 
@@ -743,17 +699,15 @@ function FactView({ fact, onReset }) {
       </nav>
 
       <div className="fact-body">
-        <VoiceReader fact={fact} onStopRef={stopVoiceRef} />
-
         <section className="fact-overview" id="overview">
           <h2>The short version</h2>
-          <MarkdownContent>{fact.summary || fact.headline_fact}</MarkdownContent>
+          <MarkdownContent narration={narration}>{fact.summary || fact.headline_fact}</MarkdownContent>
         </section>
 
         {fact.did_you_know && (
           <aside className="did-you-know">
             <h2>Did you know?</h2>
-            <div><MarkdownContent>{fact.did_you_know}</MarkdownContent></div>
+            <div><MarkdownContent narration={narration}>{fact.did_you_know}</MarkdownContent></div>
           </aside>
         )}
 
@@ -778,15 +732,15 @@ function FactView({ fact, onReset }) {
             <div className="disclosure-list">
               {hasContext && (
                 <Disclosure title="The story and its significance" description="Background, origins, and why this matters">
-                  <ReadingBlock title="The full story" text={storyText} />
-                  <ReadingBlock title="How it began" text={fact.history} />
-                  <ReadingBlock title="Why it matters" text={fact.why_it_matters} />
+                  <ReadingBlock title="The full story" text={storyText} narration={narration} />
+                  <ReadingBlock title="How it began" text={fact.history} narration={narration} />
+                  <ReadingBlock title="Why it matters" text={fact.why_it_matters} narration={narration} />
                 </Disclosure>
               )}
               {hasMechanics && (
                 <Disclosure title="How it works" description="Mechanisms, variants, and step-by-step detail">
-                  <ReadingBlock text={mechanicsText} />
-                  <ReadingBlock title="Technical detail" text={technicalText} />
+                  <ReadingBlock text={mechanicsText} narration={narration} />
+                  <ReadingBlock title="Technical detail" text={technicalText} narration={narration} />
                   {breakdown.key_mechanisms_or_types?.length > 0 && (
                     <ReadingBlock title="Mechanisms and types">
                       <ul>{breakdown.key_mechanisms_or_types.map((item) => <li key={item}>{item}</li>)}</ul>
@@ -801,10 +755,10 @@ function FactView({ fact, onReset }) {
               )}
               {hasWorld && (
                 <Disclosure title="In the world" description="Applications, regions, and cultural context">
-                  <ReadingBlock title="Real-world application" text={breakdown.real_world_application} />
-                  <ReadingBlock title="Impact on India" text={fact.impact_on_india} />
-                  <ReadingBlock title="Cultural significance" text={fact.cultural_significance} />
-                  <ReadingBlock title="Global comparison" text={fact.global_comparison} />
+                  <ReadingBlock title="Real-world application" text={breakdown.real_world_application} narration={narration} />
+                  <ReadingBlock title="Impact on India" text={fact.impact_on_india} narration={narration} />
+                  <ReadingBlock title="Cultural significance" text={fact.cultural_significance} narration={narration} />
+                  <ReadingBlock title="Global comparison" text={fact.global_comparison} narration={narration} />
                 </Disclosure>
               )}
               {hasSurprises && (
@@ -819,7 +773,7 @@ function FactView({ fact, onReset }) {
                       <ul>{fact.common_misconceptions.map((item) => <li key={item}>{item}</li>)}</ul>
                     </ReadingBlock>
                   )}
-                  <ReadingBlock title="Picture the idea" text={fact.visual_suggestion} />
+                  <ReadingBlock title="Picture the idea" text={fact.visual_suggestion} narration={narration} />
                 </Disclosure>
               )}
             </div>
@@ -837,7 +791,7 @@ function FactView({ fact, onReset }) {
                 <time>{item.year}</time>
                 <div className="timeline-entry">
                   <span className="timeline-node" aria-hidden="true" />
-                  <p>{item.event}</p>
+                  <NarratedParagraph paragraphId={`timeline-${item.year}-${item.event}`} narration={narration}>{item.event}</NarratedParagraph>
                 </div>
               </li>
             ))}</ol>
@@ -899,6 +853,7 @@ function FactView({ fact, onReset }) {
           <p>Curiosity is better when it continues.</p>
           <button type="button" onClick={leaveFact}>Discover another fact <ArrowIcon /></button>
         </footer>
+        <span className="sr-only" role="status" aria-live="polite">{narrationState.error}</span>
       </div>
     </article>
   )
