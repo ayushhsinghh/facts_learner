@@ -202,45 +202,102 @@ function highlightSentence(root, sentence) {
   window.CSS.highlights.set('spoken-text', new window.Highlight(range))
 }
 
+function clearNarrationHighlight() {
+  window.CSS?.highlights?.delete('spoken-text')
+  document.querySelectorAll('.is-spoken-content').forEach((element) => element.classList.remove('is-spoken-content'))
+}
+
+function collectNarrationSentences(source) {
+  if (!source) return []
+  const elements = source.matches?.('[data-narration-content]')
+    ? [source]
+    : [...source.querySelectorAll('[data-narration-content]')]
+
+  return elements.flatMap((element) => {
+    const text = element.textContent.trim()
+    return getSentenceRanges(text).map((sentence) => ({ ...sentence, element }))
+  })
+}
+
 function NarratedParagraph({ paragraphId, narration, children, ...props }) {
   const paragraphRef = useRef(null)
   const active = narration?.paragraphId === paragraphId
-  const sentence = active ? narration.sentences[narration.sentenceIndex] : null
   const reading = active && ['loading', 'playing'].includes(narration.status)
   const hasRangeHighlight = typeof window !== 'undefined'
     && Boolean(window.CSS?.highlights)
     && typeof window.Highlight === 'function'
 
-  useEffect(() => {
-    if (!active || !sentence) return undefined
-    highlightSentence(paragraphRef.current, sentence)
-    return () => window.CSS?.highlights?.delete('spoken-text')
-  }, [active, sentence])
-
   return (
-    <p ref={paragraphRef} className={`narrated-paragraph${active ? ' is-active' : ''}${hasRangeHighlight ? ' has-range-highlight' : ''}`} {...props}>
+    <p ref={paragraphRef} data-narration-content className={`narrated-paragraph${active ? ' is-active' : ''}${hasRangeHighlight ? ' has-range-highlight' : ''}`} {...props}>
       {children}
       {narration && (
-        <button
-          type="button"
-          className="paragraph-listen"
-          onClick={() => narration.toggle(paragraphId, paragraphRef.current?.textContent || '')}
-          aria-label={reading ? 'Stop reading this paragraph' : 'Listen to this paragraph'}
-          aria-pressed={reading}
-          title={reading ? 'Stop reading' : 'Listen to this paragraph'}
-        >
-          <SpeakerIcon active={reading} />
-        </button>
+        <NarrationButton narrationId={paragraphId} narration={narration} getContent={() => paragraphRef.current} label="paragraph" />
       )}
     </p>
   )
 }
 
-function MarkdownContent({ children, narration }) {
+function NarratedListItem({ itemId, narration, children, ...props }) {
+  const itemRef = useRef(null)
+  const active = narration?.paragraphId === itemId
+  const hasRangeHighlight = typeof window !== 'undefined'
+    && Boolean(window.CSS?.highlights)
+    && typeof window.Highlight === 'function'
+
+  return (
+    <li ref={itemRef} data-narration-content className={`${active ? 'is-active' : ''}${hasRangeHighlight ? ' has-range-highlight' : ''}`} {...props}>
+      {children}
+      <NarrationButton narrationId={itemId} narration={narration} getContent={() => itemRef.current} label="list item" />
+    </li>
+  )
+}
+
+function NarrationButton({ narrationId, narration, getContent, label = 'section', className = '', prepare }) {
+  const reading = narration?.paragraphId === narrationId && ['loading', 'playing'].includes(narration.status)
+  return (
+    <button
+      type="button"
+      className={`paragraph-listen ${className}`.trim()}
+      onClick={(event) => {
+        event.stopPropagation()
+        prepare?.()
+        narration.toggle(narrationId, getContent())
+      }}
+      aria-label={reading ? `Stop reading this ${label}` : `Listen to this ${label}`}
+      aria-pressed={reading}
+      title={reading ? 'Stop reading' : `Listen to this ${label}`}
+    >
+      <SpeakerIcon active={reading} />
+    </button>
+  )
+}
+
+function NarratedHeading({ as: Heading = 'h2', narrationId, narration, targetRef, children, className = '' }) {
+  return (
+    <Heading className={`narrated-heading ${className}`.trim()}>
+      <span>{children}</span>
+      <NarrationButton
+        narrationId={narrationId}
+        narration={narration}
+        getContent={() => targetRef.current}
+      />
+    </Heading>
+  )
+}
+
+function MarkdownContent({ children, narration, standalone = false }) {
   const contentId = useId()
-  const components = narration
-    ? {
-        ...MARKDOWN_COMPONENTS,
+  const components = {
+    ...MARKDOWN_COMPONENTS,
+    li: ({ node, children: itemChildren, ...props }) => standalone && narration
+      ? (
+          <NarratedListItem itemId={`${contentId}-item-${node?.position?.start?.offset || 0}`} narration={narration} {...props}>
+            {itemChildren}
+          </NarratedListItem>
+        )
+      : <li data-narration-content {...props}>{itemChildren}</li>,
+    ...(narration && standalone
+      ? {
         p: ({ node, children: paragraphChildren, ...props }) => (
           <NarratedParagraph
             paragraphId={`${contentId}-${node?.position?.start?.offset || 0}`}
@@ -251,7 +308,8 @@ function MarkdownContent({ children, narration }) {
           </NarratedParagraph>
         ),
       }
-    : MARKDOWN_COMPONENTS
+      : { p: ({ node, ...props }) => <p data-narration-content {...props} /> }),
+  }
 
   return (
     <ReactMarkdown
@@ -488,33 +546,61 @@ function ChevronIcon() {
 }
 
 function ReadingBlock({ title, text, children, narration }) {
+  const blockRef = useRef(null)
+  const blockId = useId()
   if (!text && !children) return null
   return (
-    <div className="reading-block">
-      {title && <h3>{title}</h3>}
-      {text && <MarkdownContent narration={narration}>{text}</MarkdownContent>}
+    <div className="reading-block" ref={blockRef}>
+      {title && (
+        <NarratedHeading as="h3" narrationId={`block-${blockId}`} narration={narration} targetRef={blockRef}>
+          {title}
+        </NarratedHeading>
+      )}
+      {text && <MarkdownContent narration={narration} standalone={!title}>{text}</MarkdownContent>}
       {children}
     </div>
   )
 }
 
-function Disclosure({ title, description, children, open = false }) {
+function Disclosure({ title, description, children, narration, open = false }) {
+  const detailsRef = useRef(null)
+  const contentRef = useRef(null)
+  const disclosureId = useId()
   return (
-    <details className="disclosure" open={open}>
-      <summary>
-        <span>
-          <strong>{title}</strong>
-          <small>{description}</small>
-        </span>
-        <span className="disclosure-mark"><ChevronIcon /></span>
-      </summary>
-      <div className="disclosure-content">{children}</div>
-    </details>
+    <div className="disclosure-shell">
+      <details className="disclosure" open={open} ref={detailsRef}>
+        <summary>
+          <span>
+            <strong>{title}</strong>
+            <small>{description}</small>
+          </span>
+          <span className="disclosure-mark"><ChevronIcon /></span>
+        </summary>
+        <div className="disclosure-content" ref={contentRef}>{children}</div>
+      </details>
+      <NarrationButton
+        narrationId={`disclosure-${disclosureId}`}
+        narration={narration}
+        getContent={() => contentRef.current}
+        prepare={() => { detailsRef.current.open = true }}
+        className="disclosure-listen"
+      />
+    </div>
   )
 }
 
 function FactView({ fact, onReset }) {
   const articleRef = useRef(null)
+  const heroRef = useRef(null)
+  const overviewRef = useRef(null)
+  const didYouKnowRef = useRef(null)
+  const exploreRef = useRef(null)
+  const timelineRef = useRef(null)
+  const takeawaysRef = useRef(null)
+  const tagsRef = useRef(null)
+  const relatedRef = useRef(null)
+  const shareRef = useRef(null)
+  const sourcesRef = useRef(null)
   const stopVoiceRef = useRef(null)
   const speechRunRef = useRef(0)
   const [readingProgress, setReadingProgress] = useState(0)
@@ -549,11 +635,11 @@ function FactView({ fact, onReset }) {
   function stopNarration() {
     speechRunRef.current += 1
     window.responsiveVoice?.cancel()
-    window.CSS?.highlights?.delete('spoken-text')
+    clearNarrationHighlight()
     setNarrationState({ paragraphId: null, status: 'idle', sentenceIndex: -1, sentences: [], error: '' })
   }
 
-  function toggleNarration(paragraphId, paragraphText) {
+  function toggleNarration(paragraphId, contentRoot) {
     if (narrationState.paragraphId === paragraphId && ['loading', 'playing'].includes(narrationState.status)) {
       stopNarration()
       return
@@ -570,8 +656,7 @@ function FactView({ fact, onReset }) {
       return
     }
 
-    const text = paragraphText.trim()
-    const sentences = getSentenceRanges(text)
+    const sentences = collectNarrationSentences(contentRoot)
     if (!sentences.length) return
 
     speechRunRef.current += 1
@@ -582,7 +667,7 @@ function FactView({ fact, onReset }) {
     const speakSentence = (index) => {
       if (run !== speechRunRef.current) return
       if (index >= sentences.length) {
-        window.CSS?.highlights?.delete('spoken-text')
+        clearNarrationHighlight()
         setNarrationState({ paragraphId: null, status: 'idle', sentenceIndex: -1, sentences: [], error: '' })
         return
       }
@@ -590,12 +675,17 @@ function FactView({ fact, onReset }) {
       window.responsiveVoice.speak(sentences[index].text, 'Hindi Male', {
         onstart: () => {
           if (run !== speechRunRef.current) return
+          clearNarrationHighlight()
+          if (!window.CSS?.highlights || typeof window.Highlight !== 'function') {
+            sentences[index].element.classList.add('is-spoken-content')
+          }
+          highlightSentence(sentences[index].element, sentences[index])
           setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
         },
         onend: () => speakSentence(index + 1),
         onerror: () => {
           if (run !== speechRunRef.current) return
-          window.CSS?.highlights?.delete('spoken-text')
+          clearNarrationHighlight()
           setNarrationState({
             paragraphId,
             status: 'error',
@@ -664,7 +754,7 @@ function FactView({ fact, onReset }) {
     return () => {
       speechRunRef.current += 1
       window.responsiveVoice?.cancel()
-      window.CSS?.highlights?.delete('spoken-text')
+      clearNarrationHighlight()
       window.removeEventListener('pagehide', cancelOnPageExit)
       stopVoiceRef.current = null
     }
@@ -684,9 +774,9 @@ function FactView({ fact, onReset }) {
         <button type="button" onClick={leaveFact}>Search another topic</button>
       </nav>
 
-      <header className="fact-hero" id="fact-top">
-        <h1>{fact.topic}</h1>
-        <NarratedParagraph paragraphId="headline" narration={narration}>{fact.headline_fact}</NarratedParagraph>
+      <header className="fact-hero" id="fact-top" ref={heroRef}>
+        <NarratedHeading as="h1" narrationId="headline" narration={narration} targetRef={heroRef}>{fact.topic}</NarratedHeading>
+        <p data-narration-content>{fact.headline_fact}</p>
         <Meta fact={fact} />
       </header>
 
@@ -699,14 +789,14 @@ function FactView({ fact, onReset }) {
       </nav>
 
       <div className="fact-body">
-        <section className="fact-overview" id="overview">
-          <h2>The short version</h2>
+        <section className="fact-overview" id="overview" ref={overviewRef}>
+          <NarratedHeading narrationId="overview" narration={narration} targetRef={overviewRef}>The short version</NarratedHeading>
           <MarkdownContent narration={narration}>{fact.summary || fact.headline_fact}</MarkdownContent>
         </section>
 
         {fact.did_you_know && (
-          <aside className="did-you-know">
-            <h2>Did you know?</h2>
+          <aside className="did-you-know" ref={didYouKnowRef}>
+            <NarratedHeading narrationId="did-you-know" narration={narration} targetRef={didYouKnowRef}>Did you know?</NarratedHeading>
             <div><MarkdownContent narration={narration}>{fact.did_you_know}</MarkdownContent></div>
           </aside>
         )}
@@ -724,37 +814,37 @@ function FactView({ fact, onReset }) {
         )}
 
         {hasExplore && (
-          <section className="explore-section" id="explore">
+          <section className="explore-section" id="explore" ref={exploreRef}>
             <div className="section-intro">
-              <h2>Explore deeper</h2>
-              <p>Open only the parts you want to follow.</p>
+              <NarratedHeading narrationId="explore" narration={narration} targetRef={exploreRef}>Explore deeper</NarratedHeading>
+              <p data-narration-content>Open only the parts you want to follow.</p>
             </div>
             <div className="disclosure-list">
               {hasContext && (
-                <Disclosure title="The story and its significance" description="Background, origins, and why this matters">
+                <Disclosure title="The story and its significance" description="Background, origins, and why this matters" narration={narration}>
                   <ReadingBlock title="The full story" text={storyText} narration={narration} />
                   <ReadingBlock title="How it began" text={fact.history} narration={narration} />
                   <ReadingBlock title="Why it matters" text={fact.why_it_matters} narration={narration} />
                 </Disclosure>
               )}
               {hasMechanics && (
-                <Disclosure title="How it works" description="Mechanisms, variants, and step-by-step detail">
+                <Disclosure title="How it works" description="Mechanisms, variants, and step-by-step detail" narration={narration}>
                   <ReadingBlock text={mechanicsText} narration={narration} />
                   <ReadingBlock title="Technical detail" text={technicalText} narration={narration} />
                   {breakdown.key_mechanisms_or_types?.length > 0 && (
-                    <ReadingBlock title="Mechanisms and types">
-                      <ul>{breakdown.key_mechanisms_or_types.map((item) => <li key={item}>{item}</li>)}</ul>
+                    <ReadingBlock title="Mechanisms and types" narration={narration}>
+                      <ul>{breakdown.key_mechanisms_or_types.map((item) => <li key={item} data-narration-content>{item}</li>)}</ul>
                     </ReadingBlock>
                   )}
                   {breakdown.step_by_step_process?.length > 0 && (
-                    <ReadingBlock title="The process">
-                      <ol className="process-list">{breakdown.step_by_step_process.map((item) => <li key={item}>{item}</li>)}</ol>
+                    <ReadingBlock title="The process" narration={narration}>
+                      <ol className="process-list">{breakdown.step_by_step_process.map((item) => <li key={item} data-narration-content>{item}</li>)}</ol>
                     </ReadingBlock>
                   )}
                 </Disclosure>
               )}
               {hasWorld && (
-                <Disclosure title="In the world" description="Applications, regions, and cultural context">
+                <Disclosure title="In the world" description="Applications, regions, and cultural context" narration={narration}>
                   <ReadingBlock title="Real-world application" text={breakdown.real_world_application} narration={narration} />
                   <ReadingBlock title="Impact on India" text={fact.impact_on_india} narration={narration} />
                   <ReadingBlock title="Cultural significance" text={fact.cultural_significance} narration={narration} />
@@ -762,15 +852,15 @@ function FactView({ fact, onReset }) {
                 </Disclosure>
               )}
               {hasSurprises && (
-                <Disclosure title="Surprises and misconceptions" description="The details that are easy to miss">
+                <Disclosure title="Surprises and misconceptions" description="The details that are easy to miss" narration={narration}>
                   {breakdown.fascinating_trivia?.length > 0 && (
-                    <ReadingBlock title="Unexpected details">
-                      <ul>{breakdown.fascinating_trivia.map((item) => <li key={item}>{item}</li>)}</ul>
+                    <ReadingBlock title="Unexpected details" narration={narration}>
+                      <ul>{breakdown.fascinating_trivia.map((item) => <li key={item} data-narration-content>{item}</li>)}</ul>
                     </ReadingBlock>
                   )}
                   {fact.common_misconceptions?.length > 0 && (
-                    <ReadingBlock title="Common misconceptions">
-                      <ul>{fact.common_misconceptions.map((item) => <li key={item}>{item}</li>)}</ul>
+                    <ReadingBlock title="Common misconceptions" narration={narration}>
+                      <ul>{fact.common_misconceptions.map((item) => <li key={item} data-narration-content>{item}</li>)}</ul>
                     </ReadingBlock>
                   )}
                   <ReadingBlock title="Picture the idea" text={fact.visual_suggestion} narration={narration} />
@@ -781,17 +871,17 @@ function FactView({ fact, onReset }) {
         )}
 
         {fact.timeline?.length > 0 && (
-          <section className="timeline-section" id="timeline">
+          <section className="timeline-section" id="timeline" ref={timelineRef}>
             <div className="section-intro">
-              <h2>Across time</h2>
-              <p>The moments that shaped this story.</p>
+              <NarratedHeading narrationId="timeline" narration={narration} targetRef={timelineRef}>Across time</NarratedHeading>
+              <p data-narration-content>The moments that shaped this story.</p>
             </div>
             <ol className="timeline-track">{fact.timeline.map((item) => (
               <li key={`${item.year}-${item.event}`}>
-                <time>{item.year}</time>
+                <time data-narration-content>{item.year}</time>
                 <div className="timeline-entry">
                   <span className="timeline-node" aria-hidden="true" />
-                  <NarratedParagraph paragraphId={`timeline-${item.year}-${item.event}`} narration={narration}>{item.event}</NarratedParagraph>
+                  <p data-narration-content>{item.event}</p>
                 </div>
               </li>
             ))}</ol>
@@ -799,37 +889,37 @@ function FactView({ fact, onReset }) {
         )}
 
         {fact.learning_takeaways?.length > 0 && (
-          <section className="takeaway-section" id="remember">
+          <section className="takeaway-section" id="remember" ref={takeawaysRef}>
             <div className="section-intro">
-              <h2>Keep these with you</h2>
-              <p>The essential ideas, distilled.</p>
+              <NarratedHeading narrationId="takeaways" narration={narration} targetRef={takeawaysRef}>Keep these with you</NarratedHeading>
+              <p data-narration-content>The essential ideas, distilled.</p>
             </div>
-            <ul>{fact.learning_takeaways.map((item) => <li key={item}>{item}</li>)}</ul>
+            <ul>{fact.learning_takeaways.map((item) => <li key={item} data-narration-content>{item}</li>)}</ul>
           </section>
         )}
 
         {hasTaxonomy && (
           <section className="fact-taxonomy" aria-label="Fact classification">
             {fact.tags?.length > 0 && (
-              <div>
-                <h2>Filed under</h2>
-                <ul>{fact.tags.map((tag) => <li key={tag}>{tag}</li>)}</ul>
+              <div ref={tagsRef}>
+                <NarratedHeading narrationId="tags" narration={narration} targetRef={tagsRef}>Filed under</NarratedHeading>
+                <ul>{fact.tags.map((tag) => <li key={tag} data-narration-content>{tag}</li>)}</ul>
               </div>
             )}
             {fact.related_categories?.length > 0 && (
-              <div>
-                <h2>Related subjects</h2>
-                <ul>{fact.related_categories.map((category) => <li key={category}>{formatCategory(category)}</li>)}</ul>
+              <div ref={relatedRef}>
+                <NarratedHeading narrationId="related" narration={narration} targetRef={relatedRef}>Related subjects</NarratedHeading>
+                <ul>{fact.related_categories.map((category) => <li key={category} data-narration-content>{formatCategory(category)}</li>)}</ul>
               </div>
             )}
           </section>
         )}
 
         {fact.share_text && (
-          <section className="share-section">
+          <section className="share-section" ref={shareRef}>
             <div>
-              <h2>Pass it on</h2>
-              <p>{normalizeMarkdown(fact.share_text)}</p>
+              <NarratedHeading narrationId="share" narration={narration} targetRef={shareRef}>Pass it on</NarratedHeading>
+              <p data-narration-content>{normalizeMarkdown(fact.share_text)}</p>
             </div>
             <button type="button" onClick={copyShareText}>
               <CopyIcon />
@@ -842,10 +932,20 @@ function FactView({ fact, onReset }) {
         )}
 
         {fact.sources_or_references?.length > 0 && (
-          <details className="source-section">
-            <summary>Sources and references <span>{fact.sources_or_references.length}</span></summary>
-            <ul>{fact.sources_or_references.map((source) => <li key={source}>{source}</li>)}</ul>
-          </details>
+          <div className="source-section-wrap">
+            <details className="source-section" ref={sourcesRef}>
+              <summary>Sources and references <span>{fact.sources_or_references.length}</span></summary>
+              <ul>{fact.sources_or_references.map((source) => <li key={source} data-narration-content>{source}</li>)}</ul>
+            </details>
+            <NarrationButton
+              narrationId="sources"
+              narration={narration}
+              getContent={() => sourcesRef.current}
+              prepare={() => { sourcesRef.current.open = true }}
+              label="references"
+              className="source-listen"
+            />
+          </div>
         )}
 
         <footer className="fact-end">
