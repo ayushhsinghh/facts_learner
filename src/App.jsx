@@ -675,14 +675,19 @@ function FactView({ fact, onReset }) {
         return
       }
 
+      // Server-backed voices do not reliably emit start or boundary events.
+      // Highlight before playback so sentence tracking works independently of
+      // those optional callbacks.
+      clearNarrationHighlight()
+      if (!window.CSS?.highlights || typeof window.Highlight !== 'function') {
+        sentences[index].element.classList.add('is-spoken-content')
+      }
+      highlightSentence(sentences[index].element, sentences[index])
+      setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
+
       window.responsiveVoice.speak(sentences[index].text, 'Hindi Male', {
         onstart: () => {
           if (run !== speechRunRef.current) return
-          clearNarrationHighlight()
-          if (!window.CSS?.highlights || typeof window.Highlight !== 'function') {
-            sentences[index].element.classList.add('is-spoken-content')
-          }
-          highlightSentence(sentences[index].element, sentences[index])
           setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
         },
         onboundary: (charIndex, name) => {
