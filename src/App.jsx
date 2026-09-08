@@ -685,18 +685,22 @@ function FactView({ fact, onReset }) {
       highlightSentence(sentences[index].element, sentences[index])
       setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
 
-      window.responsiveVoice.speak(sentences[index].text, 'Hindi Male', {
+      window.responsiveVoice.speak(sentences[index].text, 'UK English Female', {
         onstart: () => {
           if (run !== speechRunRef.current) return
           setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
         },
-        onboundary: (event) => {
+        onboundary: (eventOrCharIndex, name) => {
           if (run !== speechRunRef.current) return
-          if (event.name === 'word') {
-            const remaining = sentences[index].text.substring(event.charIndex)
+          
+          const charIndex = typeof eventOrCharIndex === 'object' ? eventOrCharIndex.charIndex : eventOrCharIndex
+          const eventName = typeof eventOrCharIndex === 'object' ? eventOrCharIndex.name : name
+
+          if (!eventName || eventName === 'word') {
+            const remaining = sentences[index].text.substring(charIndex)
             const match = remaining.match(/^[^\s]+/)
             const length = match ? match[0].length : 1
-            const wordStart = sentences[index].start + event.charIndex
+            const wordStart = sentences[index].start + charIndex
             const wordEnd = wordStart + length
             highlightSentence(sentences[index].element, { start: wordStart, end: wordEnd })
           }
