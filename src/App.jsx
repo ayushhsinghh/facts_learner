@@ -696,7 +696,7 @@ function FactView({ fact, onReset }) {
       highlightSentence(sentences[index].element, sentences[index])
       setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
 
-      window.responsiveVoice.speak(sentences[index].text, 'UK English Female', {
+      window.responsiveVoice.speak(sentences[index].text, 'Hindi Male', {
         onstart: () => {
           if (run !== speechRunRef.current) return
           setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
