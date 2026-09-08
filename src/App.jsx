@@ -690,13 +690,13 @@ function FactView({ fact, onReset }) {
           if (run !== speechRunRef.current) return
           setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
         },
-        onboundary: (charIndex, name) => {
+        onboundary: (event) => {
           if (run !== speechRunRef.current) return
-          if (name === 'word') {
-            const remaining = sentences[index].text.substring(charIndex)
+          if (event.name === 'word') {
+            const remaining = sentences[index].text.substring(event.charIndex)
             const match = remaining.match(/^[^\s]+/)
             const length = match ? match[0].length : 1
-            const wordStart = sentences[index].start + charIndex
+            const wordStart = sentences[index].start + event.charIndex
             const wordEnd = wordStart + length
             highlightSentence(sentences[index].element, { start: wordStart, end: wordEnd })
           }
