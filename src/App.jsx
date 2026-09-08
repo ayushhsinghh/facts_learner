@@ -215,7 +215,9 @@ function collectNarrationSentences(source) {
     : [...source.querySelectorAll('[data-narration-content]')]
 
   return elements.flatMap((element) => {
-    const text = element.textContent.trim()
+    // Keep the DOM text unchanged so sentence offsets line up with the text
+    // nodes used by highlightSentence, including Markdown whitespace.
+    const text = element.textContent
     return getSentenceRanges(text).map((sentence) => ({ ...sentence, element }))
   })
 }
@@ -683,16 +685,13 @@ function FactView({ fact, onReset }) {
           highlightSentence(sentences[index].element, sentences[index])
           setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
         },
-        onboundary: (event) => {
+        onboundary: (charIndex, name) => {
           if (run !== speechRunRef.current) return
-          if (event.name === 'word') {
-            let length = event.charLength
-            if (!length) {
-              const remaining = sentences[index].text.substring(event.charIndex)
-              const match = remaining.match(/^[^\s]+/)
-              length = match ? match[0].length : 1
-            }
-            const wordStart = sentences[index].start + event.charIndex
+          if (name === 'word') {
+            const remaining = sentences[index].text.substring(charIndex)
+            const match = remaining.match(/^[^\s]+/)
+            const length = match ? match[0].length : 1
+            const wordStart = sentences[index].start + charIndex
             const wordEnd = wordStart + length
             highlightSentence(sentences[index].element, { start: wordStart, end: wordEnd })
           }
