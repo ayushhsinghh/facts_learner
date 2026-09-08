@@ -1,4 +1,4 @@
-import { useEffect, useId, useRef, useState } from 'react'
+import { createContext, useContext, useEffect, useId, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { fetchCategories, fetchHistory, getFactStatus, startFact } from './api.js'
 
@@ -278,7 +278,7 @@ function NarrationButton({ narrationId, narration, getContent, label = 'section'
 function NarratedHeading({ as: Heading = 'h2', narrationId, narration, targetRef, children, className = '' }) {
   return (
     <Heading className={`narrated-heading ${className}`.trim()}>
-      <span data-narration-content>{children}</span>
+      <span>{children}</span>
       <NarrationButton
         narrationId={narrationId}
         narration={narration}
@@ -288,40 +288,51 @@ function NarratedHeading({ as: Heading = 'h2', narrationId, narration, targetRef
   )
 }
 
+const MarkdownContext = createContext(null)
+
+function MarkdownParagraph({ node, children: paragraphChildren, ...props }) {
+  const { narration, standalone, contentId } = useContext(MarkdownContext)
+  if (!standalone || !narration) return <p data-narration-content {...props}>{paragraphChildren}</p>
+  return (
+    <NarratedParagraph
+      paragraphId={`${contentId}-${node?.position?.start?.offset || 0}`}
+      narration={narration}
+      {...props}
+    >
+      {paragraphChildren}
+    </NarratedParagraph>
+  )
+}
+
+function MarkdownListItem({ node, children: itemChildren, ...props }) {
+  const { narration, standalone, contentId } = useContext(MarkdownContext)
+  if (!standalone || !narration) return <li data-narration-content {...props}>{itemChildren}</li>
+  return (
+    <NarratedListItem itemId={`${contentId}-item-${node?.position?.start?.offset || 0}`} narration={narration} {...props}>
+      {itemChildren}
+    </NarratedListItem>
+  )
+}
+
+const STABLE_MARKDOWN_COMPONENTS = {
+  ...MARKDOWN_COMPONENTS,
+  p: MarkdownParagraph,
+  li: MarkdownListItem,
+}
+
 function MarkdownContent({ children, narration, standalone = false }) {
   const contentId = useId()
-  const components = {
-    ...MARKDOWN_COMPONENTS,
-    li: ({ node, children: itemChildren, ...props }) => standalone && narration
-      ? (
-          <NarratedListItem itemId={`${contentId}-item-${node?.position?.start?.offset || 0}`} narration={narration} {...props}>
-            {itemChildren}
-          </NarratedListItem>
-        )
-      : <li data-narration-content {...props}>{itemChildren}</li>,
-    ...(narration && standalone
-      ? {
-        p: ({ node, children: paragraphChildren, ...props }) => (
-          <NarratedParagraph
-            paragraphId={`${contentId}-${node?.position?.start?.offset || 0}`}
-            narration={narration}
-            {...props}
-          >
-            {paragraphChildren}
-          </NarratedParagraph>
-        ),
-      }
-      : { p: ({ node, ...props }) => <p data-narration-content {...props} /> }),
-  }
 
   return (
-    <ReactMarkdown
-      allowedElements={MARKDOWN_ELEMENTS}
-      unwrapDisallowed
-      components={components}
-    >
-      {normalizeMarkdown(children)}
-    </ReactMarkdown>
+    <MarkdownContext.Provider value={{ narration, standalone, contentId }}>
+      <ReactMarkdown
+        allowedElements={MARKDOWN_ELEMENTS}
+        unwrapDisallowed
+        components={STABLE_MARKDOWN_COMPONENTS}
+      >
+        {normalizeMarkdown(children)}
+      </ReactMarkdown>
+    </MarkdownContext.Provider>
   )
 }
 
