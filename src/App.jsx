@@ -133,7 +133,8 @@ function normalizeMarkdown(value) {
 
 function getSentenceRanges(text) {
   if (!text) return []
-  const expression = /[^.!?]+(?:[.!?]+[”"']?|$)/g
+  // Avoids splitting on single letter abbreviations (e.g. V.N.) and common titles
+  const expression = /(?:[^.!?]|(?<=\b(?:[a-zA-Z]|Mr|Mrs|Ms|Dr|Vs|Prof|Sr|Jr))[.!?]|[.!?](?!\s|$))+[.!?]*(?:[”"'])?/gi
   return [...text.matchAll(expression)].map((match) => {
     const leadingSpace = match[0].search(/\S/)
     const value = match[0].trim()
@@ -681,6 +682,20 @@ function FactView({ fact, onReset }) {
           }
           highlightSentence(sentences[index].element, sentences[index])
           setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
+        },
+        onboundary: (event) => {
+          if (run !== speechRunRef.current) return
+          if (event.name === 'word') {
+            let length = event.charLength
+            if (!length) {
+              const remaining = sentences[index].text.substring(event.charIndex)
+              const match = remaining.match(/^[^\s]+/)
+              length = match ? match[0].length : 1
+            }
+            const wordStart = sentences[index].start + event.charIndex
+            const wordEnd = wordStart + length
+            highlightSentence(sentences[index].element, { start: wordStart, end: wordEnd })
+          }
         },
         onend: () => speakSentence(index + 1),
         onerror: () => {
