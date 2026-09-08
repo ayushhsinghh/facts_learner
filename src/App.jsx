@@ -278,7 +278,7 @@ function NarrationButton({ narrationId, narration, getContent, label = 'section'
 function NarratedHeading({ as: Heading = 'h2', narrationId, narration, targetRef, children, className = '' }) {
   return (
     <Heading className={`narrated-heading ${className}`.trim()}>
-      <span>{children}</span>
+      <span data-narration-content>{children}</span>
       <NarrationButton
         narrationId={narrationId}
         narration={narration}
