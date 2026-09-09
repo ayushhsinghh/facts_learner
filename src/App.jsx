@@ -538,6 +538,7 @@ function Meta({ fact }) {
     ['Level', fact.difficulty_level],
     ['Curiosity', fact.fun_rating ? `${fact.fun_rating}/10` : null],
     ['Region', fact.region],
+    ['Freshness', fact.content_freshness ? fact.content_freshness.charAt(0).toUpperCase() + fact.content_freshness.slice(1) : null],
     ['Discovered', readableDate],
   ].filter(([, value]) => value)
 
@@ -633,7 +634,7 @@ function FactView({ fact, onReset }) {
   const hasContext = Boolean(storyText || fact.history || fact.why_it_matters)
   const hasMechanics = Boolean(
     mechanicsText || technicalText || breakdown.key_mechanisms_or_types?.length
-    || breakdown.step_by_step_process?.length,
+    || breakdown.step_by_step_process?.length || breakdown.detailed_processes?.length,
   )
   const hasWorld = Boolean(
     breakdown.real_world_application || fact.impact_on_india
@@ -837,7 +838,14 @@ function FactView({ fact, onReset }) {
 
         {(fact.quote || fact.key_figure || fact.key_stat) && (
           <aside className="fact-signal">
-            {fact.quote && <blockquote>“{fact.quote}”</blockquote>}
+            {fact.quote && (
+              <blockquote>
+                “{typeof fact.quote === 'string' ? fact.quote : fact.quote.text}”
+                {fact.quote?.confidence === 'unverified' && (
+                  <small style={{ marginLeft: '8px', backgroundColor: 'var(--red-9)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', verticalAlign: 'middle', fontWeight: 600 }}>UNVERIFIED</small>
+                )}
+              </blockquote>
+            )}
             {(fact.key_figure || fact.key_stat) && (
               <dl>
                 {fact.key_figure && <div><dt>Key figure</dt><dd>{fact.key_figure}</dd></div>}
@@ -875,6 +883,16 @@ function FactView({ fact, onReset }) {
                       <ol className="process-list">{breakdown.step_by_step_process.map((item) => <li key={item} data-narration-content>{item}</li>)}</ol>
                     </ReadingBlock>
                   )}
+                  {breakdown.detailed_processes?.length > 0 && breakdown.detailed_processes.map((proc, i) => (
+                    <ReadingBlock key={`proc-${i}`} title={proc.title} narration={narration}>
+                      <p data-narration-content>{proc.description}</p>
+                      {proc.steps?.length > 0 && (
+                        <ol className="process-list">
+                          {proc.steps.map((step, j) => <li key={j} data-narration-content>{step}</li>)}
+                        </ol>
+                      )}
+                    </ReadingBlock>
+                  ))}
                 </Disclosure>
               )}
               {hasWorld && (
@@ -882,7 +900,18 @@ function FactView({ fact, onReset }) {
                   <ReadingBlock title="Real-world application" text={breakdown.real_world_application} narration={narration} />
                   <ReadingBlock title="Impact on India" text={fact.impact_on_india} narration={narration} />
                   <ReadingBlock title="Cultural significance" text={fact.cultural_significance} narration={narration} />
-                  <ReadingBlock title="Global comparison" text={fact.global_comparison} narration={narration} />
+                  <ReadingBlock title="Global comparison" text={typeof fact.global_comparison === 'string' ? fact.global_comparison : undefined} narration={narration}>
+                    {typeof fact.global_comparison === 'object' && fact.global_comparison !== null && (
+                      <>
+                        <p data-narration-content>{fact.global_comparison.summary}</p>
+                        <ul>
+                          {fact.global_comparison.comparisons?.map((c, i) => (
+                            <li key={i} data-narration-content><strong>{c.country}:</strong> {c.comparison_point}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                  </ReadingBlock>
                 </Disclosure>
               )}
               {hasSurprises && (
@@ -894,7 +923,19 @@ function FactView({ fact, onReset }) {
                   )}
                   {fact.common_misconceptions?.length > 0 && (
                     <ReadingBlock title="Common misconceptions" narration={narration}>
-                      <ul>{fact.common_misconceptions.map((item) => <li key={item} data-narration-content>{item}</li>)}</ul>
+                      <ul className="misconceptions-list">
+                        {fact.common_misconceptions.map((item, i) => (
+                          <li key={i} data-narration-content>
+                            {typeof item === 'string' ? item : (
+                              <>
+                                <strong>Myth:</strong> {item.myth}<br />
+                                <strong>Reality:</strong> {item.reality}<br />
+                                <em>Evidence:</em> {item.evidence}
+                              </>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
                     </ReadingBlock>
                   )}
                   <ReadingBlock title="Picture the idea" text={fact.visual_suggestion} narration={narration} />
