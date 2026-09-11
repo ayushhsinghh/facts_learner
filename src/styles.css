@@ -263,14 +263,65 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
 .fact-end svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; }
 
 .fact-inline-image {
-  max-width: 45%;
+  max-width: 100%;
+  display: block;
+  margin: 24px auto 0;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  margin-bottom: 20px;
 }
-.float-right {
-  float: right;
-  margin-left: 32px;
+.zoomable {
+  cursor: zoom-in;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.zoomable:hover {
+  transform: scale(1.02);
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.12);
+}
+
+.image-lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(10, 15, 30, 0.9);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  backdrop-filter: blur(8px);
+  cursor: zoom-out;
+}
+.image-lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  border-radius: 8px;
+  box-shadow: 0 10px 50px rgba(0, 0, 0, 0.3);
+  cursor: default;
+}
+.lightbox-close {
+  position: absolute;
+  top: 24px;
+  right: 24px;
+  background: rgba(255, 255, 255, 0.1);
+  border: 0;
+  color: white;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.2);
+}
+.lightbox-close svg {
+  width: 24px;
+  height: 24px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
 }
 
 @keyframes orbit-spin { to { transform: rotate(360deg); } }
@@ -310,7 +361,6 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
   .paragraph-listen { width: 36px; height: 36px; margin-left: 8px; vertical-align: -.62em; }
   .fact-overview { grid-template-columns: 1fr; gap: 20px; }
   .fact-overview > p { font-size: 1.28rem; }
-  .fact-inline-image { max-width: 100%; margin-left: 0; float: none; display: block; margin-bottom: 24px; }
   .did-you-know { grid-template-columns: 1fr; gap: 14px; }
   .fact-signal { grid-template-columns: 1fr; gap: 38px; margin: 64px -20px; padding: 42px 24px; }
   .section-intro { display: block; }

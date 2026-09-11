@@ -627,6 +627,7 @@ function FactView({ fact, onReset }) {
     sentences: [],
     error: '',
   })
+  const [enlargedImage, setEnlargedImage] = useState(null)
   const breakdown = fact.in_depth_breakdown || {}
   const storyText = fact.detailed_explanation
   const mechanicsText = fact.core_mechanics || fact.how_it_works
@@ -835,10 +836,15 @@ function FactView({ fact, onReset }) {
       <div className="fact-body">
         <section className="fact-overview" id="overview" ref={overviewRef}>
           <NarratedHeading narrationId="overview" narration={narration} targetRef={overviewRef}>The short version</NarratedHeading>
-          {fact.images?.history && (
-            <img src={fact.images.history} alt="Historical context" className="fact-inline-image float-right" />
-          )}
           <MarkdownContent narration={narration}>{fact.summary || fact.headline_fact}</MarkdownContent>
+          {fact.images?.history && (
+            <img 
+              src={fact.images.history} 
+              alt="Historical context" 
+              className="fact-inline-image zoomable" 
+              onClick={() => setEnlargedImage(fact.images.history)}
+            />
+          )}
         </section>
 
         {fact.did_you_know && (
@@ -883,10 +889,15 @@ function FactView({ fact, onReset }) {
               )}
               {hasMechanics && (
                 <Disclosure title="How it works" description="Mechanisms, variants, and step-by-step detail" narration={narration}>
-                  {fact.images?.how_it_works && (
-                    <img src={fact.images.how_it_works} alt="Mechanics illustration" className="fact-inline-image float-right" />
-                  )}
                   <ReadingBlock text={mechanicsText} narration={narration} />
+                  {fact.images?.how_it_works && (
+                    <img 
+                      src={fact.images.how_it_works} 
+                      alt="Mechanics illustration" 
+                      className="fact-inline-image zoomable" 
+                      onClick={() => setEnlargedImage(fact.images.how_it_works)}
+                    />
+                  )}
                   <ReadingBlock title="Technical detail" text={technicalText} narration={narration} />
                   {breakdown.key_mechanisms_or_types?.length > 0 && (
                     <ReadingBlock title="Mechanisms and types" narration={narration}>
@@ -1044,6 +1055,15 @@ function FactView({ fact, onReset }) {
         </footer>
         <span className="sr-only" role="status" aria-live="polite">{narrationState.error}</span>
       </div>
+
+      {enlargedImage && (
+        <div className="image-lightbox" onClick={() => setEnlargedImage(null)}>
+          <button type="button" className="lightbox-close" onClick={() => setEnlargedImage(null)} aria-label="Close image">
+            <CloseIcon />
+          </button>
+          <img src={enlargedImage} alt="Enlarged view" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
     </article>
   )
 }
