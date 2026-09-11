@@ -642,7 +642,6 @@ function FactView({ fact, onReset }) {
   )
   const hasSurprises = Boolean(
     breakdown.fascinating_trivia?.length || fact.common_misconceptions?.length
-    || fact.visual_suggestion,
   )
   const hasExplore = hasContext || hasMechanics || hasWorld || hasSurprises
   const hasTaxonomy = fact.tags?.length > 0 || fact.related_categories?.length > 0
@@ -809,7 +808,17 @@ function FactView({ fact, onReset }) {
         <button type="button" onClick={leaveFact}>Search another topic</button>
       </nav>
 
-      <header className="fact-hero" id="fact-top" ref={heroRef}>
+      <header 
+        className="fact-hero" 
+        id="fact-top" 
+        ref={heroRef}
+        style={fact.images?.cover ? {
+          backgroundImage: `linear-gradient(rgba(10, 15, 30, 0.7), rgba(10, 15, 30, 0.9)), url(${fact.images.cover})`,
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat'
+        } : undefined}
+      >
         <NarratedHeading as="h1" narrationId="headline" narration={narration} targetRef={heroRef}>{fact.topic}</NarratedHeading>
         <p data-narration-content>{fact.headline_fact}</p>
         <Meta fact={fact} />
@@ -826,6 +835,9 @@ function FactView({ fact, onReset }) {
       <div className="fact-body">
         <section className="fact-overview" id="overview" ref={overviewRef}>
           <NarratedHeading narrationId="overview" narration={narration} targetRef={overviewRef}>The short version</NarratedHeading>
+          {fact.images?.history && (
+            <img src={fact.images.history} alt="Historical context" className="fact-inline-image float-right" />
+          )}
           <MarkdownContent narration={narration}>{fact.summary || fact.headline_fact}</MarkdownContent>
         </section>
 
@@ -871,6 +883,9 @@ function FactView({ fact, onReset }) {
               )}
               {hasMechanics && (
                 <Disclosure title="How it works" description="Mechanisms, variants, and step-by-step detail" narration={narration}>
+                  {fact.images?.how_it_works && (
+                    <img src={fact.images.how_it_works} alt="Mechanics illustration" className="fact-inline-image float-right" />
+                  )}
                   <ReadingBlock text={mechanicsText} narration={narration} />
                   <ReadingBlock title="Technical detail" text={technicalText} narration={narration} />
                   {breakdown.key_mechanisms_or_types?.length > 0 && (
@@ -938,7 +953,6 @@ function FactView({ fact, onReset }) {
                       </ul>
                     </ReadingBlock>
                   )}
-                  <ReadingBlock title="Picture the idea" text={fact.visual_suggestion} narration={narration} />
                 </Disclosure>
               )}
             </div>
