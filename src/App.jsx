@@ -837,12 +837,12 @@ function FactView({ fact, onReset }) {
         <section className="fact-overview" id="overview" ref={overviewRef}>
           <NarratedHeading narrationId="overview" narration={narration} targetRef={overviewRef}>The short version</NarratedHeading>
           <MarkdownContent narration={narration}>{fact.summary || fact.headline_fact}</MarkdownContent>
-          {fact.images?.history && (
+          {(fact.images?.overview || fact.images?.history) && (
             <img 
-              src={fact.images.history} 
-              alt="Historical context" 
+              src={fact.images.overview || fact.images.history} 
+              alt="Overview context" 
               className="fact-inline-image fact-overview-image zoomable" 
-              onClick={() => setEnlargedImage(fact.images.history)}
+              onClick={() => setEnlargedImage(fact.images.overview || fact.images.history)}
             />
           )}
         </section>
