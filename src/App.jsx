@@ -841,7 +841,7 @@ function FactView({ fact, onReset }) {
             <img 
               src={fact.images.history} 
               alt="Historical context" 
-              className="fact-inline-image zoomable" 
+              className="fact-inline-image fact-overview-image zoomable" 
               onClick={() => setEnlargedImage(fact.images.history)}
             />
           )}
@@ -894,7 +894,7 @@ function FactView({ fact, onReset }) {
                     <img 
                       src={fact.images.how_it_works} 
                       alt="Mechanics illustration" 
-                      className="fact-inline-image zoomable" 
+                      className="fact-inline-image fact-mechanics-image zoomable" 
                       onClick={() => setEnlargedImage(fact.images.how_it_works)}
                     />
                   )}

@@ -263,11 +263,24 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
 .fact-end svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.7; }
 
 .fact-inline-image {
-  max-width: 100%;
+  width: 100%;
+  height: auto;
   display: block;
   margin: 24px auto 0;
   border-radius: 12px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+}
+.fact-overview-image {
+  grid-column: 2;
+  margin-top: clamp(30px, 5vw, 48px);
+}
+.fact-mechanics-image {
+  width: min(calc(100% - min(24%, 190px)), 68ch);
+  max-height: 620px;
+  margin: 34px 0 42px min(24%, 190px);
+  object-fit: contain;
+  object-position: center;
+  background: #e8e6df;
 }
 .zoomable {
   cursor: zoom-in;
@@ -361,6 +374,7 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
   .paragraph-listen { width: 36px; height: 36px; margin-left: 8px; vertical-align: -.62em; }
   .fact-overview { grid-template-columns: 1fr; gap: 20px; }
   .fact-overview > p { font-size: 1.28rem; }
+  .fact-overview-image { grid-column: 1; margin-top: 12px; }
   .did-you-know { grid-template-columns: 1fr; gap: 14px; }
   .fact-signal { grid-template-columns: 1fr; gap: 38px; margin: 64px -20px; padding: 42px 24px; }
   .section-intro { display: block; }
@@ -369,6 +383,7 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
   .disclosure summary strong { font-size: 1.3rem; }
   .disclosure summary small { max-width: 35ch; }
   .reading-block { margin-left: 0; }
+  .fact-mechanics-image { width: 100%; max-height: none; margin: 28px 0 34px; }
   .disclosure-content { padding-bottom: 40px; }
   .timeline-track { margin-top: 28px; }
   .timeline-track li { grid-template-columns: 74px minmax(0, 1fr); gap: 30px; }
