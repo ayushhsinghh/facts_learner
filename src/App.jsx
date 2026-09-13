@@ -1465,7 +1465,7 @@ function MythBusterView({ fact, onReset }) {
           <aside className="fact-signal mythbuster-signal">
             {fact.quote && (
               <blockquote>
-                \u201c{typeof fact.quote === 'string' ? fact.quote : fact.quote.text}\u201d
+                “{typeof fact.quote === 'string' ? fact.quote : fact.quote.text}”
                 {fact.quote?.confidence === 'unverified' && (
                   <small style={{ marginLeft: '8px', backgroundColor: 'var(--red-9, #e03131)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', verticalAlign: 'middle', fontWeight: 600 }}>UNVERIFIED</small>
                 )}
