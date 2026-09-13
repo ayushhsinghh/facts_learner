@@ -11,8 +11,6 @@ const FALLBACK_CATEGORIES = [
   { id: 'history', name: 'History' },
   { id: 'technology', name: 'Technology' },
   { id: 'science', name: 'Science' },
-  { id: 'biology', name: 'Biology' },
-  { id: 'physics', name: 'Physics' },
   { id: 'india', name: 'India' },
   { id: 'country', name: 'Country' },
   { id: 'indian_politics', name: 'Indian Politics' },
@@ -40,7 +38,7 @@ const FALLBACK_CATEGORIES = [
 ]
 
 const CATEGORY_GROUPS = [
-  { label: 'Science & discovery', ids: ['space', 'science', 'physics', 'biology', 'technology', 'medicine', 'nature', 'mathematics', 'psychology'] },
+  { label: 'Science & discovery', ids: ['space', 'science', 'physics', 'biology', 'technology', 'medicine', 'nature', 'mathematics', 'psychology', 'mythbusters'] },
   { label: 'Places & society', ids: ['india', 'country', 'geography', 'economics', 'agriculture', 'transport', 'defense', 'sports'] },
   { label: 'India & public life', ids: ['indian_politics', 'indian_constitution', 'indian_laws'] },
   { label: 'Culture & ideas', ids: ['history', 'culture', 'languages', 'mythology', 'philosophy'] },
@@ -1189,6 +1187,375 @@ function FactView({ fact, onReset }) {
   )
 }
 
+function VerdictBadge({ verdict, confidence }) {
+  const config = {
+    BUSTED: { label: 'Busted', className: 'verdict-busted' },
+    PARTIALLY_TRUE: { label: 'Partially True', className: 'verdict-partial' },
+    PLAUSIBLE: { label: 'Plausible', className: 'verdict-plausible' },
+    TRUE: { label: 'True', className: 'verdict-true' },
+  }
+  const { label, className } = config[verdict] || config.BUSTED
+  return (
+    <div className={`verdict-badge ${className}`}>
+      <span className="verdict-label">{label}</span>
+      {confidence && <span className="verdict-confidence">{confidence} evidence</span>}
+    </div>
+  )
+}
+
+function EvidenceCard({ item }) {
+  return (
+    <div className="evidence-card">
+      <div className="evidence-header">
+        <strong>{item.study}</strong>
+        <span className="evidence-year">{item.year}</span>
+      </div>
+      <p className="evidence-finding" data-narration-content>{item.finding}</p>
+      {item.source && <cite className="evidence-source">{item.source}</cite>}
+    </div>
+  )
+}
+
+function MythBusterView({ fact, onReset }) {
+  const articleRef = useRef(null)
+  const heroRef = useRef(null)
+  const mythTruthRef = useRef(null)
+  const psychologyRef = useRef(null)
+  const evidenceRef = useRef(null)
+  const grainRef = useRef(null)
+  const originRef = useRef(null)
+  const counterRef = useRef(null)
+  const explainRef = useRef(null)
+  const takeawaysRef = useRef(null)
+  const timelineRef = useRef(null)
+  const miscRef = useRef(null)
+  const sourcesRef = useRef(null)
+  const shareRef = useRef(null)
+  const stopVoiceRef = useRef(null)
+  const speechRunRef = useRef(0)
+  const [readingProgress, setReadingProgress] = useState(0)
+  const [copyStatus, setCopyStatus] = useState('idle')
+  const [enlargedImage, setEnlargedImage] = useState(null)
+  const [narrationState, setNarrationState] = useState({
+    paragraphId: null, status: 'idle', sentenceIndex: -1, sentences: [], error: '',
+  })
+
+  function stopNarration() {
+    speechRunRef.current += 1
+    window.responsiveVoice?.cancel()
+    clearNarrationHighlight()
+    setNarrationState({ paragraphId: null, status: 'idle', sentenceIndex: -1, sentences: [], error: '' })
+  }
+
+  function toggleNarration(paragraphId, contentRoot) {
+    if (narrationState.paragraphId === paragraphId && ['loading', 'playing'].includes(narrationState.status)) {
+      stopNarration()
+      return
+    }
+    if (!window.responsiveVoice) {
+      setNarrationState({ paragraphId, status: 'error', sentenceIndex: -1, sentences: [], error: 'The voice reader did not load. Refresh the page and try again.' })
+      return
+    }
+    const sentences = collectNarrationSentences(contentRoot)
+    if (!sentences.length) return
+    speechRunRef.current += 1
+    const run = speechRunRef.current
+    window.responsiveVoice.cancel()
+    setNarrationState({ paragraphId, status: 'loading', sentenceIndex: -1, sentences, error: '' })
+    const speakSentence = (index) => {
+      if (run !== speechRunRef.current) return
+      if (index >= sentences.length) {
+        clearNarrationHighlight()
+        setNarrationState({ paragraphId: null, status: 'idle', sentenceIndex: -1, sentences: [], error: '' })
+        return
+      }
+      clearNarrationHighlight()
+      if (!window.CSS?.highlights || typeof window.Highlight !== 'function') {
+        sentences[index].element.classList.add('is-spoken-content')
+      }
+      highlightSentence(sentences[index].element, sentences[index])
+      setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' })
+      window.responsiveVoice.speak(sentences[index].text, 'Hindi Male', {
+        onstart: () => { if (run === speechRunRef.current) setNarrationState({ paragraphId, status: 'playing', sentenceIndex: index, sentences, error: '' }) },
+        onend: () => speakSentence(index + 1),
+        onerror: () => {
+          if (run !== speechRunRef.current) return
+          clearNarrationHighlight()
+          setNarrationState({ paragraphId, status: 'error', sentenceIndex: -1, sentences, error: 'This section could not be played.' })
+        },
+      })
+    }
+    speakSentence(0)
+  }
+
+  const narration = { ...narrationState, toggle: toggleNarration }
+  function leaveFact() { stopVoiceRef.current?.(); onReset() }
+
+  async function copyShareText() {
+    try { await navigator.clipboard.writeText(normalizeMarkdown(fact.share_text)); setCopyStatus('copied') }
+    catch { setCopyStatus('error') }
+    window.setTimeout(() => setCopyStatus('idle'), 2200)
+  }
+
+  useEffect(() => {
+    let frame
+    const updateProgress = () => {
+      const article = articleRef.current
+      if (!article) return
+      const distance = Math.max(1, article.scrollHeight - window.innerHeight)
+      setReadingProgress(Math.min(1, Math.max(0, (window.scrollY - article.offsetTop) / distance)))
+    }
+    const onScroll = () => { window.cancelAnimationFrame(frame); frame = window.requestAnimationFrame(updateProgress) }
+    updateProgress()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    window.addEventListener('resize', onScroll)
+    return () => { window.cancelAnimationFrame(frame); window.removeEventListener('scroll', onScroll); window.removeEventListener('resize', onScroll) }
+  }, [])
+
+  useEffect(() => {
+    stopVoiceRef.current = stopNarration
+    const cancelOnPageExit = () => { speechRunRef.current += 1; window.responsiveVoice?.cancel() }
+    window.addEventListener('pagehide', cancelOnPageExit)
+    return () => {
+      speechRunRef.current += 1; window.responsiveVoice?.cancel(); clearNarrationHighlight()
+      window.removeEventListener('pagehide', cancelOnPageExit); stopVoiceRef.current = null
+    }
+  }, [fact])
+
+  const hasEvidence = fact.debunk_evidence?.length > 0
+  const hasTimeline = fact.timeline?.length > 0
+  const hasMisconceptions = fact.common_misconceptions?.length > 0
+
+  return (
+    <article className="mythbuster-view" ref={articleRef}>
+      <span className="reading-progress mythbuster-progress" aria-hidden="true">
+        <i style={{ transform: `scaleX(${readingProgress})` }} />
+      </span>
+      <nav className="fact-nav mythbuster-nav" aria-label="Myth controls">
+        <a href="/" className="fact-wordmark" onClick={() => stopVoiceRef.current?.()}><span aria-hidden="true" />The Curiosity Archive</a>
+        <span className="fact-category mythbuster-category-badge">
+          {fact.emoji_icon && <span className="fact-emoji" aria-hidden="true">{fact.emoji_icon}</span>}
+          Mythbusters{fact.myth_sub_category ? ` · ${fact.myth_sub_category}` : ''}
+        </span>
+        <button type="button" onClick={leaveFact}>Bust another myth</button>
+      </nav>
+
+      <header className="fact-hero mythbuster-hero" id="myth-top" ref={heroRef}>
+        {fact.images?.cover && <div className="fact-hero-bg" style={{ backgroundImage: `url(${fact.images.cover})` }} />}
+        <div className="fact-hero-content mythbuster-hero-content">
+          <p className="myth-statement-label">The Myth</p>
+          <h1 className="myth-statement-text" data-narration-content>
+            “{fact.myth_statement || fact.topic}”
+          </h1>
+          <VerdictBadge verdict={fact.verdict} confidence={fact.verdict_confidence} />
+          {fact.headline_fact && <p className="mythbuster-headline" data-narration-content>{fact.headline_fact}</p>}
+          <Meta fact={fact} />
+        </div>
+      </header>
+
+      <nav className="reading-nav mythbuster-reading-nav" aria-label="On this page">
+        <div className="reading-nav-glass">
+          <a href="#myth-truth">Myth vs Truth</a>
+          <a href="#psychology">Why you believed it</a>
+          {hasEvidence && <a href="#evidence">Evidence</a>}
+          {hasTimeline && <a href="#myth-timeline">Timeline</a>}
+        </div>
+      </nav>
+
+      <div className="fact-body mythbuster-body">
+        {/* Myth vs Truth */}
+        <section className="mb-myth-truth-section" id="myth-truth" ref={mythTruthRef}>
+          <NarratedHeading narrationId="myth-truth" narration={narration} targetRef={mythTruthRef}>The myth vs the truth</NarratedHeading>
+          <div className="mb-comparison">
+            <div className="mb-side mb-myth-side">
+              <span className="mb-side-label mb-side-myth">The Myth</span>
+              {fact.images?.myth_visual && (
+                <img src={fact.images.myth_visual} alt="Myth depiction" className="fact-inline-image mb-side-image zoomable" onClick={() => setEnlargedImage(fact.images.myth_visual)} />
+              )}
+              <div data-narration-content><MarkdownContent narration={narration}>{fact.myth_statement || fact.summary}</MarkdownContent></div>
+            </div>
+            <div className="mb-side mb-truth-side">
+              <span className="mb-side-label mb-side-truth">The Truth</span>
+              {fact.images?.truth_visual && (
+                <img src={fact.images.truth_visual} alt="Truth depiction" className="fact-inline-image mb-side-image zoomable" onClick={() => setEnlargedImage(fact.images.truth_visual)} />
+              )}
+              <div data-narration-content><MarkdownContent narration={narration}>{fact.the_reality || fact.summary}</MarkdownContent></div>
+            </div>
+          </div>
+        </section>
+
+        {/* Grain of Truth */}
+        {fact.grain_of_truth && (
+          <aside className="mb-grain-section" id="grain" ref={grainRef}>
+            <NarratedHeading narrationId="grain" narration={narration} targetRef={grainRef}>The grain of truth</NarratedHeading>
+            <MarkdownContent narration={narration} standalone>{fact.grain_of_truth}</MarkdownContent>
+          </aside>
+        )}
+
+        {/* Why You Believed It */}
+        {fact.spread_psychology && (
+          <section className="mb-psychology-section" id="psychology" ref={psychologyRef}>
+            <div className="section-intro">
+              <NarratedHeading narrationId="psychology" narration={narration} targetRef={psychologyRef}>Why you believed it</NarratedHeading>
+              <p data-narration-content>The cognitive biases at work.</p>
+            </div>
+            <MarkdownContent narration={narration} standalone>{fact.spread_psychology}</MarkdownContent>
+          </section>
+        )}
+
+        {/* Evidence */}
+        {hasEvidence && (
+          <section className="mb-evidence-section" id="evidence" ref={evidenceRef}>
+            <div className="section-intro">
+              <NarratedHeading narrationId="evidence" narration={narration} targetRef={evidenceRef}>The evidence</NarratedHeading>
+              <p data-narration-content>Peer-reviewed studies and data.</p>
+            </div>
+            <div className="mb-evidence-grid">
+              {fact.debunk_evidence.map((item, i) => <EvidenceCard key={`ev-${i}`} item={item} />)}
+            </div>
+          </section>
+        )}
+
+        {/* Quote & Key Stats */}
+        {(fact.quote || fact.key_figure || fact.key_stat) && (
+          <aside className="fact-signal mythbuster-signal">
+            {fact.quote && (
+              <blockquote>
+                \u201c{typeof fact.quote === 'string' ? fact.quote : fact.quote.text}\u201d
+                {fact.quote?.confidence === 'unverified' && (
+                  <small style={{ marginLeft: '8px', backgroundColor: 'var(--red-9, #e03131)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', verticalAlign: 'middle', fontWeight: 600 }}>UNVERIFIED</small>
+                )}
+              </blockquote>
+            )}
+            {(fact.key_figure || fact.key_stat) && (
+              <dl>
+                {fact.key_figure && <div><dt>Key figure</dt><dd>{fact.key_figure}</dd></div>}
+                {fact.key_stat && <div><dt>Key statistic</dt><dd>{fact.key_stat}</dd></div>}
+              </dl>
+            )}
+          </aside>
+        )}
+
+        {/* Explore deeper — Origin, Counter-arguments, How to explain */}
+        <section className="explore-section mb-explore" id="mb-explore">
+          <div className="section-intro">
+            <NarratedHeading narrationId="mb-explore" narration={narration} targetRef={originRef}>Explore deeper</NarratedHeading>
+            <p data-narration-content>Dig into the history, counter-arguments, and how to talk about this.</p>
+          </div>
+          <div className="disclosure-list">
+            {fact.myth_origin && (
+              <Disclosure title="How this myth started" description="The origin story and spread" narration={narration}>
+                <ReadingBlock text={fact.myth_origin} narration={narration} />
+              </Disclosure>
+            )}
+            {fact.counter_arguments && (
+              <Disclosure title="What believers say" description="Counter-arguments and why they fall short" narration={narration}>
+                <ReadingBlock text={fact.counter_arguments} narration={narration} />
+              </Disclosure>
+            )}
+            {fact.how_to_explain && (
+              <Disclosure title="How to explain the truth" description="A practical, empathetic script" narration={narration}>
+                <ReadingBlock text={fact.how_to_explain} narration={narration} />
+              </Disclosure>
+            )}
+            {hasMisconceptions && (
+              <Disclosure title="Related myths" description="Other myths from the same family" narration={narration}>
+                <ReadingBlock narration={narration}>
+                  <ul className="misconceptions-list">
+                    {fact.common_misconceptions.map((item, i) => (
+                      <li key={i} data-narration-content className="misconception-card">
+                        {typeof item === 'string' ? <p>{item}</p> : (
+                          <div className="misconception-grid">
+                            <div className="mc-myth"><span className="mc-label">Myth</span><p>{item.myth}</p></div>
+                            <div className="mc-reality"><span className="mc-label">Reality</span><p>{item.reality}</p></div>
+                            {item.evidence && <div className="mc-evidence"><span className="mc-label">Evidence</span><p>{item.evidence}</p></div>}
+                          </div>
+                        )}
+                      </li>
+                    ))}
+                  </ul>
+                </ReadingBlock>
+              </Disclosure>
+            )}
+          </div>
+        </section>
+
+        {/* Timeline */}
+        {hasTimeline && (
+          <section className="timeline-section mb-timeline" id="myth-timeline" ref={timelineRef}>
+            <div className="section-intro">
+              <NarratedHeading narrationId="myth-timeline" narration={narration} targetRef={timelineRef}>How the myth evolved</NarratedHeading>
+              <p data-narration-content>Key moments in the life of this misconception.</p>
+            </div>
+            <ol className="timeline-track">{fact.timeline.map((item) => (
+              <li key={`${item.year}-${item.event}`}>
+                <time data-narration-content>{item.year}</time>
+                <div className="timeline-entry">
+                  <span className="timeline-node" aria-hidden="true" />
+                  <p data-narration-content>{item.event}</p>
+                </div>
+              </li>
+            ))}</ol>
+          </section>
+        )}
+
+        {/* Takeaways */}
+        {fact.learning_takeaways?.length > 0 && (
+          <section className="takeaway-section mb-takeaways" id="mb-remember" ref={takeawaysRef}>
+            <div className="section-intro">
+              <NarratedHeading narrationId="mb-takeaways" narration={narration} targetRef={takeawaysRef}>Critical thinking takeaways</NarratedHeading>
+              <p data-narration-content>Skills to spot similar myths in the future.</p>
+            </div>
+            <ul>{fact.learning_takeaways.map((item) => <li key={item} data-narration-content>{item}</li>)}</ul>
+          </section>
+        )}
+
+        {/* Share */}
+        {fact.share_text && (
+          <section className="share-section mb-share" ref={shareRef}>
+            <div>
+              <NarratedHeading narrationId="mb-share" narration={narration} targetRef={shareRef}>Share this debunk</NarratedHeading>
+              <p data-narration-content>{normalizeMarkdown(fact.share_text)}</p>
+            </div>
+            <button type="button" onClick={copyShareText}>
+              <CopyIcon />
+              <span>{copyStatus === 'copied' ? 'Copied' : copyStatus === 'error' ? 'Copy failed' : 'Copy debunk'}</span>
+            </button>
+            <span className="sr-only" role="status" aria-live="polite">
+              {copyStatus === 'copied' ? 'Debunk copied to clipboard.' : copyStatus === 'error' ? 'Could not copy.' : ''}
+            </span>
+          </section>
+        )}
+
+        {/* Sources */}
+        {fact.sources_or_references?.length > 0 && (
+          <div className="source-section-wrap">
+            <details className="source-section" ref={sourcesRef}>
+              <summary>Sources and references <span>{fact.sources_or_references.length}</span></summary>
+              <ul>{fact.sources_or_references.map((source) => <li key={source} data-narration-content>{source}</li>)}</ul>
+            </details>
+            <NarrationButton narrationId="mb-sources" narration={narration} getContent={() => sourcesRef.current} prepare={() => { sourcesRef.current.open = true }} label="references" className="source-listen" />
+          </div>
+        )}
+
+        <footer className="fact-end mythbuster-end">
+          <span aria-hidden="true" />
+          <p>Every myth busted is a step toward clearer thinking.</p>
+          <button type="button" onClick={leaveFact}>Bust another myth <ArrowIcon /></button>
+        </footer>
+        <span className="sr-only" role="status" aria-live="polite">{narrationState.error}</span>
+      </div>
+
+      {enlargedImage && (
+        <div className="image-lightbox" onClick={() => setEnlargedImage(null)}>
+          <button type="button" className="lightbox-close" onClick={() => setEnlargedImage(null)} aria-label="Close image"><CloseIcon /></button>
+          <img src={enlargedImage} alt="Enlarged view" onClick={(e) => e.stopPropagation()} />
+        </div>
+      )}
+    </article>
+  )
+}
+
 export default function App() {
   const [categories, setCategories] = useState([])
   const [selectedId, setSelectedId] = useState('')
@@ -1373,6 +1740,9 @@ export default function App() {
   }
 
   if (status === 'completed' && fact) {
+    if (fact.category === 'mythbusters') {
+      return <MythBusterView fact={fact} onReset={reset} />
+    }
     return <FactView fact={fact} onReset={reset} />
   }
 
