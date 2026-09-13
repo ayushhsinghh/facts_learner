@@ -5,6 +5,9 @@ import { fetchCategories, fetchHistory, getFactStatus, startFact } from './api.j
 const FALLBACK_CATEGORIES = [
   { id: 'food', name: 'Food' },
   { id: 'space', name: 'Space' },
+  { id: 'biology', name: 'Biology' },
+  { id: 'physics', name: 'Physics' },
+  { id: 'mythbusters', name: 'Mythbusters' },
   { id: 'history', name: 'History' },
   { id: 'technology', name: 'Technology' },
   { id: 'science', name: 'Science' },
@@ -35,7 +38,7 @@ const FALLBACK_CATEGORIES = [
 ]
 
 const CATEGORY_GROUPS = [
-  { label: 'Science & discovery', ids: ['space', 'science', 'technology', 'medicine', 'nature', 'mathematics', 'psychology'] },
+  { label: 'Science & discovery', ids: ['space', 'science', 'technology', 'medicine', 'nature', 'mathematics', 'psychology', 'biology', 'physics', 'mythbusters'] },
   { label: 'Places & society', ids: ['india', 'country', 'geography', 'economics', 'agriculture', 'transport', 'defense', 'sports'] },
   { label: 'India & public life', ids: ['indian_politics', 'indian_constitution', 'indian_laws'] },
   { label: 'Culture & ideas', ids: ['history', 'culture', 'languages', 'mythology', 'philosophy'] },
