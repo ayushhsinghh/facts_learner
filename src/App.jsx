@@ -1204,13 +1204,15 @@ function VerdictBadge({ verdict, confidence }) {
 }
 
 function EvidenceCard({ item }) {
+  const title = item.study || item.title || 'Evidence'
+  const finding = item.finding || item.evidence || item.summary
   return (
     <div className="evidence-card">
       <div className="evidence-header">
-        <strong>{item.study}</strong>
-        <span className="evidence-year">{item.year}</span>
+        <strong>{title}</strong>
+        {item.year && <span className="evidence-year">{item.year}</span>}
       </div>
-      <p className="evidence-finding" data-narration-content>{item.finding}</p>
+      {finding && <p className="evidence-finding" data-narration-content>{finding}</p>}
       {item.source && <cite className="evidence-source">{item.source}</cite>}
     </div>
   )
@@ -1220,6 +1222,7 @@ function MythBusterView({ fact, onReset }) {
   const articleRef = useRef(null)
   const heroRef = useRef(null)
   const mythTruthRef = useRef(null)
+  const contextRef = useRef(null)
   const psychologyRef = useRef(null)
   const evidenceRef = useRef(null)
   const grainRef = useRef(null)
@@ -1229,6 +1232,8 @@ function MythBusterView({ fact, onReset }) {
   const takeawaysRef = useRef(null)
   const timelineRef = useRef(null)
   const miscRef = useRef(null)
+  const tagsRef = useRef(null)
+  const relatedRef = useRef(null)
   const sourcesRef = useRef(null)
   const shareRef = useRef(null)
   const stopVoiceRef = useRef(null)
@@ -1325,6 +1330,28 @@ function MythBusterView({ fact, onReset }) {
   const hasEvidence = fact.debunk_evidence?.length > 0
   const hasTimeline = fact.timeline?.length > 0
   const hasMisconceptions = fact.common_misconceptions?.length > 0
+  const breakdown = fact.in_depth_breakdown || {}
+  const firstMisconception = fact.common_misconceptions?.find((item) => item && typeof item === 'object')
+  const mythText = fact.myth_statement || firstMisconception?.myth || fact.topic
+  const truthText = fact.the_reality || fact.summary || firstMisconception?.reality || fact.headline_fact
+  const originText = fact.myth_origin || fact.history
+  const mechanicsText = fact.core_mechanics || fact.how_it_works
+  const hasBackground = Boolean(originText || fact.why_it_matters)
+  const hasMechanics = Boolean(
+    mechanicsText || fact.images?.how_it_works || breakdown.scientific_or_technical_detail
+    || breakdown.key_mechanisms_or_types?.length || breakdown.step_by_step_process?.length
+    || breakdown.detailed_processes?.length,
+  )
+  const hasWorldContext = Boolean(
+    breakdown.real_world_application || fact.impact_on_india || fact.cultural_significance
+    || fact.global_comparison,
+  )
+  const hasExtraContext = Boolean(
+    breakdown.fascinating_trivia?.length || hasMisconceptions
+    || fact.counter_arguments || fact.how_to_explain,
+  )
+  const hasExplore = hasBackground || hasMechanics || hasWorldContext || hasExtraContext
+  const hasTaxonomy = fact.tags?.length > 0 || fact.related_categories?.length > 0
 
   return (
     <article className="mythbuster-view" ref={articleRef}>
@@ -1343,11 +1370,12 @@ function MythBusterView({ fact, onReset }) {
       <header className="fact-hero mythbuster-hero" id="myth-top" ref={heroRef}>
         {fact.images?.cover && <div className="fact-hero-bg" style={{ backgroundImage: `url(${fact.images.cover})` }} />}
         <div className="fact-hero-content mythbuster-hero-content">
-          <p className="myth-statement-label">The Myth</p>
-          <h1 className="myth-statement-text" data-narration-content>
-            “{fact.myth_statement || fact.topic}”
-          </h1>
-          <VerdictBadge verdict={fact.verdict} confidence={fact.verdict_confidence} />
+          <p className="myth-statement-label">Myth under review</p>
+          <h1 className="mythbuster-title" data-narration-content>{fact.topic}</h1>
+          {mythText && mythText !== fact.topic && (
+            <p className="myth-statement-text" data-narration-content>“{mythText}”</p>
+          )}
+          {fact.verdict && <VerdictBadge verdict={fact.verdict} confidence={fact.verdict_confidence} />}
           {fact.headline_fact && <p className="mythbuster-headline" data-narration-content>{fact.headline_fact}</p>}
           <Meta fact={fact} />
         </div>
@@ -1356,8 +1384,9 @@ function MythBusterView({ fact, onReset }) {
       <nav className="reading-nav mythbuster-reading-nav" aria-label="On this page">
         <div className="reading-nav-glass">
           <a href="#myth-truth">Myth vs Truth</a>
-          <a href="#psychology">Why you believed it</a>
+          {fact.did_you_know && <a href="#myth-context">Context</a>}
           {hasEvidence && <a href="#evidence">Evidence</a>}
+          {hasExplore && <a href="#mb-explore">Explore deeper</a>}
           {hasTimeline && <a href="#myth-timeline">Timeline</a>}
         </div>
       </nav>
@@ -1372,17 +1401,32 @@ function MythBusterView({ fact, onReset }) {
               {fact.images?.myth_visual && (
                 <img src={fact.images.myth_visual} alt="Myth depiction" className="fact-inline-image mb-side-image zoomable" onClick={() => setEnlargedImage(fact.images.myth_visual)} />
               )}
-              <div data-narration-content><MarkdownContent narration={narration}>{fact.myth_statement || fact.summary}</MarkdownContent></div>
+              <MarkdownContent narration={narration}>{mythText}</MarkdownContent>
             </div>
             <div className="mb-side mb-truth-side">
               <span className="mb-side-label mb-side-truth">The Truth</span>
               {fact.images?.truth_visual && (
                 <img src={fact.images.truth_visual} alt="Truth depiction" className="fact-inline-image mb-side-image zoomable" onClick={() => setEnlargedImage(fact.images.truth_visual)} />
               )}
-              <div data-narration-content><MarkdownContent narration={narration}>{fact.the_reality || fact.summary}</MarkdownContent></div>
+              <MarkdownContent narration={narration}>{truthText}</MarkdownContent>
             </div>
           </div>
+          {fact.images?.overview && (
+            <img
+              src={fact.images.overview}
+              alt="Visual context for the myth and the evidence"
+              className="fact-inline-image mb-overview-image zoomable"
+              onClick={() => setEnlargedImage(fact.images.overview)}
+            />
+          )}
         </section>
+
+        {fact.did_you_know && (
+          <aside className="did-you-know mb-context-note" id="myth-context" ref={contextRef}>
+            <NarratedHeading narrationId="mb-context" narration={narration} targetRef={contextRef}>Did you know?</NarratedHeading>
+            <div><MarkdownContent narration={narration}>{fact.did_you_know}</MarkdownContent></div>
+          </aside>
+        )}
 
         {/* Grain of Truth */}
         {fact.grain_of_truth && (
@@ -1436,49 +1480,100 @@ function MythBusterView({ fact, onReset }) {
           </aside>
         )}
 
-        {/* Explore deeper — Origin, Counter-arguments, How to explain */}
-        <section className="explore-section mb-explore" id="mb-explore">
+        {/* Explore deeper */}
+        {hasExplore && <section className="explore-section mb-explore" id="mb-explore" ref={originRef}>
           <div className="section-intro">
             <NarratedHeading narrationId="mb-explore" narration={narration} targetRef={originRef}>Explore deeper</NarratedHeading>
-            <p data-narration-content>Dig into the history, counter-arguments, and how to talk about this.</p>
+            <p data-narration-content>Trace the claim, test the science, and see its real-world effects.</p>
           </div>
           <div className="disclosure-list">
-            {fact.myth_origin && (
-              <Disclosure title="How this myth started" description="The origin story and spread" narration={narration}>
-                <ReadingBlock text={fact.myth_origin} narration={narration} />
+            {hasBackground && (
+              <Disclosure title="Where the myth came from" description="History, transmission, and why correction matters" narration={narration}>
+                <ReadingBlock title="The origin story" text={originText} narration={narration} />
+                <ReadingBlock title="Why it matters" text={fact.why_it_matters} narration={narration} />
               </Disclosure>
             )}
-            {fact.counter_arguments && (
-              <Disclosure title="What believers say" description="Counter-arguments and why they fall short" narration={narration}>
-                <ReadingBlock text={fact.counter_arguments} narration={narration} />
+            {hasMechanics && (
+              <Disclosure title="What the science shows" description="Mechanisms, biological evidence, and step-by-step processes" narration={narration}>
+                <ReadingBlock text={mechanicsText} narration={narration} />
+                {fact.images?.how_it_works && (
+                  <img
+                    src={fact.images.how_it_works}
+                    alt="Scientific explanation of how the underlying process works"
+                    className="fact-inline-image fact-mechanics-image zoomable"
+                    onClick={() => setEnlargedImage(fact.images.how_it_works)}
+                  />
+                )}
+                <ReadingBlock title="Technical detail" text={breakdown.scientific_or_technical_detail} narration={narration} />
+                {breakdown.key_mechanisms_or_types?.length > 0 && (
+                  <ReadingBlock title="Key mechanisms" narration={narration}>
+                    <ul className="mechanisms-list">{breakdown.key_mechanisms_or_types.map((item) => <li key={item} data-narration-content>{item}</li>)}</ul>
+                  </ReadingBlock>
+                )}
+                {breakdown.step_by_step_process?.length > 0 && (
+                  <ReadingBlock title="The process" narration={narration}>
+                    <ol className="process-list">{breakdown.step_by_step_process.map((item) => <li key={item} data-narration-content>{item}</li>)}</ol>
+                  </ReadingBlock>
+                )}
+                {breakdown.detailed_processes?.map((process, index) => (
+                  <ReadingBlock key={`${process.title}-${index}`} title={process.title} narration={narration}>
+                    {process.description && <p data-narration-content>{process.description}</p>}
+                    {process.steps?.length > 0 && (
+                      <ol className="process-list">{process.steps.map((step, stepIndex) => <li key={stepIndex} data-narration-content>{step}</li>)}</ol>
+                    )}
+                  </ReadingBlock>
+                ))}
               </Disclosure>
             )}
-            {fact.how_to_explain && (
-              <Disclosure title="How to explain the truth" description="A practical, empathetic script" narration={narration}>
-                <ReadingBlock text={fact.how_to_explain} narration={narration} />
-              </Disclosure>
-            )}
-            {hasMisconceptions && (
-              <Disclosure title="Related myths" description="Other myths from the same family" narration={narration}>
-                <ReadingBlock narration={narration}>
-                  <ul className="misconceptions-list">
-                    {fact.common_misconceptions.map((item, i) => (
-                      <li key={i} data-narration-content className="misconception-card">
-                        {typeof item === 'string' ? <p>{item}</p> : (
-                          <div className="misconception-grid">
-                            <div className="mc-myth"><span className="mc-label">Myth</span><p>{item.myth}</p></div>
-                            <div className="mc-reality"><span className="mc-label">Reality</span><p>{item.reality}</p></div>
-                            {item.evidence && <div className="mc-evidence"><span className="mc-label">Evidence</span><p>{item.evidence}</p></div>}
-                          </div>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
+            {hasWorldContext && (
+              <Disclosure title="Why the myth matters in the world" description="Medicine, culture, India, and global context" narration={narration}>
+                <ReadingBlock title="Real-world application" text={breakdown.real_world_application} narration={narration} />
+                <ReadingBlock title="Impact on India" text={fact.impact_on_india} narration={narration} />
+                <ReadingBlock title="Cultural significance" text={fact.cultural_significance} narration={narration} />
+                <ReadingBlock title="Global comparison" text={typeof fact.global_comparison === 'string' ? fact.global_comparison : undefined} narration={narration}>
+                  {typeof fact.global_comparison === 'object' && fact.global_comparison !== null && (
+                    <>
+                      {fact.global_comparison.summary && <p data-narration-content>{fact.global_comparison.summary}</p>}
+                      {fact.global_comparison.comparisons?.length > 0 && (
+                        <ul>{fact.global_comparison.comparisons.map((comparison, index) => (
+                          <li key={`${comparison.country}-${index}`} data-narration-content><strong>{comparison.country}:</strong> {comparison.comparison_point}</li>
+                        ))}</ul>
+                      )}
+                    </>
+                  )}
                 </ReadingBlock>
               </Disclosure>
             )}
+            {hasExtraContext && (
+              <Disclosure title="Test the surrounding claims" description="Related misconceptions, evidence, and memorable context" narration={narration}>
+                <ReadingBlock title="What believers say" text={fact.counter_arguments} narration={narration} />
+                <ReadingBlock title="How to explain the truth" text={fact.how_to_explain} narration={narration} />
+                {breakdown.fascinating_trivia?.length > 0 && (
+                  <ReadingBlock title="Unexpected context" narration={narration}>
+                    <ul>{breakdown.fascinating_trivia.map((item) => <li key={item} data-narration-content>{item}</li>)}</ul>
+                  </ReadingBlock>
+                )}
+                {hasMisconceptions && (
+                  <ReadingBlock title="Related claims" narration={narration}>
+                    <ul className="misconceptions-list">
+                      {fact.common_misconceptions.map((item, i) => (
+                        <li key={i} data-narration-content className="misconception-card">
+                          {typeof item === 'string' ? <p>{item}</p> : (
+                            <div className="misconception-grid">
+                              <div className="mc-myth"><span className="mc-label">Myth</span><p>{item.myth}</p></div>
+                              <div className="mc-reality"><span className="mc-label">Reality</span><p>{item.reality}</p></div>
+                              {item.evidence && <div className="mc-evidence"><span className="mc-label">Evidence</span><p>{item.evidence}</p></div>}
+                            </div>
+                          )}
+                        </li>
+                      ))}
+                    </ul>
+                  </ReadingBlock>
+                )}
+              </Disclosure>
+            )}
           </div>
-        </section>
+        </section>}
 
         {/* Timeline */}
         {hasTimeline && (
@@ -1507,6 +1602,23 @@ function MythBusterView({ fact, onReset }) {
               <p data-narration-content>Skills to spot similar myths in the future.</p>
             </div>
             <ul>{fact.learning_takeaways.map((item) => <li key={item} data-narration-content>{item}</li>)}</ul>
+          </section>
+        )}
+
+        {hasTaxonomy && (
+          <section className="fact-taxonomy mb-taxonomy" aria-label="Myth classification" ref={miscRef}>
+            {fact.tags?.length > 0 && (
+              <div ref={tagsRef}>
+                <NarratedHeading narrationId="mb-tags" narration={narration} targetRef={tagsRef}>Filed under</NarratedHeading>
+                <ul>{fact.tags.map((tag) => <li key={tag} data-narration-content>{tag}</li>)}</ul>
+              </div>
+            )}
+            {fact.related_categories?.length > 0 && (
+              <div ref={relatedRef}>
+                <NarratedHeading narrationId="mb-related" narration={narration} targetRef={relatedRef}>Continue exploring</NarratedHeading>
+                <ul>{fact.related_categories.map((category) => <li key={category} data-narration-content>{formatCategory(category)}</li>)}</ul>
+              </div>
+            )}
           </section>
         )}
 
