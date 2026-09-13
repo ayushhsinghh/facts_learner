@@ -11,6 +11,8 @@ const FALLBACK_CATEGORIES = [
   { id: 'history', name: 'History' },
   { id: 'technology', name: 'Technology' },
   { id: 'science', name: 'Science' },
+  { id: 'biology', name: 'Biology' },
+  { id: 'physics', name: 'Physics' },
   { id: 'india', name: 'India' },
   { id: 'country', name: 'Country' },
   { id: 'indian_politics', name: 'Indian Politics' },
@@ -38,7 +40,7 @@ const FALLBACK_CATEGORIES = [
 ]
 
 const CATEGORY_GROUPS = [
-  { label: 'Science & discovery', ids: ['space', 'science', 'technology', 'medicine', 'nature', 'mathematics', 'psychology', 'biology', 'physics', 'mythbusters'] },
+  { label: 'Science & discovery', ids: ['space', 'science', 'physics', 'biology', 'technology', 'medicine', 'nature', 'mathematics', 'psychology'] },
   { label: 'Places & society', ids: ['india', 'country', 'geography', 'economics', 'agriculture', 'transport', 'defense', 'sports'] },
   { label: 'India & public life', ids: ['indian_politics', 'indian_constitution', 'indian_laws'] },
   { label: 'Culture & ideas', ids: ['history', 'culture', 'languages', 'mythology', 'philosophy'] },
@@ -251,7 +253,7 @@ function NarratedListItem({ itemId, narration, children, ...props }) {
     && typeof window.Highlight === 'function'
 
   return (
-    <li ref={itemRef} data-narration-content className={`${active ? 'is-active' : ''}${hasRangeHighlight ? ' has-range-highlight' : ''}`} {...props}>
+    <li ref={itemRef} data-narration-content className={`narrated-list-item ${active ? 'is-active' : ''}${hasRangeHighlight ? ' has-range-highlight' : ''}`.trim()} {...props}>
       {children}
       <NarrationButton narrationId={itemId} narration={narration} getContent={() => itemRef.current} label="list item" />
     </li>
@@ -292,10 +294,13 @@ function NarratedHeading({ as: Heading = 'h2', narrationId, narration, targetRef
 }
 
 const MarkdownContext = createContext(null)
+const ListContext = createContext(false)
 
 function MarkdownParagraph({ node, children: paragraphChildren, ...props }) {
   const { narration, standalone, contentId } = useContext(MarkdownContext)
-  if (!standalone || !narration) return <p data-narration-content {...props}>{paragraphChildren}</p>
+  const inList = useContext(ListContext)
+
+  if (!standalone || !narration || inList) return <p data-narration-content {...props}>{paragraphChildren}</p>
   return (
     <NarratedParagraph
       paragraphId={`${contentId}-${node?.position?.start?.offset || 0}`}
@@ -311,9 +316,11 @@ function MarkdownListItem({ node, children: itemChildren, ...props }) {
   const { narration, standalone, contentId } = useContext(MarkdownContext)
   if (!standalone || !narration) return <li data-narration-content {...props}>{itemChildren}</li>
   return (
-    <NarratedListItem itemId={`${contentId}-item-${node?.position?.start?.offset || 0}`} narration={narration} {...props}>
-      {itemChildren}
-    </NarratedListItem>
+    <ListContext.Provider value={true}>
+      <NarratedListItem itemId={`${contentId}-item-${node?.position?.start?.offset || 0}`} narration={narration} {...props}>
+        {itemChildren}
+      </NarratedListItem>
+    </ListContext.Provider>
   )
 }
 
@@ -340,8 +347,6 @@ function MarkdownContent({ children, narration, standalone = false }) {
 }
 
 function SearchForm({ categories, selectedId, setSelectedId, onSubmit, loading }) {
-  const groups = groupCategories(categories)
-
   return (
     <form className="search-form" onSubmit={onSubmit}>
       <button type="submit" disabled={loading || categories.length === 0}>
@@ -350,22 +355,12 @@ function SearchForm({ categories, selectedId, setSelectedId, onSubmit, loading }
       </button>
       <div className="search-control">
         <label className="sr-only" htmlFor="category">Choose a category</label>
-        <select
-          id="category"
-          value={selectedId}
-          onChange={(event) => setSelectedId(event.target.value)}
+        <CategorySelect
+          categories={categories}
+          selectedId={selectedId}
+          onChange={setSelectedId}
           disabled={loading}
-        >
-          <option value="">Any category</option>
-          {groups.map((group) => (
-            <optgroup key={group.label} label={group.label}>
-              {group.items.map((category) => (
-                <option key={category.id} value={category.id}>{category.name}</option>
-              ))}
-            </optgroup>
-          ))}
-        </select>
-        <span className="select-mark" aria-hidden="true" />
+        />
       </div>
     </form>
   )
@@ -409,8 +404,96 @@ function formatCategory(value) {
     .replace(/\b\w/g, (character) => character.toUpperCase())
 }
 
-function HistoryDialog({
-  dialogRef,
+function CategorySelect({ categories, selectedId, onChange, disabled }) {
+  const [isOpen, setIsOpen] = useState(false)
+  const wrapperRef = useRef(null)
+  const categoryGroups = groupCategories(categories)
+  const selectedName = selectedId
+    ? categories.find(c => c.id === selectedId)?.name || 'Fact'
+    : 'Any category'
+
+  // Close when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event) {
+      if (wrapperRef.current && !wrapperRef.current.contains(event.target)) {
+        setIsOpen(false)
+      }
+    }
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => { document.removeEventListener('mousedown', handleClickOutside) }
+  }, [isOpen])
+
+  return (
+    <div className="category-select-wrapper" ref={wrapperRef}>
+      <button
+        type="button"
+        className="category-select-trigger"
+        onClick={() => setIsOpen(!isOpen)}
+        disabled={disabled}
+      >
+        <span>{selectedName}</span>
+        <ChevronIcon className={`category-select-chevron ${isOpen ? 'is-open' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="category-dropdown">
+          <div className="category-dropdown-body">
+            <button
+              type="button"
+              className={`category-item category-item-any ${selectedId === '' ? 'is-selected' : ''}`}
+              onClick={() => { onChange(''); setIsOpen(false) }}
+            >
+              Any category
+            </button>
+            <div className="category-grid-layout">
+              {categoryGroups.map((group) => (
+                <div key={group.label} className="category-group">
+                  <h4>{group.label}</h4>
+                  <ul>
+                    {group.items.map((item) => (
+                      <li key={item.id}>
+                        <button
+                          type="button"
+                          className={`category-item ${selectedId === item.id ? 'is-selected' : ''}`}
+                          onClick={() => { onChange(item.id); setIsOpen(false) }}
+                        >
+                          {item.name}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
+function SearchIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="11" cy="11" r="8" />
+      <line x1="21" y1="21" x2="16.65" y2="16.65" />
+    </svg>
+  )
+}
+
+function PlusIcon() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" stroke="currentColor" fill="none" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <line x1="12" y1="5" x2="12" y2="19" />
+      <line x1="5" y1="12" x2="19" y2="12" />
+    </svg>
+  )
+}
+
+function HistoryOverlay({
+  isOpen,
   categories,
   category,
   facts,
@@ -423,15 +506,20 @@ function HistoryDialog({
   onRetry,
   onLoadMore,
 }) {
+  const [searchQuery, setSearchQuery] = useState('')
   const categoryGroups = groupCategories(categories)
 
+  const filteredFacts = facts.filter((fact) => {
+    if (!searchQuery) return true
+    const q = searchQuery.toLowerCase()
+    return (
+      (fact.topic || '').toLowerCase().includes(q) ||
+      (fact.headline_fact || '').toLowerCase().includes(q)
+    )
+  })
+
   return (
-    <dialog
-      className="history-dialog"
-      ref={dialogRef}
-      aria-labelledby="history-title"
-      onClick={(event) => event.target === event.currentTarget && onClose()}
-    >
+    <div className={`history-overlay ${isOpen ? 'is-open' : ''}`}>
       <div className="history-panel">
         <header className="history-header">
           <div>
@@ -444,24 +532,26 @@ function HistoryDialog({
         </header>
 
         <div className="history-filter">
-          <label htmlFor="history-category">Filter by category</label>
-          <div className="history-filter-control">
-            <select
-              id="history-category"
-              value={category}
-              onChange={(event) => onCategoryChange(event.target.value)}
+          <div className="history-filter-search">
+            <label htmlFor="history-search" className="sr-only">Search facts</label>
+            <input
+              id="history-search"
+              type="text"
+              placeholder="Search discoveries..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               disabled={state === 'loading' || state === 'loading-more'}
-            >
-              <option value="">All categories</option>
-              {categoryGroups.map((group) => (
-                <optgroup key={group.label} label={group.label}>
-                  {group.items.map((item) => (
-                    <option key={item.id} value={item.id}>{item.name}</option>
-                  ))}
-                </optgroup>
-              ))}
-            </select>
-            <span className="select-mark" aria-hidden="true" />
+            />
+            <span className="search-icon"><SearchIcon /></span>
+          </div>
+          <div className="history-filter-control">
+            <label htmlFor="history-category" className="sr-only">Filter by category</label>
+            <CategorySelect
+              categories={categories}
+              selectedId={category}
+              onChange={onCategoryChange}
+              disabled={state === 'loading' || state === 'loading-more'}
+            />
           </div>
         </div>
 
@@ -480,6 +570,13 @@ function HistoryDialog({
             </div>
           )}
 
+          {state === 'ready' && filteredFacts.length === 0 && facts.length > 0 && (
+            <div className="history-message">
+              <p>No facts match your search.</p>
+              <button type="button" onClick={() => setSearchQuery('')}>Clear search</button>
+            </div>
+          )}
+
           {state === 'ready' && facts.length === 0 && (
             <div className="history-message">
               <p>{category ? `No ${formatCategory(category)} facts have been discovered yet.` : 'No facts have been discovered yet.'}</p>
@@ -489,15 +586,18 @@ function HistoryDialog({
             </div>
           )}
 
-          {facts.length > 0 && (
-            <ol className="history-list">
-              {facts.map((item, index) => {
+          {filteredFacts.length > 0 && (
+            <div className="history-grid">
+              {filteredFacts.map((item, index) => {
                 const generatedAt = item.generated_at ? new Date(item.generated_at) : null
                 const readableDate = generatedAt && !Number.isNaN(generatedAt.valueOf())
                   ? historyDate.format(generatedAt)
                   : 'Earlier discovery'
                 return (
-                  <li key={`${item.generated_at || index}-${item.topic || 'fact'}`}>
+                  <article key={`${item.generated_at || index}-${item.topic || 'fact'}`} className="history-card">
+                    {item.images?.overview && (
+                      <div className="history-card-bg" style={{ backgroundImage: `url(${item.images.overview})` }} />
+                    )}
                     <button type="button" onClick={() => onSelect(item)}>
                       <span className="history-item-meta">
                         <span>{formatCategory(item.category)}</span>
@@ -505,28 +605,32 @@ function HistoryDialog({
                       </span>
                       <strong>{item.topic || 'Untitled discovery'}</strong>
                       {item.headline_fact && <p>{item.headline_fact}</p>}
-                      <span className="history-item-arrow"><ArrowIcon /></span>
                     </button>
-                  </li>
+                  </article>
                 )
               })}
-            </ol>
+            </div>
+          )}
+
+          {filteredFacts.length > 0 && (hasMore || error) && (
+            <div className="history-load-more-container">
+              {hasMore && (
+                <button
+                  type="button"
+                  className={`history-load-more-plus ${state === 'loading-more' ? 'is-loading' : ''}`}
+                  onClick={onLoadMore}
+                  disabled={state === 'loading-more'}
+                  aria-label="Load more discoveries"
+                >
+                  <PlusIcon />
+                </button>
+              )}
+              {error && state === 'ready' && <span role="alert" className="error-message">{error}</span>}
+            </div>
           )}
         </div>
-
-        {facts.length > 0 && (
-          <footer className="history-footer">
-            <span>{facts.length} {facts.length === 1 ? 'fact' : 'facts'} shown</span>
-            {hasMore && (
-              <button type="button" onClick={onLoadMore} disabled={state === 'loading-more'}>
-                {state === 'loading-more' ? 'Opening more…' : 'Load more'}
-              </button>
-            )}
-            {error && state === 'ready' && <span role="alert">{error}</span>}
-          </footer>
-        )}
       </div>
-    </dialog>
+    </div>
   )
 }
 
@@ -555,10 +659,10 @@ function Meta({ fact }) {
   )
 }
 
-function ChevronIcon() {
+function ChevronIcon({ className = '' }) {
   return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="m7 10 5 5 5-5" />
+    <svg viewBox="0 0 24 24" aria-hidden="true" className={className}>
+      <path d="m7 10 5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.5" />
     </svg>
   )
 }
@@ -707,7 +811,7 @@ function FactView({ fact, onReset }) {
         },
         onboundary: (eventOrCharIndex, name) => {
           if (run !== speechRunRef.current) return
-          
+
           const charIndex = typeof eventOrCharIndex === 'object' ? eventOrCharIndex.charIndex : eventOrCharIndex
           const eventName = typeof eventOrCharIndex === 'object' ? eventOrCharIndex.name : name
 
@@ -812,28 +916,31 @@ function FactView({ fact, onReset }) {
         <button type="button" onClick={leaveFact}>Search another topic</button>
       </nav>
 
-      <header 
-        className="fact-hero" 
-        id="fact-top" 
+      <header
+        className="fact-hero"
+        id="fact-top"
         ref={heroRef}
-        style={fact.images?.cover ? {
-          backgroundImage: `linear-gradient(rgba(10, 15, 30, 0.7), rgba(10, 15, 30, 0.9)), url(${fact.images.cover})`,
-          backgroundSize: 'cover',
-          backgroundPosition: 'center',
-          backgroundRepeat: 'no-repeat'
-        } : undefined}
       >
-        <NarratedHeading as="h1" narrationId="headline" narration={narration} targetRef={heroRef}>{fact.topic}</NarratedHeading>
-        <p data-narration-content>{fact.headline_fact}</p>
-        <Meta fact={fact} />
+        {fact.images?.cover && (
+          <div
+            className="fact-hero-bg"
+            style={{ backgroundImage: `url(${fact.images.cover})` }}
+          />
+        )}
+        <div className="fact-hero-content">
+          <NarratedHeading as="h1" narrationId="headline" narration={narration} targetRef={heroRef}>{fact.topic}</NarratedHeading>
+          <p data-narration-content>{fact.headline_fact}</p>
+          <Meta fact={fact} />
+        </div>
       </header>
 
       <nav className="reading-nav" aria-label="On this page">
-        <span>Read</span>
-        <a href="#overview">Overview</a>
-        {hasExplore && <a href="#explore">Explore deeper</a>}
-        {fact.timeline?.length > 0 && <a href="#timeline">Timeline</a>}
-        {fact.learning_takeaways?.length > 0 && <a href="#remember">Remember</a>}
+        <div className="reading-nav-glass">
+          <a href="#overview">Overview</a>
+          {hasExplore && <a href="#explore">Explore deeper</a>}
+          {fact.timeline?.length > 0 && <a href="#timeline">Timeline</a>}
+          {fact.learning_takeaways?.length > 0 && <a href="#remember">Remember</a>}
+        </div>
       </nav>
 
       <div className="fact-body">
@@ -841,10 +948,10 @@ function FactView({ fact, onReset }) {
           <NarratedHeading narrationId="overview" narration={narration} targetRef={overviewRef}>The short version</NarratedHeading>
           <MarkdownContent narration={narration}>{fact.summary || fact.headline_fact}</MarkdownContent>
           {(fact.images?.overview || fact.images?.history) && (
-            <img 
-              src={fact.images.overview || fact.images.history} 
-              alt="Overview context" 
-              className="fact-inline-image fact-overview-image zoomable" 
+            <img
+              src={fact.images.overview || fact.images.history}
+              alt="Overview context"
+              className="fact-inline-image fact-overview-image zoomable"
               onClick={() => setEnlargedImage(fact.images.overview || fact.images.history)}
             />
           )}
@@ -894,17 +1001,17 @@ function FactView({ fact, onReset }) {
                 <Disclosure title="How it works" description="Mechanisms, variants, and step-by-step detail" narration={narration}>
                   <ReadingBlock text={mechanicsText} narration={narration} />
                   {fact.images?.how_it_works && (
-                    <img 
-                      src={fact.images.how_it_works} 
-                      alt="Mechanics illustration" 
-                      className="fact-inline-image fact-mechanics-image zoomable" 
+                    <img
+                      src={fact.images.how_it_works}
+                      alt="Mechanics illustration"
+                      className="fact-inline-image fact-mechanics-image zoomable"
                       onClick={() => setEnlargedImage(fact.images.how_it_works)}
                     />
                   )}
                   <ReadingBlock title="Technical detail" text={technicalText} narration={narration} />
                   {breakdown.key_mechanisms_or_types?.length > 0 && (
                     <ReadingBlock title="Mechanisms and types" narration={narration}>
-                      <ul>{breakdown.key_mechanisms_or_types.map((item) => <li key={item} data-narration-content>{item}</li>)}</ul>
+                      <ul className="mechanisms-list">{breakdown.key_mechanisms_or_types.map((item) => <li key={item} data-narration-content>{item}</li>)}</ul>
                     </ReadingBlock>
                   )}
                   {breakdown.step_by_step_process?.length > 0 && (
@@ -954,13 +1061,24 @@ function FactView({ fact, onReset }) {
                     <ReadingBlock title="Common misconceptions" narration={narration}>
                       <ul className="misconceptions-list">
                         {fact.common_misconceptions.map((item, i) => (
-                          <li key={i} data-narration-content>
-                            {typeof item === 'string' ? item : (
-                              <>
-                                <strong>Myth:</strong> {item.myth}<br />
-                                <strong>Reality:</strong> {item.reality}<br />
-                                <em>Evidence:</em> {item.evidence}
-                              </>
+                          <li key={i} data-narration-content className="misconception-card">
+                            {typeof item === 'string' ? <p>{item}</p> : (
+                              <div className="misconception-grid">
+                                <div className="mc-myth">
+                                  <span className="mc-label">Myth</span>
+                                  <p>{item.myth}</p>
+                                </div>
+                                <div className="mc-reality">
+                                  <span className="mc-label">Reality</span>
+                                  <p>{item.reality}</p>
+                                </div>
+                                {item.evidence && (
+                                  <div className="mc-evidence">
+                                    <span className="mc-label">Evidence</span>
+                                    <p>{item.evidence}</p>
+                                  </div>
+                                )}
+                              </div>
                             )}
                           </li>
                         ))}
@@ -1077,6 +1195,7 @@ export default function App() {
   const [categoryState, setCategoryState] = useState('loading')
   const [status, setStatus] = useState('idle')
   const [fact, setFact] = useState(null)
+  const [currentJobId, setCurrentJobId] = useState(null)
   const [error, setError] = useState('')
   const [elapsed, setElapsed] = useState(0)
   const [activeCategoryName, setActiveCategoryName] = useState('')
@@ -1087,7 +1206,7 @@ export default function App() {
   const [historyCategory, setHistoryCategory] = useState('')
   const requestRef = useRef(null)
   const historyRequestRef = useRef(null)
-  const historyDialogRef = useRef(null)
+  const [historyOpen, setHistoryOpen] = useState(false)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -1122,6 +1241,32 @@ export default function App() {
     historyRequestRef.current?.abort()
   }, [])
 
+  // Background polling for images if fact is ready but images are not
+  useEffect(() => {
+    if (!fact || !currentJobId || status !== 'completed') return
+    if (fact.images && Object.keys(fact.images).length > 0) return
+
+    const controller = new AbortController()
+    const interval = window.setInterval(async () => {
+      try {
+        const result = await getFactStatus(currentJobId, controller.signal)
+        if (result.status === 'completed' && result.data?.fact?.images && Object.keys(result.data.fact.images).length > 0) {
+          setFact(result.data.fact)
+          window.clearInterval(interval)
+        }
+      } catch (err) {
+        if (err.name !== 'AbortError') {
+          console.error('Background polling error:', err)
+        }
+      }
+    }, 2000)
+
+    return () => {
+      window.clearInterval(interval)
+      controller.abort()
+    }
+  }, [fact, currentJobId, status])
+
   async function handleSearch(event) {
     event.preventDefault()
     if (!categories.length || status === 'processing') return
@@ -1137,12 +1282,14 @@ export default function App() {
     setStatus('processing')
     setError('')
     setFact(null)
+    setCurrentJobId(null)
     setElapsed(0)
     setActiveCategoryName(category.name || formatCategory(category.id))
 
     try {
       const job = await startFact(category.id, controller.signal)
       if (!job?.job_id) throw new Error('The search began without a traceable job. Please try again.')
+      setCurrentJobId(job.job_id)
 
       while (!controller.signal.aborted) {
         await wait(4000, controller.signal)
@@ -1183,7 +1330,7 @@ export default function App() {
       })
       setHistoryFacts((current) => append ? [...current, ...result.facts] : result.facts)
       const visibleCount = (append ? historyFacts.length : 0) + result.facts.length
-      setHistoryHasMore(visibleCount < result.count)
+      setHistoryHasMore(visibleCount < result.count || result.facts.length === 20)
       setHistoryState('ready')
     } catch (requestError) {
       if (requestError.name === 'AbortError') return
@@ -1193,7 +1340,7 @@ export default function App() {
   }
 
   function openHistory() {
-    if (!historyDialogRef.current?.open) historyDialogRef.current?.showModal()
+    setHistoryOpen(true)
     if (historyState === 'idle') loadHistory()
   }
 
@@ -1204,7 +1351,7 @@ export default function App() {
   }
 
   function closeHistory() {
-    historyDialogRef.current?.close()
+    setHistoryOpen(false)
   }
 
   function selectHistoryFact(item) {
@@ -1230,43 +1377,45 @@ export default function App() {
   }
 
   return (
-    <main className={`discovery-page is-${status}`}>
-      <AmbientField />
-      <header className="site-header">
-        <a href="/" aria-label="The Curiosity Archive home"><span />The Curiosity Archive</a>
-        <p>One fact at a time</p>
-      </header>
+    <div className={`app-root ${historyOpen ? 'history-is-open' : ''}`}>
+      <main className={`discovery-page is-${status}`}>
+        <AmbientField />
+        <header className="site-header">
+          <a href="/" aria-label="The Curiosity Archive home"><span />The Curiosity Archive</a>
+          <p>One fact at a time</p>
+        </header>
 
-      <div className="center-stage">
-        {status === 'processing' ? (
-          <SearchRitual categoryName={activeCategoryName || 'the unknown'} elapsed={elapsed} />
-        ) : (
-          <section className="discovery-intro">
-            <h1>What are you curious about?</h1>
-            <SearchForm
-              categories={categories}
-              selectedId={selectedId}
-              setSelectedId={setSelectedId}
-              onSubmit={handleSearch}
-              loading={categoryState === 'loading'}
-            />
-            <button type="button" className="history-trigger" onClick={openHistory}>
-              <HistoryIcon />
-              <span>Browse previous discoveries</span>
-              <ArrowIcon />
-            </button>
-            {categoryState === 'fallback' && <p className="quiet-note">The live index is unavailable, so a smaller collection is shown.</p>}
-            {error && <div className="error-message" role="alert"><strong>The search went dark.</strong><span>{error}</span></div>}
-          </section>
-        )}
-      </div>
+        <div className="center-stage">
+          {status === 'processing' ? (
+            <SearchRitual categoryName={activeCategoryName || 'the unknown'} elapsed={elapsed} />
+          ) : (
+            <section className="discovery-intro">
+              <h1>What are you curious about?</h1>
+              <SearchForm
+                categories={categories}
+                selectedId={selectedId}
+                setSelectedId={setSelectedId}
+                onSubmit={handleSearch}
+                loading={categoryState === 'loading'}
+              />
+              <button type="button" className="history-trigger" onClick={openHistory}>
+                <HistoryIcon />
+                <span>Browse previous discoveries</span>
+                <ArrowIcon />
+              </button>
+              {categoryState === 'fallback' && <p className="quiet-note">The live index is unavailable, so a smaller collection is shown.</p>}
+              {error && <div className="error-message" role="alert"><strong>The search went dark.</strong><span>{error}</span></div>}
+            </section>
+          )}
+        </div>
 
-      <footer className="site-footer">
-        <span>Generated when you ask</span>
-      </footer>
+        <footer className="site-footer">
+          <span>Generated when you ask</span>
+        </footer>
+      </main>
 
-      <HistoryDialog
-        dialogRef={historyDialogRef}
+      <HistoryOverlay
+        isOpen={historyOpen}
         categories={categories}
         category={historyCategory}
         facts={historyFacts}
@@ -1279,6 +1428,6 @@ export default function App() {
         onRetry={() => loadHistory()}
         onLoadMore={() => loadHistory({ append: true })}
       />
-    </main>
+    </div>
   )
 }
