@@ -102,6 +102,15 @@ function CloseIcon() {
   )
 }
 
+function LockIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
+      <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+    </svg>
+  )
+}
+
 function CopyIcon() {
   return (
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -344,10 +353,10 @@ function MarkdownContent({ children, narration, standalone = false }) {
   )
 }
 
-function SearchForm({ categories, selectedId, setSelectedId, apiKey, setApiKey, onSubmit, loading }) {
+function SearchForm({ categories, selectedId, setSelectedId, onSubmit, loading }) {
   return (
     <form className="search-form" onSubmit={onSubmit}>
-      <button type="submit" disabled={loading || categories.length === 0 || !apiKey.trim()}>
+      <button type="submit" disabled={loading || categories.length === 0}>
         <span>Tell me a fact</span>
         <ArrowIcon />
       </button>
@@ -360,21 +369,50 @@ function SearchForm({ categories, selectedId, setSelectedId, apiKey, setApiKey, 
           disabled={loading}
         />
       </div>
-      <div className="search-control api-key-control" style={{ marginTop: '12px' }}>
-        <label className="sr-only" htmlFor="apiKey">API Key</label>
-        <input 
-          id="apiKey"
-          type="password"
-          className="category-dropdown-trigger"
-          placeholder="Enter API Key to generate"
-          value={apiKey}
-          onChange={(e) => setApiKey(e.target.value)}
-          disabled={loading}
-          required
-          style={{ width: '100%', padding: '12px', boxSizing: 'border-box' }}
-        />
-      </div>
     </form>
+  )
+}
+
+function ApiKeyModal({ isOpen, onClose, onSubmit }) {
+  const [key, setKey] = useState('')
+
+  if (!isOpen) return null
+
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    if (key.trim()) {
+      onSubmit(key.trim())
+      setKey('')
+    }
+  }
+
+  return (
+    <div className="api-modal-overlay">
+      <div className="api-modal-card">
+        <button type="button" className="api-modal-close" onClick={onClose} aria-label="Close">
+          <CloseIcon />
+        </button>
+        <header className="api-modal-header">
+          <LockIcon />
+          <h2>API Key Required</h2>
+          <p>Please enter your access key to begin searching the archives.</p>
+        </header>
+        <form onSubmit={handleSubmit} className="api-modal-form">
+          <input
+            type="password"
+            placeholder="Enter API Key"
+            value={key}
+            onChange={(e) => setKey(e.target.value)}
+            required
+            autoFocus
+          />
+          <button type="submit" disabled={!key.trim()}>
+            <span>Save & Continue</span>
+            <ArrowIcon />
+          </button>
+        </form>
+      </div>
+    </div>
   )
 }
 
@@ -1697,14 +1735,11 @@ export default function App() {
   const [historyError, setHistoryError] = useState('')
   const [historyHasMore, setHistoryHasMore] = useState(false)
   const [historyCategory, setHistoryCategory] = useState('')
-  const [apiKey, setApiKey] = useState(() => localStorage.getItem('factsApiKey') || '')
   const requestRef = useRef(null)
   const historyRequestRef = useRef(null)
   const [historyOpen, setHistoryOpen] = useState(false)
-
-  useEffect(() => {
-    localStorage.setItem('factsApiKey', apiKey)
-  }, [apiKey])
+  const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false)
+  const [pendingCategory, setPendingCategory] = useState(null)
 
   useEffect(() => {
     const controller = new AbortController()
@@ -1765,13 +1800,22 @@ export default function App() {
     }
   }, [fact, currentJobId, status])
 
-  async function handleSearch(event) {
+  function handleSearchClick(event) {
     event.preventDefault()
     if (!categories.length || status === 'processing') return
 
     const category = selectedId
       ? categories.find((item) => item.id === selectedId)
       : categories[Math.floor(Math.random() * categories.length)]
+    if (!category) return
+
+    setPendingCategory(category)
+    setIsApiKeyModalOpen(true)
+  }
+
+  async function executeSearch(providedApiKey) {
+    setIsApiKeyModalOpen(false)
+    const category = pendingCategory
     if (!category) return
 
     requestRef.current?.abort()
@@ -1785,7 +1829,7 @@ export default function App() {
     setActiveCategoryName(category.name || formatCategory(category.id))
 
     try {
-      const job = await startFact(category.id, apiKey, controller.signal)
+      const job = await startFact(category.id, providedApiKey, controller.signal)
       if (!job?.job_id) throw new Error('The search began without a traceable job. Please try again.')
       setCurrentJobId(job.job_id)
 
@@ -1896,9 +1940,7 @@ export default function App() {
                 categories={categories}
                 selectedId={selectedId}
                 setSelectedId={setSelectedId}
-                apiKey={apiKey}
-                setApiKey={setApiKey}
-                onSubmit={handleSearch}
+                onSubmit={handleSearchClick}
                 loading={categoryState === 'loading'}
               />
               <button type="button" className="history-trigger" onClick={openHistory}>
@@ -1930,6 +1972,12 @@ export default function App() {
         onSelect={selectHistoryFact}
         onRetry={() => loadHistory()}
         onLoadMore={() => loadHistory({ append: true })}
+      />
+
+      <ApiKeyModal 
+        isOpen={isApiKeyModalOpen} 
+        onClose={() => setIsApiKeyModalOpen(false)} 
+        onSubmit={executeSearch} 
       />
     </div>
   )
