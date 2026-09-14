@@ -373,8 +373,29 @@ function SearchForm({ categories, selectedId, setSelectedId, onSubmit, loading }
   )
 }
 
+function EyeIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+      <circle cx="12" cy="12" r="3" />
+    </svg>
+  )
+}
+
+function EyeOffIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+      <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+      <path d="m14.12 14.12a3 3 0 1 1-4.24-4.24" />
+      <line x1="1" y1="1" x2="23" y2="23" />
+    </svg>
+  )
+}
+
 function ApiKeyModal({ isOpen, onClose, onSubmit }) {
   const [key, setKey] = useState('')
+  const [showKey, setShowKey] = useState(false)
 
   if (!isOpen) return null
 
@@ -383,6 +404,7 @@ function ApiKeyModal({ isOpen, onClose, onSubmit }) {
     if (key.trim()) {
       onSubmit(key.trim())
       setKey('')
+      setShowKey(false)
     }
   }
 
@@ -390,7 +412,7 @@ function ApiKeyModal({ isOpen, onClose, onSubmit }) {
     <div className="api-modal-overlay">
       <div className="api-modal-card">
         <button type="button" className="api-modal-close" onClick={onClose} aria-label="Close">
-          <CloseIcon />
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="18" height="18"><path d="m6 6 12 12M18 6 6 18" /></svg>
         </button>
         <header className="api-modal-header">
           <LockIcon />
@@ -398,14 +420,24 @@ function ApiKeyModal({ isOpen, onClose, onSubmit }) {
           <p>Please enter your access key to begin searching the archives.</p>
         </header>
         <form onSubmit={handleSubmit} className="api-modal-form">
-          <input
-            type="password"
-            placeholder="Enter API Key"
-            value={key}
-            onChange={(e) => setKey(e.target.value)}
-            required
-            autoFocus
-          />
+          <div className="api-key-input-wrapper">
+            <input
+              type={showKey ? 'text' : 'password'}
+              placeholder="Enter API Key"
+              value={key}
+              onChange={(e) => setKey(e.target.value)}
+              required
+              autoFocus
+            />
+            <button
+              type="button"
+              className="api-key-toggle"
+              onClick={() => setShowKey(!showKey)}
+              aria-label={showKey ? 'Hide API key' : 'Show API key'}
+            >
+              {showKey ? <EyeOffIcon /> : <EyeIcon />}
+            </button>
+          </div>
           <button type="submit" disabled={!key.trim()}>
             <span>Continue</span>
             <ArrowIcon />
