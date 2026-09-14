@@ -593,8 +593,8 @@ function HistoryOverlay({
                   : 'Earlier discovery'
                 return (
                   <article key={`${item.generated_at || index}-${item.topic || 'fact'}`} className="history-card">
-                    {item.images?.overview && (
-                      <div className="history-card-bg" style={{ backgroundImage: `url(${item.images.overview})` }} />
+                    {(item.images?.myth_visual || item.images?.overview) && (
+                      <div className="history-card-bg" style={{ backgroundImage: `url(${item.images.myth_visual || item.images.overview})` }} />
                     )}
                     <button type="button" onClick={() => onSelect(item)}>
                       <span className="history-item-meta">
