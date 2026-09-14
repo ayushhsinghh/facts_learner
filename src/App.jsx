@@ -344,10 +344,10 @@ function MarkdownContent({ children, narration, standalone = false }) {
   )
 }
 
-function SearchForm({ categories, selectedId, setSelectedId, onSubmit, loading }) {
+function SearchForm({ categories, selectedId, setSelectedId, apiKey, setApiKey, onSubmit, loading }) {
   return (
     <form className="search-form" onSubmit={onSubmit}>
-      <button type="submit" disabled={loading || categories.length === 0}>
+      <button type="submit" disabled={loading || categories.length === 0 || !apiKey.trim()}>
         <span>Tell me a fact</span>
         <ArrowIcon />
       </button>
@@ -358,6 +358,20 @@ function SearchForm({ categories, selectedId, setSelectedId, onSubmit, loading }
           selectedId={selectedId}
           onChange={setSelectedId}
           disabled={loading}
+        />
+      </div>
+      <div className="search-control api-key-control" style={{ marginTop: '12px' }}>
+        <label className="sr-only" htmlFor="apiKey">API Key</label>
+        <input 
+          id="apiKey"
+          type="password"
+          className="category-dropdown-trigger"
+          placeholder="Enter API Key to generate"
+          value={apiKey}
+          onChange={(e) => setApiKey(e.target.value)}
+          disabled={loading}
+          required
+          style={{ width: '100%', padding: '12px', boxSizing: 'border-box' }}
         />
       </div>
     </form>
@@ -1683,9 +1697,14 @@ export default function App() {
   const [historyError, setHistoryError] = useState('')
   const [historyHasMore, setHistoryHasMore] = useState(false)
   const [historyCategory, setHistoryCategory] = useState('')
+  const [apiKey, setApiKey] = useState(() => localStorage.getItem('factsApiKey') || '')
   const requestRef = useRef(null)
   const historyRequestRef = useRef(null)
   const [historyOpen, setHistoryOpen] = useState(false)
+
+  useEffect(() => {
+    localStorage.setItem('factsApiKey', apiKey)
+  }, [apiKey])
 
   useEffect(() => {
     const controller = new AbortController()
@@ -1766,7 +1785,7 @@ export default function App() {
     setActiveCategoryName(category.name || formatCategory(category.id))
 
     try {
-      const job = await startFact(category.id, controller.signal)
+      const job = await startFact(category.id, apiKey, controller.signal)
       if (!job?.job_id) throw new Error('The search began without a traceable job. Please try again.')
       setCurrentJobId(job.job_id)
 
@@ -1877,6 +1896,8 @@ export default function App() {
                 categories={categories}
                 selectedId={selectedId}
                 setSelectedId={setSelectedId}
+                apiKey={apiKey}
+                setApiKey={setApiKey}
                 onSubmit={handleSearch}
                 loading={categoryState === 'loading'}
               />

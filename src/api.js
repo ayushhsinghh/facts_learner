@@ -37,11 +37,14 @@ export async function fetchHistory({ limit = 20, skip = 0, category, signal } = 
   }
 }
 
-export async function startFact(category, signal) {
+export async function startFact(category, apiKey, signal) {
   const params = new URLSearchParams({ category })
   const response = await fetch(`${API_ROOT}/api/facts/generate?${params}`, {
     method: 'POST',
-    headers: { Accept: 'application/json' },
+    headers: { 
+      Accept: 'application/json',
+      'X-Facts-Api-Key': apiKey || ''
+    },
     signal,
   })
   return parseResponse(response)
