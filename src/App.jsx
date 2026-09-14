@@ -407,7 +407,7 @@ function ApiKeyModal({ isOpen, onClose, onSubmit }) {
             autoFocus
           />
           <button type="submit" disabled={!key.trim()}>
-            <span>Save & Continue</span>
+            <span>Continue</span>
             <ArrowIcon />
           </button>
         </form>
