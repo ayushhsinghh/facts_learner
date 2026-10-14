@@ -589,7 +589,27 @@ function HistoryOverlay({
   onLoadMore,
 }) {
   const [searchQuery, setSearchQuery] = useState('')
-  const categoryGroups = groupCategories(categories)
+  const [filtersPinned, setFiltersPinned] = useState(false)
+  const scrollRef = useRef(null)
+  const headerRef = useRef(null)
+
+  useEffect(() => {
+    if (!isOpen) return undefined
+    const scrollElement = scrollRef.current
+    scrollElement.scrollTop = 0
+    setFiltersPinned(false)
+
+    if (!('IntersectionObserver' in window)) {
+      setFiltersPinned(true)
+      return undefined
+    }
+
+    const observer = new IntersectionObserver(([entry]) => {
+      setFiltersPinned(!entry.isIntersecting && entry.boundingClientRect.bottom <= (entry.rootBounds?.top ?? 0))
+    }, { root: scrollElement, threshold: 0 })
+    observer.observe(headerRef.current)
+    return () => observer.disconnect()
+  }, [isOpen])
 
   const filteredFacts = facts.filter((fact) => {
     if (!searchQuery) return true
@@ -601,9 +621,9 @@ function HistoryOverlay({
   })
 
   return (
-    <div className={`history-overlay ${isOpen ? 'is-open' : ''}`}>
+    <div className={`history-overlay ${isOpen ? 'is-open' : ''}`} ref={scrollRef}>
       <div className="history-panel">
-        <header className="history-header">
+        <header className="history-header" ref={headerRef}>
           <div>
             <h2 id="history-title">Previously discovered</h2>
             <p>Facts already waiting in the index.</p>
@@ -613,7 +633,7 @@ function HistoryOverlay({
           </button>
         </header>
 
-        <div className="history-filter">
+        <div className={`history-filter ${filtersPinned ? 'is-pinned' : ''}`}>
           <div className="history-filter-search">
             <label htmlFor="history-search" className="sr-only">Search facts</label>
             <input
@@ -626,6 +646,9 @@ function HistoryOverlay({
             />
             <span className="search-icon"><SearchIcon /></span>
           </div>
+          <button type="button" className="history-close history-filter-close" onClick={onClose} aria-label="Close discoveries">
+            <CloseIcon />
+          </button>
           <div className="history-filter-control">
             <label htmlFor="history-category" className="sr-only">Filter by category</label>
             <CategorySelect
