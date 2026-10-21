@@ -679,3 +679,11 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
 @keyframes pulse-lock { 0%, 100% { filter: drop-shadow(0 0 16px rgba(100, 140, 255, 0.4)); transform: scale(1); } 50% { filter: drop-shadow(0 0 32px rgba(155, 173, 255, 0.7)); transform: scale(1.05); } }
 @keyframes modal-fade-in { from { opacity: 0; backdrop-filter: blur(0px); } to { opacity: 1; backdrop-filter: blur(24px); } }
 @keyframes modal-slide-up { to { transform: translateY(0) rotateX(0); opacity: 1; } }
+
+/* Source links use the article's existing typography and disclosure layout. */
+.claim-source-links { display: block; margin-top: .5rem; font-size: .8rem; line-height: 1.6; overflow-wrap: anywhere; }
+.claim-source-links a, .evidence-references a { color: var(--paper); text-decoration: underline; text-underline-offset: 3px; }
+.source-note { color: #aeb5c4; font-size: .8rem; line-height: 1.6; }
+.evidence-references h4 { font-size: .9rem; }
+.evidence-references li p { margin-bottom: .25rem; }
+.evidence-references li { margin-bottom: .75rem; }

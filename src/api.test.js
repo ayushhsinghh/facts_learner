@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { fetchFact } from './api.js'
+import { fetchFact, getFactStatus, waitForFact, shouldPollImages } from './api.js'
 
 const target = { category: 'space', topic: 'An archived discovery', generated_at: '2026-10-21T01:00:00Z' }
 const params = () => new URLSearchParams({ category: target.category, topic: target.topic, at: target.generated_at })
@@ -52,4 +52,43 @@ test('aborted navigation does not fetch an archive page', async (t) => {
   controller.abort()
   await assert.rejects(fetchFact(params(), controller.signal), { name: 'AbortError' })
   assert.equal(mock.mock.callCount(), 0)
+})
+
+
+test('job image state reaches the fact and partial images continue polling', async (t) => {
+  const state = { status: 'processing', expected: ['cover', 'overview'], ready: ['cover'], pending: ['overview'] }
+  t.mock.method(globalThis, 'fetch', async () => response({ status: 'completed', data: { fact: { images: { cover: 'url' } }, image_generation: state } }))
+  const result = await getFactStatus('job')
+  assert.deepEqual(result.data.fact.image_generation, state)
+  assert.equal(shouldPollImages(result.data.fact), true)
+  assert.equal(shouldPollImages({ image_generation: { status: 'partial' } }), false)
+  assert.equal(shouldPollImages({ image_generation: { status: 'failed' } }), false)
+  assert.equal(shouldPollImages({ visual_suggestions: { cover: 'a', overview: 'b' }, images: { cover: 'url' } }), true)
+})
+
+test('generation polling stops on completion and failure', async (t) => {
+  let calls = 0
+  t.mock.method(globalThis, 'fetch', async () => response(++calls === 1 ? { status: 'processing' } : { status: 'completed', data: { fact: target } }))
+  const result = await waitForFact({ job_id: 'job' }, undefined, { intervalMs: 1, timeoutMs: 500 })
+  assert.deepEqual(result.data.fact, target)
+  t.mock.restoreAll()
+  t.mock.method(globalThis, 'fetch', async () => response({ status: 'failed', error: 'Generation failed' }))
+  await assert.rejects(waitForFact({ job_id: 'job' }, undefined, { intervalMs: 1, timeoutMs: 500 }), /Generation failed/)
+})
+
+test('generation has a deadline even when the status fetch stalls', async (t) => {
+  let aborted = false
+  t.mock.method(globalThis, 'fetch', async (url, { signal }) => new Promise((resolve, reject) => {
+    signal.addEventListener('abort', () => { aborted = true; reject(signal.reason) }, { once: true })
+  }))
+  await assert.rejects(waitForFact({ job_id: 'job' }, undefined, { intervalMs: 1, timeoutMs: 30 }), /took too long/)
+  assert.equal(aborted, true)
+})
+
+test('navigation cancellation stops polling without another fetch', async (t) => {
+  const fetch = t.mock.method(globalThis, 'fetch', async () => response({ status: 'processing' }))
+  const controller = new AbortController()
+  controller.abort()
+  await assert.rejects(waitForFact({ job_id: 'job' }, controller.signal), { name: 'AbortError' })
+  assert.equal(fetch.mock.callCount(), 0)
 })

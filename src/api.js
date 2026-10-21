@@ -57,7 +57,57 @@ export async function getFactStatus(jobId, signal) {
     headers: { Accept: 'application/json' },
     signal,
   })
-  return parseResponse(response)
+  const payload = await parseResponse(response)
+  if (payload?.data?.fact && payload.data.image_generation) {
+    payload.data.fact.image_generation = payload.data.image_generation
+  }
+  return payload
+}
+
+export function shouldPollImages(fact) {
+  if (!fact) return false
+  if (fact.image_generation) return fact.image_generation.status === 'processing'
+  // Compatibility with older servers that do not expose image states.
+  const prompts = fact.visual_suggestions || {}
+  const keys = ['cover', 'overview', 'how_it_works', 'myth_visual', 'truth_visual']
+    .filter((key) => prompts[key])
+  if (prompts.history && !keys.includes('overview')) keys.push('overview')
+  return keys.some((key) => !fact.images?.[key])
+}
+
+function abortableWait(ms, signal) {
+  return new Promise((resolve, reject) => {
+    if (signal.aborted) return reject(signal.reason)
+    const abort = () => { clearTimeout(timer); reject(signal.reason) }
+    const timer = setTimeout(() => { signal.removeEventListener('abort', abort); resolve() }, ms)
+    signal.addEventListener('abort', abort, { once: true })
+  })
+}
+
+export async function waitForFact(job, signal, options = {}) {
+  const controller = new AbortController()
+  const abort = () => controller.abort(signal.reason || new DOMException('Aborted', 'AbortError'))
+  if (signal?.aborted) abort()
+  else signal?.addEventListener('abort', abort, { once: true })
+  const serverTimeout = Number(job.timeout_seconds)
+  const timeoutMs = options.timeoutMs ?? ((Number.isFinite(serverTimeout) && serverTimeout > 0 ? Math.min(serverTimeout, 900) : 270) + 15) * 1000
+  const intervalMs = options.intervalMs ?? 4000
+  const timer = setTimeout(() => controller.abort(new Error('This discovery took too long. Please try again.')), timeoutMs)
+  try {
+    while (!controller.signal.aborted) {
+      await abortableWait(intervalMs, controller.signal)
+      const result = await getFactStatus(job.job_id, controller.signal)
+      if (result.status === 'completed') return result
+      if (result.status === 'failed') throw new Error(result.error || 'This discovery could not be prepared.')
+    }
+    throw controller.signal.reason
+  } catch (error) {
+    if (controller.signal.aborted) throw controller.signal.reason
+    throw error
+  } finally {
+    clearTimeout(timer)
+    signal?.removeEventListener('abort', abort)
+  }
 }
 
 export async function fetchFact(params, signal) {

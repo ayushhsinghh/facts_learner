@@ -1,8 +1,9 @@
 import { createContext, useContext, useEffect, useId, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Link, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
-import { fetchCategories, fetchFact, fetchHistory, getFactStatus, startFact } from './api.js'
+import { fetchCategories, fetchFact, fetchHistory, getFactStatus, startFact, waitForFact, shouldPollImages } from './api.js'
 import { archiveUrl, factUrl, matchesFact } from './navigation.js'
+import { EvidenceReferences, SourceLinks, referenceCount, ImageStatus } from './Evidence.jsx'
 import { usePageScroll } from './usePageScroll.js'
 
 const FALLBACK_CATEGORIES = [
@@ -60,15 +61,6 @@ function groupCategories(categories) {
   return groups
 }
 
-function wait(ms, signal) {
-  return new Promise((resolve, reject) => {
-    const timer = window.setTimeout(resolve, ms)
-    signal.addEventListener('abort', () => {
-      window.clearTimeout(timer)
-      reject(new DOMException('Aborted', 'AbortError'))
-    }, { once: true })
-  })
-}
 
 function AmbientField() {
   return (
@@ -1102,6 +1094,7 @@ function FactView({ fact, onReset, onBack }) {
             {fact.quote && (
               <blockquote>
                 “{typeof fact.quote === 'string' ? fact.quote : fact.quote.text}”
+                <SourceLinks sourceIds={fact.quote?.source_ids} fact={fact} />
                 {fact.quote?.confidence === 'unverified' && (
                   <small style={{ marginLeft: '8px', backgroundColor: 'var(--red-9)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', verticalAlign: 'middle', fontWeight: 600 }}>UNVERIFIED</small>
                 )}
@@ -1208,7 +1201,7 @@ function FactView({ fact, onReset, onBack }) {
                                 {item.evidence && (
                                   <div className="mc-evidence">
                                     <span className="mc-label">Evidence</span>
-                                    <p>{item.evidence}</p>
+                                    <p>{item.evidence}</p><SourceLinks sourceIds={item.source_ids} fact={fact} />
                                   </div>
                                 )}
                               </div>
@@ -1285,11 +1278,11 @@ function FactView({ fact, onReset, onBack }) {
           </section>
         )}
 
-        {fact.sources_or_references?.length > 0 && (
+        {referenceCount(fact) > 0 && (
           <div className="source-section-wrap">
             <details className="source-section" ref={sourcesRef}>
-              <summary>Sources and references <span>{fact.sources_or_references.length}</span></summary>
-              <ul>{fact.sources_or_references.map((source) => <li key={source} data-narration-content>{source}</li>)}</ul>
+              <summary>Sources and references <span>{referenceCount(fact)}</span></summary>
+              <EvidenceReferences fact={fact} />
             </details>
             <NarrationButton
               narrationId="sources"
@@ -1302,6 +1295,7 @@ function FactView({ fact, onReset, onBack }) {
           </div>
         )}
 
+        <ImageStatus fact={fact} />
         <footer className="fact-end">
           <span aria-hidden="true" />
           <p>Curiosity is better when it continues.</p>
@@ -1338,7 +1332,7 @@ function VerdictBadge({ verdict, confidence }) {
   )
 }
 
-function EvidenceCard({ item }) {
+function EvidenceCard({ item, fact }) {
   const title = item.study || item.title || 'Evidence'
   const finding = item.finding || item.evidence || item.summary
   return (
@@ -1349,6 +1343,7 @@ function EvidenceCard({ item }) {
       </div>
       {finding && <p className="evidence-finding" data-narration-content>{finding}</p>}
       {item.source && <cite className="evidence-source">{item.source}</cite>}
+      <SourceLinks sourceIds={item.source_ids} fact={fact} />
     </div>
   )
 }
@@ -1593,7 +1588,7 @@ function MythBusterView({ fact, onReset, onBack }) {
               <p data-narration-content>Peer-reviewed studies and data.</p>
             </div>
             <div className="mb-evidence-grid">
-              {fact.debunk_evidence.map((item, i) => <EvidenceCard key={`ev-${i}`} item={item} />)}
+              {fact.debunk_evidence.map((item, i) => <EvidenceCard key={`ev-${i}`} item={item} fact={fact} />)}
             </div>
           </section>
         )}
@@ -1604,6 +1599,7 @@ function MythBusterView({ fact, onReset, onBack }) {
             {fact.quote && (
               <blockquote>
                 “{typeof fact.quote === 'string' ? fact.quote : fact.quote.text}”
+                <SourceLinks sourceIds={fact.quote?.source_ids} fact={fact} />
                 {fact.quote?.confidence === 'unverified' && (
                   <small style={{ marginLeft: '8px', backgroundColor: 'var(--red-9, #e03131)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', verticalAlign: 'middle', fontWeight: 600 }}>UNVERIFIED</small>
                 )}
@@ -1700,7 +1696,7 @@ function MythBusterView({ fact, onReset, onBack }) {
                             <div className="misconception-grid">
                               <div className="mc-myth"><span className="mc-label">Myth</span><p>{item.myth}</p></div>
                               <div className="mc-reality"><span className="mc-label">Reality</span><p>{item.reality}</p></div>
-                              {item.evidence && <div className="mc-evidence"><span className="mc-label">Evidence</span><p>{item.evidence}</p></div>}
+                              {item.evidence && <div className="mc-evidence"><span className="mc-label">Evidence</span><p>{item.evidence}</p><SourceLinks sourceIds={item.source_ids} fact={fact} /></div>}
                             </div>
                           )}
                         </li>
@@ -1778,16 +1774,17 @@ function MythBusterView({ fact, onReset, onBack }) {
         )}
 
         {/* Sources */}
-        {fact.sources_or_references?.length > 0 && (
+        {referenceCount(fact) > 0 && (
           <div className="source-section-wrap">
             <details className="source-section" ref={sourcesRef}>
-              <summary>Sources and references <span>{fact.sources_or_references.length}</span></summary>
-              <ul>{fact.sources_or_references.map((source) => <li key={source} data-narration-content>{source}</li>)}</ul>
+              <summary>Sources and references <span>{referenceCount(fact)}</span></summary>
+              <EvidenceReferences fact={fact} />
             </details>
             <NarrationButton narrationId="mb-sources" narration={narration} getContent={() => sourcesRef.current} prepare={() => { sourcesRef.current.open = true }} label="references" className="source-listen" />
           </div>
         )}
 
+        <ImageStatus fact={fact} />
         <footer className="fact-end mythbuster-end">
           <span aria-hidden="true" />
           <p>Every myth busted is a step toward clearer thinking.</p>
@@ -1837,30 +1834,39 @@ function FactPage({ cache, onBack, onReset }) {
   }, [url, cache, retry])
 
   const jobId = params.get('job')
-  const hasImages = Boolean(data.fact?.images && Object.keys(data.fact.images).length)
+  const pollImagesNeeded = shouldPollImages(data.fact)
   useEffect(() => {
-    if (!data.fact || !jobId || hasImages) return undefined
+    if (!data.fact || !jobId || !pollImagesNeeded) return undefined
     const controller = new AbortController()
     let timer
+    function stopImages() {
+      setData((current) => ({ ...current, fact: {
+        ...current.fact, image_generation: { ...current.fact?.image_generation,
+          status: Object.keys(current.fact?.images || {}).length ? 'partial' : 'failed' },
+      } }))
+    }
+    // This also bounds a stalled fetch, not only the gaps between polls.
+    const deadlineTimer = window.setTimeout(() => { controller.abort(); stopImages() }, 345000)
     async function pollImages() {
       try {
         const result = await getFactStatus(jobId, controller.signal)
         if (controller.signal.aborted) return
         const updated = result.data?.fact
-        if (result.status === 'completed' && matchesFact(updated, new URLSearchParams(location.search)) && updated.images && Object.keys(updated.images).length) {
+        if (result.status === 'completed' && matchesFact(updated, new URLSearchParams(location.search))) {
           cache.set(url, updated)
           setData({ fact: updated, error: '' })
-          return
+          if (!shouldPollImages(updated)) return
         }
-        if (result.status === 'failed') return
+        if (result.status === 'failed') { stopImages(); return }
       } catch (error) {
-        if (error.name === 'AbortError' || error.status === 404) return
+        if (error.name === 'AbortError') return
+        if (error.status === 404) { stopImages(); return }
       }
       if (!controller.signal.aborted) timer = window.setTimeout(pollImages, 4000)
     }
     timer = window.setTimeout(pollImages, 2000)
-    return () => { controller.abort(); window.clearTimeout(timer) }
-  }, [url, jobId, hasImages, Boolean(data.fact), cache])
+    return () => { controller.abort(); window.clearTimeout(timer); window.clearTimeout(deadlineTimer) }
+  }, [url, jobId, pollImagesNeeded, Boolean(data.fact), cache])
 
   useEffect(() => {
     document.title = `${data.fact?.topic || 'Discovery'} · The Curiosity Archive`
@@ -1994,25 +2000,14 @@ export default function App() {
       const job = await startFact(category.id, providedApiKey, controller.signal)
       if (!job?.job_id) throw new Error('The search began without a traceable job. Please try again.')
 
-      while (!controller.signal.aborted) {
-        await wait(4000, controller.signal)
-        const result = await getFactStatus(job.job_id, controller.signal)
-
-        if (result.status === 'completed') {
-          if (!result.data?.fact) throw new Error('The search completed, but no readable fact returned.')
-          if (controller.signal.aborted) return
-          const fact = result.data.fact
-          rememberFact(fact)
-          factCache.current.set(factUrl(fact, job.job_id), fact)
-          setStatus('idle')
-          navigate(factUrl(fact, job.job_id), { state: { from: '/' } })
-          return
-        }
-
-        if (result.status === 'failed') {
-          throw new Error(result.error || 'This search faded out before a fact could be found.')
-        }
-      }
+      const result = await waitForFact(job, controller.signal)
+      if (!result.data?.fact) throw new Error('The search completed, but no readable fact returned.')
+      if (controller.signal.aborted) return
+      const fact = result.data.fact
+      rememberFact(fact)
+      factCache.current.set(factUrl(fact, job.job_id), fact)
+      setStatus('idle')
+      navigate(factUrl(fact, job.job_id), { state: { from: '/' } })
     } catch (requestError) {
       if (requestError.name === 'AbortError') return
       setError(requestError.message || 'The unknown stayed quiet. Please try again.')
