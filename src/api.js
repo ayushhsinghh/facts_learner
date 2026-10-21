@@ -1,4 +1,6 @@
-const API_ROOT = import.meta.env.VITE_FACTS_API_URL || ''
+import { matchesFact } from './navigation.js'
+
+const API_ROOT = import.meta.env?.VITE_FACTS_API_URL || ''
 
 async function parseResponse(response) {
   const payload = await response.json().catch(() => null)
@@ -56,4 +58,32 @@ export async function getFactStatus(jobId, signal) {
     signal,
   })
   return parseResponse(response)
+}
+
+export async function fetchFact(params, signal) {
+  const jobId = params.get('job')
+  if (!params.get('topic') && !jobId) throw new Error('This discovery link is incomplete.')
+  if (jobId) {
+    try {
+      const result = await getFactStatus(jobId, signal)
+      if (result.status === 'completed' && matchesFact(result.data?.fact, params)) return result.data.fact
+    } catch (error) {
+      if (error.name === 'AbortError') throw error
+      // Generation jobs can expire; the archived copy is the durable fallback.
+      if (!params.get('topic')) throw error
+    }
+  }
+  if (!params.get('topic')) throw new Error('This discovery is not ready. Please open it again later.')
+
+  const limit = 100
+  let skip = 0
+  while (!signal?.aborted) {
+    const page = await fetchHistory({ category: params.get('category') || undefined, limit, skip, signal })
+    const match = page.facts.find((fact) => matchesFact(fact, params))
+    if (match) return match
+    if (page.facts.length < limit) break
+    skip += page.facts.length
+  }
+  if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
+  throw new Error('This discovery is no longer available in the archive.')
 }

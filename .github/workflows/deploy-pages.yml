@@ -43,9 +43,9 @@ jobs:
         run: |
           test "$(cat dist/CNAME)" = "fact.ayush.ltd"
           grep -R -q "https://api.ayush.ltd" dist/assets
-
-      - name: Add single-page application fallback
-        run: cp dist/index.html dist/404.html
+          test -f dist/discoveries/index.html
+          test -f dist/fact/index.html
+          test -f dist/404.html
 
       - name: Upload Pages artifact
         uses: actions/upload-pages-artifact@v4

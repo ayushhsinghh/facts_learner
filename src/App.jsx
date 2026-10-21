@@ -1,6 +1,9 @@
 import { createContext, useContext, useEffect, useId, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { fetchCategories, fetchHistory, getFactStatus, startFact } from './api.js'
+import { Link, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { fetchCategories, fetchFact, fetchHistory, getFactStatus, startFact } from './api.js'
+import { archiveUrl, factUrl, matchesFact } from './navigation.js'
+import { usePageScroll } from './usePageScroll.js'
 
 const FALLBACK_CATEGORIES = [
   { id: 'food', name: 'Food' },
@@ -574,31 +577,53 @@ function PlusIcon() {
   )
 }
 
-function HistoryOverlay({
-  isOpen,
-  categories,
-  category,
-  facts,
-  state,
-  error,
-  hasMore,
-  onClose,
-  onCategoryChange,
-  onSelect,
-  onRetry,
-  onLoadMore,
-}) {
-  const [searchQuery, setSearchQuery] = useState('')
+function DiscoveriesPage({ categories, cache, rememberFact, onBack }) {
+  const [params, setParams] = useSearchParams()
+  const location = useLocation()
+  const category = params.get('category') || ''
+  const searchQuery = params.get('q') || ''
+  const [data, setData] = useState({ category, facts: [], state: 'loading', error: '', hasMore: false })
+  const current = data.category === category ? data : { facts: [], state: 'loading', error: '', hasMore: false }
+  const { facts, state, error, hasMore } = current
+  const requestRef = useRef(null)
+  const pageRef = usePageScroll(state !== 'loading')
   const [filtersPinned, setFiltersPinned] = useState(false)
-  const scrollRef = useRef(null)
   const headerRef = useRef(null)
 
   useEffect(() => {
-    if (!isOpen) return undefined
-    const scrollElement = scrollRef.current
-    scrollElement.scrollTop = 0
-    setFiltersPinned(false)
+    const cached = cache.get(category)
+    if (cached) setData({ ...cached, category, state: 'ready', error: '' })
+    else loadHistory()
+    return () => requestRef.current?.abort()
+  }, [category, cache])
 
+  async function loadHistory(append = false) {
+    requestRef.current?.abort()
+    const controller = new AbortController()
+    requestRef.current = controller
+    const existing = append ? cache.get(category)?.facts || [] : []
+    setData({ category, facts: existing, state: append ? 'loading-more' : 'loading', error: '', hasMore: append })
+    try {
+      const result = await fetchHistory({ limit: 20, skip: existing.length, category, signal: controller.signal })
+      if (controller.signal.aborted) return
+      const updated = { facts: [...existing, ...result.facts], hasMore: result.facts.length === 20 }
+      cache.set(category, updated)
+      setData({ ...updated, category, state: 'ready', error: '' })
+    } catch (error) {
+      if (error.name === 'AbortError') return
+      setData({ category, facts: existing, state: existing.length ? 'ready' : 'error', error: error.message, hasMore: append })
+    }
+  }
+
+  function onCategoryChange(value) {
+    setParams(new URLSearchParams(archiveUrl(value, searchQuery).split('?')[1] || ''), { state: { from: location.state?.from || '/' } })
+  }
+
+  function setSearchQuery(value) {
+    setParams(new URLSearchParams(archiveUrl(category, value).split('?')[1] || ''), { replace: true, state: location.state })
+  }
+
+  useEffect(() => {
     if (!('IntersectionObserver' in window)) {
       setFiltersPinned(true)
       return undefined
@@ -606,10 +631,10 @@ function HistoryOverlay({
 
     const observer = new IntersectionObserver(([entry]) => {
       setFiltersPinned(!entry.isIntersecting && entry.boundingClientRect.bottom <= (entry.rootBounds?.top ?? 0))
-    }, { root: scrollElement, threshold: 0 })
+    }, { threshold: 0 })
     observer.observe(headerRef.current)
     return () => observer.disconnect()
-  }, [isOpen])
+  }, [])
 
   const filteredFacts = facts.filter((fact) => {
     if (!searchQuery) return true
@@ -621,15 +646,15 @@ function HistoryOverlay({
   })
 
   return (
-    <div className={`history-overlay ${isOpen ? 'is-open' : ''}`} ref={scrollRef}>
+    <main className="history-overlay is-open discoveries-page" ref={pageRef}>
       <div className="history-panel">
         <header className="history-header" ref={headerRef}>
           <div>
-            <h2 id="history-title">Previously discovered</h2>
+            <h1 id="history-title">Previously discovered</h1>
             <p>Facts already waiting in the index.</p>
           </div>
-          <button type="button" className="history-close" onClick={onClose} aria-label="Close previous facts">
-            <CloseIcon />
+          <button type="button" className="history-close" onClick={onBack} aria-label="Back to previous page">
+            <ArrowIcon />
           </button>
         </header>
 
@@ -639,15 +664,15 @@ function HistoryOverlay({
             <input
               id="history-search"
               type="text"
-              placeholder="Search discoveries..."
+              placeholder="Search loaded discoveries…"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               disabled={state === 'loading' || state === 'loading-more'}
             />
             <span className="search-icon"><SearchIcon /></span>
           </div>
-          <button type="button" className="history-close history-filter-close" onClick={onClose} aria-label="Close discoveries">
-            <CloseIcon />
+          <button type="button" className="history-close history-filter-close" onClick={onBack} aria-label="Back to previous page">
+            <ArrowIcon />
           </button>
           <div className="history-filter-control">
             <label htmlFor="history-category" className="sr-only">Filter by category</label>
@@ -671,7 +696,7 @@ function HistoryOverlay({
           {state === 'error' && (
             <div className="history-message" role="alert">
               <p>{error || 'The previous facts could not be opened.'}</p>
-              <button type="button" onClick={onRetry}>Try again</button>
+              <button type="button" onClick={() => loadHistory()}>Try again</button>
             </div>
           )}
 
@@ -687,7 +712,7 @@ function HistoryOverlay({
               <p>{category ? `No ${formatCategory(category)} facts have been discovered yet.` : 'No facts have been discovered yet.'}</p>
               {category
                 ? <button type="button" onClick={() => onCategoryChange('')}>Show all categories</button>
-                : <button type="button" onClick={onClose}>Start the first search</button>}
+                : <Link to="/">Start the first search</Link>}
             </div>
           )}
 
@@ -703,27 +728,27 @@ function HistoryOverlay({
                     {(item.images?.myth_visual || item.images?.overview) && (
                       <div className="history-card-bg" style={{ backgroundImage: `url(${item.images.myth_visual || item.images.overview})` }} />
                     )}
-                    <button type="button" onClick={() => onSelect(item)}>
+                    <Link className="history-card-link" to={factUrl(item)} state={{ from: `${location.pathname}${location.search}` }} onClick={() => rememberFact(item)}>
                       <span className="history-item-meta">
                         <span>{formatCategory(item.category)}</span>
                         <time dateTime={item.generated_at || undefined}>{readableDate}</time>
                       </span>
                       <strong>{item.topic || 'Untitled discovery'}</strong>
                       {item.headline_fact && <p>{item.headline_fact}</p>}
-                    </button>
+                    </Link>
                   </article>
                 )
               })}
             </div>
           )}
 
-          {filteredFacts.length > 0 && (hasMore || error) && (
+          {facts.length > 0 && (hasMore || error) && (
             <div className="history-load-more-container">
               {hasMore && (
                 <button
                   type="button"
                   className={`history-load-more-plus ${state === 'loading-more' ? 'is-loading' : ''}`}
-                  onClick={onLoadMore}
+                  onClick={() => loadHistory(true)}
                   disabled={state === 'loading-more'}
                   aria-label="Load more discoveries"
                 >
@@ -735,7 +760,7 @@ function HistoryOverlay({
           )}
         </div>
       </div>
-    </div>
+    </main>
   )
 }
 
@@ -816,7 +841,7 @@ function Disclosure({ title, description, children, narration, open = false }) {
   )
 }
 
-function FactView({ fact, onReset }) {
+function FactView({ fact, onReset, onBack }) {
   const articleRef = useRef(null)
   const heroRef = useRef(null)
   const overviewRef = useRef(null)
@@ -1013,12 +1038,15 @@ function FactView({ fact, onReset }) {
         <i style={{ transform: `scaleX(${readingProgress})` }} />
       </span>
       <nav className="fact-nav" aria-label="Fact controls">
-        <a href="/" className="fact-wordmark" onClick={() => stopVoiceRef.current?.()}><span aria-hidden="true" />The Curiosity Archive</a>
+        <Link to="/" className="fact-wordmark" onClick={() => stopVoiceRef.current?.()}><span aria-hidden="true" />The Curiosity Archive</Link>
         <span className="fact-category">
           {fact.emoji_icon && <span className="fact-emoji" aria-hidden="true">{fact.emoji_icon}</span>}
           {formatCategory(fact.category)}
         </span>
-        <button type="button" onClick={leaveFact}>Search another topic</button>
+        <div className="fact-nav-actions">
+          <button type="button" onClick={onBack}>Back</button>
+          <button type="button" onClick={leaveFact}>Search another topic</button>
+        </div>
       </nav>
 
       <header
@@ -1325,7 +1353,7 @@ function EvidenceCard({ item }) {
   )
 }
 
-function MythBusterView({ fact, onReset }) {
+function MythBusterView({ fact, onReset, onBack }) {
   const articleRef = useRef(null)
   const heroRef = useRef(null)
   const mythTruthRef = useRef(null)
@@ -1466,12 +1494,15 @@ function MythBusterView({ fact, onReset }) {
         <i style={{ transform: `scaleX(${readingProgress})` }} />
       </span>
       <nav className="fact-nav mythbuster-nav" aria-label="Myth controls">
-        <a href="/" className="fact-wordmark" onClick={() => stopVoiceRef.current?.()}><span aria-hidden="true" />The Curiosity Archive</a>
+        <Link to="/" className="fact-wordmark" onClick={() => stopVoiceRef.current?.()}><span aria-hidden="true" />The Curiosity Archive</Link>
         <span className="fact-category mythbuster-category-badge">
           {fact.emoji_icon && <span className="fact-emoji" aria-hidden="true">{fact.emoji_icon}</span>}
           Mythbusters{fact.myth_sub_category ? ` · ${fact.myth_sub_category}` : ''}
         </span>
-        <button type="button" onClick={leaveFact}>Bust another myth</button>
+        <div className="fact-nav-actions">
+          <button type="button" onClick={onBack}>Back</button>
+          <button type="button" onClick={leaveFact}>Bust another myth</button>
+        </div>
       </nav>
 
       <header className="fact-hero mythbuster-hero" id="myth-top" ref={heroRef}>
@@ -1775,24 +1806,105 @@ function MythBusterView({ fact, onReset }) {
   )
 }
 
+function FactPage({ cache, onBack, onReset }) {
+  const location = useLocation()
+  const params = new URLSearchParams(location.search)
+  const url = `${location.pathname}${location.search}`
+  function cachedFact() {
+    const fact = cache.get(url)
+    return matchesFact(fact, params) ? fact : null
+  }
+  const [data, setData] = useState(() => ({ fact: cachedFact(), error: '' }))
+  const [retry, setRetry] = useState(0)
+  const rootRef = usePageScroll(Boolean(data.fact || data.error))
+
+  useEffect(() => {
+    const controller = new AbortController()
+    const existing = cachedFact()
+    if (existing) {
+      setData({ fact: existing, error: '' })
+    } else {
+      setData({ fact: null, error: '' })
+      fetchFact(new URLSearchParams(location.search), controller.signal)
+        .then((fact) => {
+          if (controller.signal.aborted) return
+          cache.set(url, fact)
+          setData({ fact, error: '' })
+        })
+        .catch((error) => { if (error.name !== 'AbortError') setData({ fact: null, error: error.message }) })
+    }
+    return () => controller.abort()
+  }, [url, cache, retry])
+
+  const jobId = params.get('job')
+  const hasImages = Boolean(data.fact?.images && Object.keys(data.fact.images).length)
+  useEffect(() => {
+    if (!data.fact || !jobId || hasImages) return undefined
+    const controller = new AbortController()
+    let timer
+    async function pollImages() {
+      try {
+        const result = await getFactStatus(jobId, controller.signal)
+        if (controller.signal.aborted) return
+        const updated = result.data?.fact
+        if (result.status === 'completed' && matchesFact(updated, new URLSearchParams(location.search)) && updated.images && Object.keys(updated.images).length) {
+          cache.set(url, updated)
+          setData({ fact: updated, error: '' })
+          return
+        }
+        if (result.status === 'failed') return
+      } catch (error) {
+        if (error.name === 'AbortError' || error.status === 404) return
+      }
+      if (!controller.signal.aborted) timer = window.setTimeout(pollImages, 4000)
+    }
+    timer = window.setTimeout(pollImages, 2000)
+    return () => { controller.abort(); window.clearTimeout(timer) }
+  }, [url, jobId, hasImages, Boolean(data.fact), cache])
+
+  useEffect(() => {
+    document.title = `${data.fact?.topic || 'Discovery'} · The Curiosity Archive`
+  }, [data.fact?.topic])
+
+  return (
+    <div ref={rootRef}>
+      {data.fact ? (
+        data.fact.category === 'mythbusters'
+          ? <MythBusterView fact={data.fact} onBack={onBack} onReset={onReset} />
+          : <FactView fact={data.fact} onBack={onBack} onReset={onReset} />
+      ) : (
+        <main className="route-message">
+          <h1>{data.error ? 'Discovery unavailable' : 'Opening your discovery…'}</h1>
+          {data.error ? <>
+            <p role="alert">{data.error}</p>
+            <button type="button" onClick={() => setRetry((value) => value + 1)}>Try again</button>
+          </> : <p role="status">Finding the archived fact.</p>}
+          <Link to="/discoveries/">Browse previous discoveries</Link>
+          <Link to="/">Home</Link>
+        </main>
+      )}
+    </div>
+  )
+}
+
+function HomePage({ children }) {
+  const rootRef = usePageScroll()
+  return <div ref={rootRef}>{children}</div>
+}
+
 export default function App() {
+  const navigate = useNavigate()
+  const location = useLocation()
+  const factCache = useRef(new Map())
+  const archiveCache = useRef(new Map())
   const [categories, setCategories] = useState([])
   const [selectedId, setSelectedId] = useState('')
   const [categoryState, setCategoryState] = useState('loading')
   const [status, setStatus] = useState('idle')
-  const [fact, setFact] = useState(null)
-  const [currentJobId, setCurrentJobId] = useState(null)
   const [error, setError] = useState('')
   const [elapsed, setElapsed] = useState(0)
   const [activeCategoryName, setActiveCategoryName] = useState('')
-  const [historyFacts, setHistoryFacts] = useState([])
-  const [historyState, setHistoryState] = useState('idle')
-  const [historyError, setHistoryError] = useState('')
-  const [historyHasMore, setHistoryHasMore] = useState(false)
-  const [historyCategory, setHistoryCategory] = useState('')
   const requestRef = useRef(null)
-  const historyRequestRef = useRef(null)
-  const [historyOpen, setHistoryOpen] = useState(false)
   const [isApiKeyModalOpen, setIsApiKeyModalOpen] = useState(false)
   const [pendingCategory, setPendingCategory] = useState(null)
 
@@ -1826,34 +1938,31 @@ export default function App() {
 
   useEffect(() => () => {
     requestRef.current?.abort()
-    historyRequestRef.current?.abort()
   }, [])
 
-  // Background polling for images if fact is ready but images are not
   useEffect(() => {
-    if (!fact || !currentJobId || status !== 'completed') return
-    if (fact.images && Object.keys(fact.images).length > 0) return
-
-    const controller = new AbortController()
-    const interval = window.setInterval(async () => {
-      try {
-        const result = await getFactStatus(currentJobId, controller.signal)
-        if (result.status === 'completed' && result.data?.fact?.images && Object.keys(result.data.fact.images).length > 0) {
-          setFact(result.data.fact)
-          window.clearInterval(interval)
-        }
-      } catch (err) {
-        if (err.name !== 'AbortError') {
-          console.error('Background polling error:', err)
-        }
-      }
-    }, 2000)
-
-    return () => {
-      window.clearInterval(interval)
-      controller.abort()
+    if (location.pathname !== '/') {
+      requestRef.current?.abort()
+      setStatus('idle')
+      setIsApiKeyModalOpen(false)
     }
-  }, [fact, currentJobId, status])
+    const path = location.pathname.replace(/\/+$/, '') || '/'
+    if (path === '/discoveries') document.title = 'Previous discoveries · The Curiosity Archive'
+    else if (path !== '/fact') document.title = path === '/' ? 'The Curiosity Archive' : 'Page not found · The Curiosity Archive'
+  }, [location.pathname])
+
+  useEffect(() => {
+    const previous = window.history.scrollRestoration
+    window.history.scrollRestoration = 'manual'
+    return () => { window.history.scrollRestoration = previous }
+  }, [])
+
+  function goBack(fallback) {
+    if (location.state?.from && window.history.state?.idx > 0) navigate(-1)
+    else navigate(fallback, { replace: true })
+  }
+
+  function rememberFact(fact) { factCache.current.set(factUrl(fact), fact) }
 
   function handleSearchClick(event) {
     event.preventDefault()
@@ -1878,15 +1987,12 @@ export default function App() {
     requestRef.current = controller
     setStatus('processing')
     setError('')
-    setFact(null)
-    setCurrentJobId(null)
     setElapsed(0)
     setActiveCategoryName(category.name || formatCategory(category.id))
 
     try {
       const job = await startFact(category.id, providedApiKey, controller.signal)
       if (!job?.job_id) throw new Error('The search began without a traceable job. Please try again.')
-      setCurrentJobId(job.job_id)
 
       while (!controller.signal.aborted) {
         await wait(4000, controller.signal)
@@ -1894,9 +2000,12 @@ export default function App() {
 
         if (result.status === 'completed') {
           if (!result.data?.fact) throw new Error('The search completed, but no readable fact returned.')
-          setFact(result.data.fact)
-          setStatus('completed')
-          window.scrollTo({ top: 0, behavior: 'smooth' })
+          if (controller.signal.aborted) return
+          const fact = result.data.fact
+          rememberFact(fact)
+          factCache.current.set(factUrl(fact, job.job_id), fact)
+          setStatus('idle')
+          navigate(factUrl(fact, job.job_id), { state: { from: '/' } })
           return
         }
 
@@ -1911,129 +2020,69 @@ export default function App() {
     }
   }
 
-  async function loadHistory({ append = false, category = historyCategory } = {}) {
-    historyRequestRef.current?.abort()
-    const controller = new AbortController()
-    historyRequestRef.current = controller
-    setHistoryState(append ? 'loading-more' : 'loading')
-    setHistoryError('')
-
-    try {
-      const result = await fetchHistory({
-        limit: 20,
-        skip: append ? historyFacts.length : 0,
-        category,
-        signal: controller.signal,
-      })
-      setHistoryFacts((current) => append ? [...current, ...result.facts] : result.facts)
-      const visibleCount = (append ? historyFacts.length : 0) + result.facts.length
-      setHistoryHasMore(visibleCount < result.count || result.facts.length === 20)
-      setHistoryState('ready')
-    } catch (requestError) {
-      if (requestError.name === 'AbortError') return
-      setHistoryError(requestError.message || 'The previous facts could not be opened.')
-      setHistoryState(append && historyFacts.length ? 'ready' : 'error')
-    }
-  }
-
-  function openHistory() {
-    setHistoryOpen(true)
-    if (historyState === 'idle') loadHistory()
-  }
-
-  function changeHistoryCategory(category) {
-    setHistoryCategory(category)
-    setHistoryFacts([])
-    loadHistory({ category })
-  }
-
-  function closeHistory() {
-    setHistoryOpen(false)
-  }
-
-  function selectHistoryFact(item) {
-    setSelectedId(item.category || '')
-    setFact(item)
-    setError('')
-    setStatus('completed')
-    closeHistory()
-    window.scrollTo({ top: 0, behavior: 'smooth' })
-  }
-
   function reset() {
     requestRef.current?.abort()
     setStatus('idle')
-    setFact(null)
     setError('')
     setElapsed(0)
     setActiveCategoryName('')
+    navigate('/')
   }
 
-  if (status === 'completed' && fact) {
-    if (fact.category === 'mythbusters') {
-      return <MythBusterView fact={fact} onReset={reset} />
-    }
-    return <FactView fact={fact} onReset={reset} />
-  }
+  const home = (
+    <HomePage>
+      <div className="app-root">
+        <main className={`discovery-page is-${status}`}>
+          <AmbientField />
+          <header className="site-header">
+            <Link to="/" aria-label="The Curiosity Archive home"><span />The Curiosity Archive</Link>
+            <p>One fact at a time</p>
+          </header>
+
+          <div className="center-stage">
+            {status === 'processing' ? (
+              <SearchRitual categoryName={activeCategoryName || 'the unknown'} elapsed={elapsed} />
+            ) : (
+              <section className="discovery-intro">
+                <h1>What are you curious about?</h1>
+                <SearchForm
+                  categories={categories}
+                  selectedId={selectedId}
+                  setSelectedId={setSelectedId}
+                  onSubmit={handleSearchClick}
+                  loading={categoryState === 'loading'}
+                />
+                <Link className="history-trigger" to="/discoveries/" state={{ from: '/' }}>
+                  <HistoryIcon />
+                  <span>Browse previous discoveries</span>
+                  <ArrowIcon />
+                </Link>
+                {categoryState === 'fallback' && <p className="quiet-note">The live index is unavailable, so a smaller collection is shown.</p>}
+                {error && <div className="error-message" role="alert"><strong>The search went dark.</strong><span>{error}</span></div>}
+              </section>
+            )}
+          </div>
+
+          <footer className="site-footer">
+            <span>Generated when you ask</span>
+          </footer>
+        </main>
+
+        <ApiKeyModal
+          isOpen={isApiKeyModalOpen}
+          onClose={() => setIsApiKeyModalOpen(false)}
+          onSubmit={executeSearch}
+        />
+      </div>
+    </HomePage>
+  )
 
   return (
-    <div className={`app-root ${historyOpen ? 'history-is-open' : ''}`}>
-      <main className={`discovery-page is-${status}`}>
-        <AmbientField />
-        <header className="site-header">
-          <a href="/" aria-label="The Curiosity Archive home"><span />The Curiosity Archive</a>
-          <p>One fact at a time</p>
-        </header>
-
-        <div className="center-stage">
-          {status === 'processing' ? (
-            <SearchRitual categoryName={activeCategoryName || 'the unknown'} elapsed={elapsed} />
-          ) : (
-            <section className="discovery-intro">
-              <h1>What are you curious about?</h1>
-              <SearchForm
-                categories={categories}
-                selectedId={selectedId}
-                setSelectedId={setSelectedId}
-                onSubmit={handleSearchClick}
-                loading={categoryState === 'loading'}
-              />
-              <button type="button" className="history-trigger" onClick={openHistory}>
-                <HistoryIcon />
-                <span>Browse previous discoveries</span>
-                <ArrowIcon />
-              </button>
-              {categoryState === 'fallback' && <p className="quiet-note">The live index is unavailable, so a smaller collection is shown.</p>}
-              {error && <div className="error-message" role="alert"><strong>The search went dark.</strong><span>{error}</span></div>}
-            </section>
-          )}
-        </div>
-
-        <footer className="site-footer">
-          <span>Generated when you ask</span>
-        </footer>
-      </main>
-
-      <HistoryOverlay
-        isOpen={historyOpen}
-        categories={categories}
-        category={historyCategory}
-        facts={historyFacts}
-        state={historyState}
-        error={historyError}
-        hasMore={historyHasMore}
-        onClose={closeHistory}
-        onCategoryChange={changeHistoryCategory}
-        onSelect={selectHistoryFact}
-        onRetry={() => loadHistory()}
-        onLoadMore={() => loadHistory({ append: true })}
-      />
-
-      <ApiKeyModal 
-        isOpen={isApiKeyModalOpen} 
-        onClose={() => setIsApiKeyModalOpen(false)} 
-        onSubmit={executeSearch} 
-      />
-    </div>
+    <Routes>
+      <Route path="/" element={home} />
+      <Route path="/discoveries" element={<DiscoveriesPage categories={categories} cache={archiveCache.current} rememberFact={rememberFact} onBack={() => goBack('/')} />} />
+      <Route path="/fact" element={<FactPage key={`${location.pathname}${location.search}`} cache={factCache.current} onBack={() => goBack('/discoveries/')} onReset={reset} />} />
+      <Route path="*" element={<main className="route-message"><h1>Page not found</h1><p>This page is not in the archive.</p><Link to="/">Return home</Link></main>} />
+    </Routes>
   )
 }
