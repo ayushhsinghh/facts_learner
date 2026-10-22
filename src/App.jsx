@@ -1,12 +1,16 @@
 import { createContext, useContext, useEffect, useId, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
-import { Link, Route, Routes, useLocation, useNavigate, useSearchParams } from 'react-router-dom'
+import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useSearchParams } from 'react-router-dom'
 import { fetchCategories, fetchFact, fetchHistory, getFactStatus, startFact, waitForFact, shouldPollImages } from './api.js'
 import { archiveUrl, factUrl, matchesFact } from './navigation.js'
 import { EvidenceReferences, SourceLinks, referenceCount, ImageStatus } from './Evidence.jsx'
 import { usePageScroll } from './usePageScroll.js'
+import SearchRitual from './SearchRitual.jsx'
+import { WellnessContent } from './WellnessView.jsx'
+import { WELLNESS_CATEGORIES } from './wellness.js'
 
 const FALLBACK_CATEGORIES = [
+  ...Object.entries(WELLNESS_CATEGORIES).map(([id, category]) => ({ id, name: category.name })),
   { id: 'food', name: 'Food' },
   { id: 'space', name: 'Space' },
   { id: 'biology', name: 'Biology' },
@@ -42,6 +46,7 @@ const FALLBACK_CATEGORIES = [
 ]
 
 const CATEGORY_GROUPS = [
+  { label: 'Fitness & Indian food', ids: Object.keys(WELLNESS_CATEGORIES) },
   { label: 'Science & discovery', ids: ['space', 'science', 'physics', 'biology', 'technology', 'medicine', 'nature', 'mathematics', 'psychology', 'mythbusters'] },
   { label: 'Places & society', ids: ['india', 'country', 'geography', 'economics', 'agriculture', 'transport', 'defense', 'sports'] },
   { label: 'India & public life', ids: ['indian_politics', 'indian_constitution', 'indian_laws'] },
@@ -443,31 +448,6 @@ function ApiKeyModal({ isOpen, onClose, onSubmit }) {
   )
 }
 
-function SearchRitual({ categoryName, elapsed }) {
-  const message = elapsed < 12
-    ? 'Opening the index'
-    : elapsed < 28
-      ? 'Following the references'
-      : 'Arranging what matters'
-
-  return (
-    <section className="search-ritual">
-      <div className="orbital-loader" aria-hidden="true">
-        <span className="orbit orbit-one"><i /></span>
-        <span className="orbit orbit-two"><i /></span>
-        <span className="orbit orbit-three"><i /></span>
-        <span className="signal-core" />
-      </div>
-      <h1>Searching through <em>{categoryName}</em></h1>
-      <div className="search-time">
-        <span role="status" aria-live="polite">{message}</span>
-        <span aria-hidden="true">{String(elapsed).padStart(2, '0')} seconds elapsed</span>
-        <span>Most discoveries take 35–50 seconds</span>
-      </div>
-    </section>
-  )
-}
-
 const historyDate = new Intl.DateTimeFormat('en', {
   day: 'numeric',
   month: 'short',
@@ -837,6 +817,7 @@ function FactView({ fact, onReset, onBack }) {
   const articleRef = useRef(null)
   const heroRef = useRef(null)
   const overviewRef = useRef(null)
+  const practiceRef = useRef(null)
   const didYouKnowRef = useRef(null)
   const exploreRef = useRef(null)
   const timelineRef = useRef(null)
@@ -1062,6 +1043,7 @@ function FactView({ fact, onReset, onBack }) {
       <nav className="reading-nav" aria-label="On this page">
         <div className="reading-nav-glass">
           <a href="#overview">Overview</a>
+          {(fact.training_guide || fact.nutrition_guide) && <a href="#practice">{fact.nutrition_guide ? 'Food & portions' : 'Practice guide'}</a>}
           {hasExplore && <a href="#explore">Explore deeper</a>}
           {fact.timeline?.length > 0 && <a href="#timeline">Timeline</a>}
           {fact.learning_takeaways?.length > 0 && <a href="#remember">Remember</a>}
@@ -1081,6 +1063,15 @@ function FactView({ fact, onReset, onBack }) {
             />
           )}
         </section>
+
+        {(fact.training_guide || fact.nutrition_guide) && (
+          <section className="wellness-content" id="practice" ref={practiceRef}>
+            <NarratedHeading narrationId="practice" narration={narration} targetRef={practiceRef}>
+              {fact.nutrition_guide ? 'Put it on your plate' : 'Your practice guide'}
+            </NarratedHeading>
+            <WellnessContent fact={fact} />
+          </section>
+        )}
 
         {fact.did_you_know && (
           <aside className="did-you-know" ref={didYouKnowRef}>
@@ -1492,7 +1483,7 @@ function MythBusterView({ fact, onReset, onBack }) {
         <Link to="/" className="fact-wordmark" onClick={() => stopVoiceRef.current?.()}><span aria-hidden="true" />The Curiosity Archive</Link>
         <span className="fact-category mythbuster-category-badge">
           {fact.emoji_icon && <span className="fact-emoji" aria-hidden="true">{fact.emoji_icon}</span>}
-          Mythbusters{fact.myth_sub_category ? ` · ${fact.myth_sub_category}` : ''}
+          {fact.category === 'nutrition_myths' ? 'Nutrition Myths' : 'Mythbusters'}{fact.myth_sub_category ? ` · ${fact.myth_sub_category}` : ''}
         </span>
         <div className="fact-nav-actions">
           <button type="button" onClick={onBack}>Back</button>
@@ -1804,6 +1795,7 @@ function MythBusterView({ fact, onReset, onBack }) {
 }
 
 function FactPage({ cache, onBack, onReset }) {
+  const navigationType = useNavigationType()
   const location = useLocation()
   const params = new URLSearchParams(location.search)
   const url = `${location.pathname}${location.search}`
@@ -1873,9 +1865,9 @@ function FactPage({ cache, onBack, onReset }) {
   }, [data.fact?.topic])
 
   return (
-    <div ref={rootRef}>
+    <div ref={rootRef} className={navigationType === 'PUSH' && location.state?.generated ? 'is-generated-discovery' : undefined}>
       {data.fact ? (
-        data.fact.category === 'mythbusters'
+        ['mythbusters', 'nutrition_myths'].includes(data.fact.category)
           ? <MythBusterView fact={data.fact} onBack={onBack} onReset={onReset} />
           : <FactView fact={data.fact} onBack={onBack} onReset={onReset} />
       ) : (
@@ -1938,7 +1930,8 @@ export default function App() {
 
   useEffect(() => {
     if (status !== 'processing') return undefined
-    const timer = window.setInterval(() => setElapsed((current) => current + 1), 1000)
+    const startedAt = Date.now()
+    const timer = window.setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 1000)
     return () => window.clearInterval(timer)
   }, [status])
 
@@ -2007,7 +2000,7 @@ export default function App() {
       rememberFact(fact)
       factCache.current.set(factUrl(fact, job.job_id), fact)
       setStatus('idle')
-      navigate(factUrl(fact, job.job_id), { state: { from: '/' } })
+      navigate(factUrl(fact, job.job_id), { state: { from: '/', generated: true } })
     } catch (requestError) {
       if (requestError.name === 'AbortError') return
       setError(requestError.message || 'The unknown stayed quiet. Please try again.')

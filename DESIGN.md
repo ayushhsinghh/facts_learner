@@ -205,9 +205,12 @@ Controls use gently rounded `12px` corners and rectangular proportions. Signatur
 
 ### Orbital Search Instrument
 
-- **Style:** Three concentric one-pixel orbits contain small signal points around a mineral-white diamond core.
-- **Motion:** Orbits rotate at different durations (`9s`, `6.5s`, and `4.5s`), with one reversed direction; the core breathes every `2.6s`.
-- **Status:** Pair the instrument with a live polite text status, tabular elapsed seconds, and the honest `35–50 seconds` expectation. The changing visual itself remains hidden from assistive technology.
+- **Style:** An aperture of two fine circular guides, one scanning ray, and expanding diamond echoes surrounds the archive's diamond mark. Background orbital arcs recede during generation. The serif heading stays still and readable, with the category on its own line.
+- **Motion thesis:** One indeterminate scan sustains the waiting state. A `16s` scan and `24s` counter-rotation surround an `8s` breathing core and staggered echoes. Only transforms and opacity animate; there are no animated gradients, shadows, or per-frame React updates. Entrances use `240ms` and `--ease-out`; status changes use `200ms`.
+- **Continuity:** A newly generated fact receives a short `240ms` masthead arrival with no added navigation delay. Archive navigation and Back/Forward do not replay that reveal.
+- **Status:** A polite live status reports generation, then longer waits after `50s` and `90s`. The elapsed clock uses wall time, not interval counts. The instrument never implies a completion percentage or invented backend stages.
+- **Control:** Pause/resume affects the instrument only, not status updates or the request. Hidden tabs pause the instrument. Reduced motion replaces all loops with static geometry and a brief status fade. Decorative geometry stays hidden from assistive technology.
+- **Responsive:** Aperture size follows both viewport width and height. Short screens use a smaller instrument and heading, keeping the motion control visible without obscuring the footer.
 
 ### Fact Metadata and Reading Sections
 
@@ -252,3 +255,26 @@ Controls use gently rounded `12px` corners and rectangular proportions. Signatur
 - **Don't** use shadows on the reading document; depth there comes from type, spacing, rules, and night-to-paper contrast.
 - **Don't** obscure the real generation wait or replace its elapsed time and expectation with false progress.
 - **Don't** shrink away the serif scale that gives the experience its voice; adapt wrapping and spacing first.
+
+
+## Fitness and Indian food readers
+
+Fitness, Indian Diet, Nutrition Myths, and Home Workouts live in the existing category selector under
+“Fitness & Indian food.” Discovery keeps its single question, optional category, and reveal action.
+Do not add a separate category card grid.
+
+Fitness, Indian Diet, and Home Workouts reuse the existing dark FactView reader. Keep its poster
+cover with overlaid title, Instrument Serif / DM Sans typography, blue-violet accents, metadata,
+reading progress, grouped narration, progressive disclosures, source references, and sharing.
+The current dark reading surface and the user's explicit dark-theme preference take priority over
+older warm-paper descriptions above. Do not introduce category-specific palettes or article shells.
+Nutrition Myths continues to use the existing dark myth reader.
+
+Category-specific content can change its structure: workout instructions, rest and progression;
+portion-based nutrition tables, meal examples and swaps; optional MuscleWiki exercise search and
+video views. Use the existing night surfaces, thin rules, muted labels, blue focus states and 12px
+controls. Keep sections flat and text readable. The nutrition table can scroll inside its own labeled
+region on small screens; the page itself must not overflow. Unknown nutrients display a dash.
+
+Readers explicitly choose an exercise candidate before loading a demonstration. Preserve loading,
+no-match, provider-error, missing-video and retry states. The API keeps the provider key on the server.

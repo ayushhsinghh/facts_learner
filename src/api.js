@@ -137,3 +137,28 @@ export async function fetchFact(params, signal) {
   if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
   throw new Error('This discovery is no longer available in the archive.')
 }
+
+
+async function exerciseResponse(response) {
+  const payload = await response.json().catch(() => null)
+  if (!response.ok) {
+    throw new Error(typeof payload?.detail === 'string' ? payload.detail
+      : response.status === 429 ? 'Exercise demonstrations have reached their usage limit. Try later.'
+      : 'Exercise demonstrations are unavailable. Please try again later.')
+  }
+  return payload
+}
+
+export async function fetchExercises(query, signal) {
+  const params = new URLSearchParams({ q: query })
+  return exerciseResponse(await fetch(`${API_ROOT}/api/exercises?${params}`, { signal }))
+}
+
+export async function fetchExercise(id, signal) {
+  return exerciseResponse(await fetch(`${API_ROOT}/api/exercises/${encodeURIComponent(id)}`, { signal }))
+}
+
+export function exerciseVideoUrl(path) {
+  // Only our proxy routes can receive playback requests; never trust generated media URLs.
+  return typeof path === 'string' && /^\/api\/exercises\/\d+\/videos\/\d+$/.test(path) ? `${API_ROOT}${path}` : undefined
+}
