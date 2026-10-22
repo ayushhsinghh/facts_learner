@@ -9,7 +9,16 @@ import SearchRitual from './SearchRitual.jsx'
 import { WellnessContent } from './WellnessView.jsx'
 import { WELLNESS_CATEGORIES, asList } from './wellness.js'
 
+const SPECIALIZED_MYTH_CATEGORIES = {
+  digital_myths: 'Digital Myths',
+  money_myths: 'Money Myths',
+  environment_myths: 'Environment Myths',
+  science_myths: 'Science Myths',
+}
+const MYTH_CATEGORY_IDS = ['mythbusters', 'nutrition_myths', ...Object.keys(SPECIALIZED_MYTH_CATEGORIES)]
+
 const FALLBACK_CATEGORIES = [
+  ...Object.entries(SPECIALIZED_MYTH_CATEGORIES).map(([id, name]) => ({ id, name })),
   ...Object.entries(WELLNESS_CATEGORIES).map(([id, category]) => ({ id, name: category.name })),
   { id: 'food', name: 'Food' },
   { id: 'space', name: 'Space' },
@@ -46,6 +55,7 @@ const FALLBACK_CATEGORIES = [
 ]
 
 const CATEGORY_GROUPS = [
+  { label: 'Specialized myths', ids: Object.keys(SPECIALIZED_MYTH_CATEGORIES) },
   { label: 'Fitness & Indian food', ids: Object.keys(WELLNESS_CATEGORIES) },
   { label: 'Science & discovery', ids: ['space', 'science', 'physics', 'biology', 'technology', 'medicine', 'nature', 'mathematics', 'psychology', 'mythbusters'] },
   { label: 'Places & society', ids: ['india', 'country', 'geography', 'economics', 'agriculture', 'transport', 'defense', 'sports'] },
@@ -1508,7 +1518,7 @@ function MythBusterView({ fact, onReset, onBack }) {
         <Link to="/" className="fact-wordmark" onClick={() => stopVoiceRef.current?.()}><span aria-hidden="true" />The Curiosity Archive</Link>
         <span className="fact-category mythbuster-category-badge">
           {fact.emoji_icon && <span className="fact-emoji" aria-hidden="true">{fact.emoji_icon}</span>}
-          {fact.category === 'nutrition_myths' ? 'Nutrition Myths' : 'Mythbusters'}{fact.myth_sub_category ? ` · ${fact.myth_sub_category}` : ''}
+          {SPECIALIZED_MYTH_CATEGORIES[fact.category] || (fact.category === 'nutrition_myths' ? 'Nutrition Myths' : 'Mythbusters')}{fact.myth_sub_category ? ` · ${fact.myth_sub_category}` : ''}
         </span>
         <div className="fact-nav-actions">
           <button type="button" onClick={onBack}>Back</button>
@@ -1892,7 +1902,7 @@ function FactPage({ cache, onBack, onReset }) {
   return (
     <div ref={rootRef} className={navigationType === 'PUSH' && location.state?.generated ? 'is-generated-discovery' : undefined}>
       {data.fact ? (
-        ['mythbusters', 'nutrition_myths'].includes(data.fact.category)
+        MYTH_CATEGORY_IDS.includes(data.fact.category)
           ? <MythBusterView fact={data.fact} onBack={onBack} onReset={onReset} />
           : <FactView fact={data.fact} onBack={onBack} onReset={onReset} />
       ) : (
