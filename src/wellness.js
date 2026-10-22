@@ -6,6 +6,7 @@ export const WELLNESS_CATEGORIES = {
 }
 
 export const asList = (value) => Array.isArray(value) ? value : []
+
 export function nutrientValue(value) {
   return typeof value === 'number' && Number.isFinite(value) && value >= 0
     ? new Intl.NumberFormat('en-IN', { maximumFractionDigits: 1 }).format(value) : '—'

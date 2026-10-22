@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { fetchFact, getFactStatus, waitForFact, shouldPollImages, fetchExercises, fetchExercise, exerciseVideoUrl } from './api.js'
+import { fetchFact, getFactStatus, waitForFact, shouldPollImages } from './api.js'
 
 const target = { category: 'space', topic: 'An archived discovery', generated_at: '2026-10-21T01:00:00Z' }
 const params = () => new URLSearchParams({ category: target.category, topic: target.topic, at: target.generated_at })
@@ -93,35 +93,6 @@ test('navigation cancellation stops polling without another fetch', async (t) =>
   assert.equal(fetch.mock.callCount(), 0)
 })
 
-
-test('exercise discovery uses the backend and preserves cancellation without sending a provider key', async (t) => {
-  const signal = new AbortController().signal
-  const calls = []
-  t.mock.method(globalThis, 'fetch', async (url, options) => {
-    calls.push({ url, options })
-    return response(url.includes('?') ? { results: [{ id: 0, name: 'Squat' }] } : { id: 0, videos: [] })
-  })
-  assert.equal((await fetchExercises('dand & baithak', signal)).results[0].id, 0)
-  await fetchExercise(0, signal)
-  assert.equal(new URL(calls[0].url, 'https://example.test').searchParams.get('q'), 'dand & baithak')
-  assert.equal(calls[1].url, '/api/exercises/0')
-  assert.ok(calls.every(({ options }) => options.signal === signal && !options.headers))
-})
-
-test('exercise usage and configuration failures use exercise-specific messages', async (t) => {
-  t.mock.method(globalThis, 'fetch', async () => response({ detail: 'Exercise provider access is unavailable.' }, 503))
-  await assert.rejects(fetchExercises('squat'), /Exercise provider access is unavailable/)
-  t.mock.method(globalThis, 'fetch', async () => response({}, 429))
-  await assert.rejects(fetchExercise(0), /Exercise demonstrations have reached their usage limit/)
-})
-
-test('playback accepts only local exercise proxy paths', () => {
-  assert.equal(exerciseVideoUrl('/api/exercises/0/videos/1'), '/api/exercises/0/videos/1')
-  for (const path of ['https://api.musclewiki.com/stream/videos/a.mp4', '//evil.example/a',
-    '/api/exercises/1/videos/1?token=secret', '/api/exercises/../videos/1', undefined]) {
-    assert.equal(exerciseVideoUrl(path), undefined)
-  }
-})
 
 test('unknown nutrition stays distinct from zero and invalid values', async () => {
   const { nutrientValue } = await import('./wellness.js')

@@ -7,7 +7,7 @@ import { EvidenceReferences, SourceLinks, referenceCount, ImageStatus } from './
 import { usePageScroll } from './usePageScroll.js'
 import SearchRitual from './SearchRitual.jsx'
 import { WellnessContent } from './WellnessView.jsx'
-import { WELLNESS_CATEGORIES } from './wellness.js'
+import { WELLNESS_CATEGORIES, asList } from './wellness.js'
 
 const FALLBACK_CATEGORIES = [
   ...Object.entries(WELLNESS_CATEGORIES).map(([id, category]) => ({ id, name: category.name })),
@@ -54,7 +54,7 @@ const CATEGORY_GROUPS = [
   { label: 'Arts & everyday life', ids: ['food', 'fashion', 'art', 'architecture', 'music', 'cinema'] },
 ]
 
-function groupCategories(categories) {
+function groupCategories(categories, fitnessLast = false) {
   const byId = new Map(categories.map((category) => [category.id, category]))
   const groups = CATEGORY_GROUPS.map((group) => ({
     label: group.label,
@@ -63,6 +63,14 @@ function groupCategories(categories) {
   const groupedIds = new Set(CATEGORY_GROUPS.flatMap((group) => group.ids))
   const more = categories.filter((category) => !groupedIds.has(category.id))
   if (more.length) groups.push({ label: 'More subjects', items: more })
+  if (fitnessLast) {
+    const index = groups.findIndex((group) => group.items.some((item) => item.id === 'fitness'))
+    if (index !== -1) {
+      const [group] = groups.splice(index, 1)
+      group.items = [...group.items.filter((item) => item.id !== 'fitness'), ...group.items.filter((item) => item.id === 'fitness')]
+      groups.push(group)
+    }
+  }
   return groups
 }
 
@@ -364,6 +372,7 @@ function SearchForm({ categories, selectedId, setSelectedId, onSubmit, loading }
         <label className="sr-only" htmlFor="category">Choose a category</label>
         <CategorySelect
           categories={categories}
+          fitnessLast
           selectedId={selectedId}
           onChange={setSelectedId}
           disabled={loading}
@@ -461,10 +470,10 @@ function formatCategory(value) {
     .replace(/\b\w/g, (character) => character.toUpperCase())
 }
 
-function CategorySelect({ categories, selectedId, onChange, disabled }) {
+function CategorySelect({ categories, selectedId, onChange, disabled, fitnessLast = false }) {
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef(null)
-  const categoryGroups = groupCategories(categories)
+  const categoryGroups = groupCategories(categories, fitnessLast)
   const selectedName = selectedId
     ? categories.find(c => c.id === selectedId)?.name || 'Fact'
     : 'Any category'
@@ -839,6 +848,9 @@ function FactView({ fact, onReset, onBack }) {
   })
   const [enlargedImage, setEnlargedImage] = useState(null)
   const breakdown = fact.in_depth_breakdown || {}
+  const isIndianDiet = fact.category === 'indian_diet'
+  const isTraining = ['fitness', 'home_workouts'].includes(fact.category)
+  const explanationFirst = isIndianDiet || isTraining
   const storyText = fact.detailed_explanation
   const mechanicsText = fact.core_mechanics || fact.how_it_works
   const technicalText = breakdown.scientific_or_technical_detail
@@ -900,6 +912,12 @@ function FactView({ fact, onReset, onBack }) {
       // Server-backed voices do not reliably emit start or boundary events.
       // Highlight before playback so sentence tracking works independently of
       // those optional callbacks.
+      // Open optional wellness details only when narration reaches their content.
+      let parentDisclosure = sentences[index].element.closest('details')
+      while (parentDisclosure && contentRoot.contains(parentDisclosure)) {
+        parentDisclosure.open = true
+        parentDisclosure = parentDisclosure.parentElement?.closest('details')
+      }
       clearNarrationHighlight()
       if (!window.CSS?.highlights || typeof window.Highlight !== 'function') {
         sentences[index].element.classList.add('is-spoken-content')
@@ -1005,8 +1023,17 @@ function FactView({ fact, onReset, onBack }) {
     }
   }, [fact])
 
+  const practiceSection = (fact.training_guide || fact.nutrition_guide) && (
+    <section className="wellness-content" id="practice" ref={practiceRef}>
+      <NarratedHeading narrationId="practice" narration={narration} targetRef={practiceRef}>
+        {fact.nutrition_guide ? 'Put it on your plate' : 'Your practice guide'}
+      </NarratedHeading>
+      <WellnessContent fact={fact} />
+    </section>
+  )
+
   return (
-    <article className="fact-view" ref={articleRef}>
+    <article className={`fact-view${explanationFirst ? ' wellness-reader' : ''}${isIndianDiet ? ' indian-diet-view' : ''}`} ref={articleRef}>
       <span className="reading-progress" aria-hidden="true">
         <i style={{ transform: `scaleX(${readingProgress})` }} />
       </span>
@@ -1043,8 +1070,11 @@ function FactView({ fact, onReset, onBack }) {
       <nav className="reading-nav" aria-label="On this page">
         <div className="reading-nav-glass">
           <a href="#overview">Overview</a>
-          {(fact.training_guide || fact.nutrition_guide) && <a href="#practice">{fact.nutrition_guide ? 'Food & portions' : 'Practice guide'}</a>}
-          {hasExplore && <a href="#explore">Explore deeper</a>}
+          {!explanationFirst && (fact.training_guide || fact.nutrition_guide) && <a href="#practice">{fact.nutrition_guide ? 'Food & portions' : 'Practice guide'}</a>}
+          {hasExplore && <a href="#explore">{explanationFirst ? 'Facts & context' : 'Explore deeper'}</a>}
+          {isIndianDiet && fact.nutrition_guide && <a href="#practice">Meal ideas & tips</a>}
+          {isTraining && fact.training_guide && <a href="#practice">Practice guide</a>}
+          {isIndianDiet && asList(fact.nutrition_guide?.food_items).length > 0 && <a href="#nutrition-labels">Nutrition labels</a>}
           {fact.timeline?.length > 0 && <a href="#timeline">Timeline</a>}
           {fact.learning_takeaways?.length > 0 && <a href="#remember">Remember</a>}
         </div>
@@ -1064,14 +1094,7 @@ function FactView({ fact, onReset, onBack }) {
           )}
         </section>
 
-        {(fact.training_guide || fact.nutrition_guide) && (
-          <section className="wellness-content" id="practice" ref={practiceRef}>
-            <NarratedHeading narrationId="practice" narration={narration} targetRef={practiceRef}>
-              {fact.nutrition_guide ? 'Put it on your plate' : 'Your practice guide'}
-            </NarratedHeading>
-            <WellnessContent fact={fact} />
-          </section>
-        )}
+        {!explanationFirst && practiceSection}
 
         {fact.did_you_know && (
           <aside className="did-you-know" ref={didYouKnowRef}>
@@ -1103,19 +1126,19 @@ function FactView({ fact, onReset, onBack }) {
         {hasExplore && (
           <section className="explore-section" id="explore" ref={exploreRef}>
             <div className="section-intro">
-              <NarratedHeading narrationId="explore" narration={narration} targetRef={exploreRef}>Explore deeper</NarratedHeading>
-              <p data-narration-content>Open only the parts you want to follow.</p>
+              <NarratedHeading narrationId="explore" narration={narration} targetRef={exploreRef}>{isIndianDiet ? 'Understand this food' : isTraining ? 'Understand the movement' : 'Explore deeper'}</NarratedHeading>
+              <p data-narration-content>{isIndianDiet ? 'The explanation, the context, and what it means for your plate.' : isTraining ? 'What it is, how it works, and why it matters—before the practical details.' : 'Open only the parts you want to follow.'}</p>
             </div>
             <div className="disclosure-list">
               {hasContext && (
-                <Disclosure title="The story and its significance" description="Background, origins, and why this matters" narration={narration}>
+                <Disclosure title={explanationFirst ? 'The facts and why they matter' : 'The story and its significance'} description={explanationFirst ? 'Key explanations and their everyday relevance' : 'Background, origins, and why this matters'} narration={narration} open={explanationFirst}>
                   <ReadingBlock title="The full story" text={storyText} narration={narration} />
                   <ReadingBlock title="How it began" text={fact.history} narration={narration} />
                   <ReadingBlock title="Why it matters" text={fact.why_it_matters} narration={narration} />
                 </Disclosure>
               )}
               {hasMechanics && (
-                <Disclosure title="How it works" description="Mechanisms, variants, and step-by-step detail" narration={narration}>
+                <Disclosure title="How it works" description="Mechanisms, variants, and step-by-step detail" narration={narration} open={explanationFirst}>
                   <ReadingBlock text={mechanicsText} narration={narration} />
                   {fact.images?.how_it_works && (
                     <img
@@ -1207,6 +1230,8 @@ function FactView({ fact, onReset, onBack }) {
             </div>
           </section>
         )}
+
+        {explanationFirst && practiceSection}
 
         {fact.timeline?.length > 0 && (
           <section className="timeline-section" id="timeline" ref={timelineRef}>

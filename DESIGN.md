@@ -271,10 +271,28 @@ older warm-paper descriptions above. Do not introduce category-specific palettes
 Nutrition Myths continues to use the existing dark myth reader.
 
 Category-specific content can change its structure: workout instructions, rest and progression;
-portion-based nutrition tables, meal examples and swaps; optional MuscleWiki exercise search and
-video views. Use the existing night surfaces, thin rules, muted labels, blue focus states and 12px
-controls. Keep sections flat and text readable. The nutrition table can scroll inside its own labeled
-region on small screens; the page itself must not overflow. Unknown nutrients display a dash.
+portion-based nutrition labels, meal examples and swaps. Use the existing night surfaces, thin rules, muted labels, blue focus states and 12px
+controls. Keep sections flat and text readable. Unknown nutrients display a dash, distinct from a true zero.
 
-Readers explicitly choose an exercise candidate before loading a demonstration. Preserve loading,
-no-match, provider-error, missing-video and retry states. The API keeps the provider key on the server.
+Indian Diet follows a facts-first reading order: summary and the short contextual note, then the
+explanations, followed by meal ideas, swaps, practical tips, and limitations. Its main context and
+mechanics disclosures start open; non-wellness categories keep their existing order and disclosure defaults.
+The contents links follow the same DOM order. Keep the dark reader and existing narrated headings.
+
+Nutrition labels follow the practical guide, not the opening explanation. Each food is a separate
+closed native disclosure with its name and portion visible. Opening it reveals preparation assumptions,
+energy, protein, carbohydrates, fat, fibre, micronutrients, and source links. Values use a three-column
+definition list on desktop and two columns on phones, with no horizontally scrolling table. Preserve
+all API values and source IDs without calculating totals or introducing dietary claims. When the
+section reader reaches a closed label, open that label before highlighting its spoken content.
+
+Fitness and Home Workouts use the same explanation-first sequence: overview, supporting fact,
+open context and mechanics, then the practice guide. The guide keeps its goal, level, duration,
+equipment, frequency, safety notes, warm-up, cool-down, and recovery visible. Individual exercises
+are flat, closed native disclosures with names and sets/reps/rest in their summaries. Steps, sources,
+easier options and progression stay inside each exercise.
+Narration opens enclosing disclosures within the selected section before highlighting their content.
+
+Fitness and Home Workouts use written exercise instructions only. No external exercise catalog,
+video search, video player, or provider credential is required. Keep sources, safety information,
+and all generated practice-guide fields available independently of third-party services.

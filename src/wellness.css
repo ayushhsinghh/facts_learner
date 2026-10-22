@@ -17,43 +17,44 @@
 .wellness-tips li, .wellness-steps li { margin-bottom: 12px; padding-left: 8px; }
 .wellness-tips li::marker, .wellness-steps li::marker { color: var(--signal); }
 .training-prep { margin: 40px 0; }
-.training-exercise { padding: 40px 0; margin: 32px 0; border-block: 1px solid var(--line); }
-.training-exercise-title > p { color: var(--muted); font-size: .95rem; }
+.training-movements { margin-block: 48px; }
+.training-exercise { border-bottom: 1px solid var(--line); }
+.training-exercise:first-of-type { border-top: 1px solid var(--line); margin-top: 28px; }
+.training-exercise > summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 88px; padding: 24px 0; list-style: none; cursor: pointer; }
+.training-exercise > summary::-webkit-details-marker { display: none; }
+.training-exercise .training-exercise-title { display: grid; gap: 6px; margin: 0; min-width: 0; }
+.training-exercise-title small { color: var(--muted); font-size: .85rem; font-weight: 400; line-height: 1.6; }
+.training-exercise > summary > svg { flex: 0 0 20px; width: 20px; height: 20px; stroke: var(--signal); stroke-width: 1.5; transition: transform var(--duration-fast) var(--ease-out); }
+.training-exercise[open] > summary > svg { transform: rotate(180deg); }
+.training-exercise-content { padding-bottom: 32px; }
+.training-guide .wellness-notice { padding: 24px; border: 0; border-block: 1px solid var(--line); }
 .exercise-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; margin: 28px 0; }
-.wellness-disclosure { padding: 22px 24px; margin: 16px 0; background: var(--night-soft); border: 1px solid var(--line); border-radius: 12px; }
-.wellness-disclosure > summary { min-height: 28px; cursor: pointer; color: var(--paper); font-size: 1rem; font-weight: 500; }
-.wellness-disclosure[open] > summary { margin-bottom: 24px; color: var(--signal-strong); }
 .wellness-content .wellness-note { color: var(--muted); font-size: .9rem; line-height: 1.65; }
 .wellness-content button { min-height: 44px; padding: 12px 18px; border: 1px solid var(--line); border-radius: 12px; background: var(--signal-strong); color: var(--night); font: inherit; font-size: .9rem; cursor: pointer; touch-action: manipulation; }
 .wellness-content button:disabled { opacity: .5; cursor: wait; }
 /* Keep the shared narration controls in their original circular style. */
 .wellness-content > h2 > .paragraph-listen { width: 32px; min-height: 32px; height: 32px; padding: 0; border-radius: 50%; color: var(--muted); background: transparent; }
 .wellness-content :is(button, input, select, a, summary, [tabindex]):focus-visible { outline: 2px solid var(--signal); outline-offset: 5px; }
-.exercise-demo label { display: block; margin-bottom: 12px; color: var(--muted); font-size: .9rem; }
-.exercise-search { display: flex; gap: 12px; margin: 12px 0; }
-.exercise-search input, .video-view-select select { min-width: 0; padding: 12px 16px; border: 1px solid var(--line); border-radius: 12px; background: var(--night); color: var(--paper); font: inherit; font-size: 16px; }
-.exercise-search input { flex: 1; width: 100%; }
-.exercise-results { display: flex; flex-direction: column; gap: 8px; margin: 24px 0; }
-.exercise-results button { display: flex; flex-direction: column; gap: 6px; text-align: left; color: var(--paper); background: var(--night); }
-.exercise-results button[aria-pressed="true"] { color: var(--signal-strong); border-color: var(--signal); background: var(--signal-night); }
-.exercise-results strong { font-weight: 500; }
-.exercise-results span { color: var(--muted); font-size: .85rem; }
-.exercise-player { margin-top: 28px; }
-.exercise-player video { display: block; width: 100%; max-width: 920px; aspect-ratio: 16/10; object-fit: contain; margin: 24px 0; background: var(--night); border-radius: 12px; }
-.video-view-select select { display: block; max-width: 100%; margin-top: 8px; }
-.exercise-player > a { font-size: .85rem; }
-.nutrition-table-scroll { overflow-x: auto; margin: 32px 0; overscroll-behavior-inline: contain; }
-.nutrition-table { width: 100%; min-width: 630px; border-collapse: collapse; text-align: left; color: #e2e5ec; font-size: .95rem; }
-.nutrition-table caption { margin-bottom: 20px; text-align: left; color: var(--paper); font-weight: 500; font-size: 1.1rem; }
-.nutrition-table thead { background: var(--night-soft); }
-.nutrition-table :is(th, td) { padding: 18px 16px; vertical-align: top; border-bottom: 1px solid var(--line); }
-.nutrition-table thead th { color: var(--muted); font-size: .85rem; font-weight: 500; line-height: 1.5; }
-.nutrition-table tbody th { width: 36%; min-width: 220px; font-weight: 400; }
-.nutrition-table tbody th :is(strong, span, small) { display: block; }
-.nutrition-table tbody th strong { color: var(--paper); font-weight: 500; }
-.nutrition-table tbody th small { color: var(--muted); font-size: .8rem; }
-.nutrition-table td { font-variant-numeric: tabular-nums; }
-.nutrition-table .claim-source-links { font-size: .8rem; }
+.nutrition-goal { max-width: 70ch; font-size: 1.1rem; }
+.nutrition-labels { margin-top: 64px; scroll-margin-top: 28px; }
+.nutrition-label-list { margin-top: 28px; border-top: 1px solid var(--line); }
+.nutrition-label { border-bottom: 1px solid var(--line); }
+.nutrition-label > summary { display: flex; align-items: center; justify-content: space-between; gap: 24px; min-height: 88px; padding: 24px 0; list-style: none; cursor: pointer; }
+.nutrition-label > summary::-webkit-details-marker { display: none; }
+.nutrition-label-title { display: grid; gap: 6px; min-width: 0; }
+.nutrition-label-title strong { color: var(--paper); font-size: 1.1rem; font-weight: 500; line-height: 1.5; }
+.nutrition-label-title > span { color: var(--muted); font-size: .85rem; line-height: 1.6; }
+.nutrition-label-chevron { flex: 0 0 20px; width: 20px; height: 20px; color: var(--signal); stroke: currentColor; stroke-width: 1.5; transition: transform var(--duration-fast) var(--ease-out); }
+.nutrition-label[open] .nutrition-label-chevron { transform: rotate(180deg); }
+.nutrition-label-content { padding: 8px 0 32px; }
+.nutrition-label-content .nutrition-values { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; margin: 28px 0; padding: 24px; background: var(--night-soft); }
+.nutrition-values dt { color: var(--muted); font-size: .85rem; }
+.nutrition-values dd { margin: 6px 0 0; color: var(--paper); font-size: 1.5rem; line-height: 1.4; font-variant-numeric: tabular-nums; }
+.nutrition-values dd > span { color: var(--muted); font-size: .8rem; }
+.nutrition-micronutrients { margin-top: 28px; }
+.nutrition-label-content .claim-source-links { margin-top: 24px; }
+.nutrition-guide .wellness-notice { padding: 24px 0; border: 0; border-block: 1px solid var(--line); background: transparent; }
+.wellness-reader .explore-section { margin-top: 64px; }
 .meal-examples, .food-swaps { margin: 48px 0; }
 .meal-example { display: grid; grid-template-columns: 150px 1fr; gap: 28px; padding: 28px 0; border-bottom: 1px solid var(--line); }
 .meal-example strong { color: var(--paper); font-weight: 500; }
@@ -68,7 +69,9 @@
 @media (max-width: 720px) {
   .wellness-content { margin-block: 56px; }
   .exercise-options, .meal-example { grid-template-columns: 1fr; gap: 16px; }
-  .exercise-search { flex-direction: column; }
-  .wellness-disclosure { padding: 18px; }
+  .training-facts { grid-template-columns: 1fr; gap: 20px; }
   .wellness-notice { padding: 20px; }
+  .nutrition-labels { margin-top: 48px; }
+  .nutrition-label > summary { gap: 16px; }
+  .nutrition-label-content .nutrition-values { grid-template-columns: repeat(2, minmax(0, 1fr)); padding: 20px; gap: 20px; }
 }
