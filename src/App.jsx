@@ -55,16 +55,16 @@ const FALLBACK_CATEGORIES = [
 ]
 
 const CATEGORY_GROUPS = [
-  { label: 'Specialized myths', ids: Object.keys(SPECIALIZED_MYTH_CATEGORIES) },
-  { label: 'Fitness & Indian food', ids: Object.keys(WELLNESS_CATEGORIES) },
   { label: 'Science & discovery', ids: ['space', 'science', 'physics', 'biology', 'technology', 'medicine', 'nature', 'mathematics', 'psychology', 'mythbusters'] },
   { label: 'Places & society', ids: ['india', 'country', 'geography', 'economics', 'agriculture', 'transport', 'defense', 'sports'] },
   { label: 'India & public life', ids: ['indian_politics', 'indian_constitution', 'indian_laws'] },
   { label: 'Culture & ideas', ids: ['history', 'culture', 'languages', 'mythology', 'philosophy'] },
   { label: 'Arts & everyday life', ids: ['food', 'fashion', 'art', 'architecture', 'music', 'cinema'] },
+  { label: 'Specialized myths', ids: Object.keys(SPECIALIZED_MYTH_CATEGORIES) },
+  { label: 'Fitness & Indian food', ids: [...Object.keys(WELLNESS_CATEGORIES).filter((id) => id !== 'fitness'), 'fitness'] },
 ]
 
-function groupCategories(categories, fitnessLast = false) {
+function groupCategories(categories) {
   const byId = new Map(categories.map((category) => [category.id, category]))
   const groups = CATEGORY_GROUPS.map((group) => ({
     label: group.label,
@@ -72,14 +72,9 @@ function groupCategories(categories, fitnessLast = false) {
   })).filter((group) => group.items.length)
   const groupedIds = new Set(CATEGORY_GROUPS.flatMap((group) => group.ids))
   const more = categories.filter((category) => !groupedIds.has(category.id))
-  if (more.length) groups.push({ label: 'More subjects', items: more })
-  if (fitnessLast) {
-    const index = groups.findIndex((group) => group.items.some((item) => item.id === 'fitness'))
-    if (index !== -1) {
-      const [group] = groups.splice(index, 1)
-      group.items = [...group.items.filter((item) => item.id !== 'fitness'), ...group.items.filter((item) => item.id === 'fitness')]
-      groups.push(group)
-    }
+  if (more.length) {
+    const index = groups.findIndex((group) => ['Specialized myths', 'Fitness & Indian food'].includes(group.label))
+    groups.splice(index === -1 ? groups.length : index, 0, { label: 'More subjects', items: more })
   }
   return groups
 }
@@ -382,7 +377,6 @@ function SearchForm({ categories, selectedId, setSelectedId, onSubmit, loading }
         <label className="sr-only" htmlFor="category">Choose a category</label>
         <CategorySelect
           categories={categories}
-          fitnessLast
           selectedId={selectedId}
           onChange={setSelectedId}
           disabled={loading}
@@ -480,10 +474,10 @@ function formatCategory(value) {
     .replace(/\b\w/g, (character) => character.toUpperCase())
 }
 
-function CategorySelect({ categories, selectedId, onChange, disabled, fitnessLast = false }) {
+function CategorySelect({ categories, selectedId, onChange, disabled }) {
   const [isOpen, setIsOpen] = useState(false)
   const wrapperRef = useRef(null)
-  const categoryGroups = groupCategories(categories, fitnessLast)
+  const categoryGroups = groupCategories(categories)
   const selectedName = selectedId
     ? categories.find(c => c.id === selectedId)?.name || 'Fact'
     : 'Any category'
@@ -568,7 +562,7 @@ function PlusIcon() {
   )
 }
 
-function DiscoveriesPage({ categories, cache, rememberFact, onBack }) {
+function DiscoveriesPage({ categories, cache, rememberFact }) {
   const [params, setParams] = useSearchParams()
   const location = useLocation()
   const category = params.get('category') || ''
@@ -578,8 +572,6 @@ function DiscoveriesPage({ categories, cache, rememberFact, onBack }) {
   const { facts, state, error, hasMore } = current
   const requestRef = useRef(null)
   const pageRef = usePageScroll(state !== 'loading')
-  const [filtersPinned, setFiltersPinned] = useState(false)
-  const headerRef = useRef(null)
 
   useEffect(() => {
     const cached = cache.get(category)
@@ -614,19 +606,6 @@ function DiscoveriesPage({ categories, cache, rememberFact, onBack }) {
     setParams(new URLSearchParams(archiveUrl(category, value).split('?')[1] || ''), { replace: true, state: location.state })
   }
 
-  useEffect(() => {
-    if (!('IntersectionObserver' in window)) {
-      setFiltersPinned(true)
-      return undefined
-    }
-
-    const observer = new IntersectionObserver(([entry]) => {
-      setFiltersPinned(!entry.isIntersecting && entry.boundingClientRect.bottom <= (entry.rootBounds?.top ?? 0))
-    }, { threshold: 0 })
-    observer.observe(headerRef.current)
-    return () => observer.disconnect()
-  }, [])
-
   const filteredFacts = facts.filter((fact) => {
     if (!searchQuery) return true
     const q = searchQuery.toLowerCase()
@@ -639,17 +618,14 @@ function DiscoveriesPage({ categories, cache, rememberFact, onBack }) {
   return (
     <main className="history-overlay is-open discoveries-page" ref={pageRef}>
       <div className="history-panel">
-        <header className="history-header" ref={headerRef}>
+        <header className="history-header">
           <div>
             <h1 id="history-title">Previously discovered</h1>
             <p>Facts already waiting in the index.</p>
           </div>
-          <button type="button" className="history-close" onClick={onBack} aria-label="Back to previous page">
-            <ArrowIcon />
-          </button>
         </header>
 
-        <div className={`history-filter ${filtersPinned ? 'is-pinned' : ''}`}>
+        <div className="history-filter">
           <div className="history-filter-search">
             <label htmlFor="history-search" className="sr-only">Search facts</label>
             <input
@@ -662,9 +638,6 @@ function DiscoveriesPage({ categories, cache, rememberFact, onBack }) {
             />
             <span className="search-icon"><SearchIcon /></span>
           </div>
-          <button type="button" className="history-close history-filter-close" onClick={onBack} aria-label="Back to previous page">
-            <ArrowIcon />
-          </button>
           <div className="history-filter-control">
             <label htmlFor="history-category" className="sr-only">Filter by category</label>
             <CategorySelect
@@ -2103,7 +2076,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/" element={home} />
-      <Route path="/discoveries" element={<DiscoveriesPage categories={categories} cache={archiveCache.current} rememberFact={rememberFact} onBack={() => goBack('/')} />} />
+      <Route path="/discoveries" element={<DiscoveriesPage categories={categories} cache={archiveCache.current} rememberFact={rememberFact} />} />
       <Route path="/fact" element={<FactPage key={`${location.pathname}${location.search}`} cache={factCache.current} onBack={() => goBack('/discoveries/')} onReset={reset} />} />
       <Route path="*" element={<main className="route-message"><h1>Page not found</h1><p>This page is not in the archive.</p><Link to="/">Return home</Link></main>} />
     </Routes>

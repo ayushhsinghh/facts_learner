@@ -27,11 +27,9 @@
 }
 
 .history-overlay.discoveries-page { position: relative; inset: auto; z-index: auto; min-height: 100svh; overflow: visible; transform: none; transition: none; }
-.discoveries-page .history-close svg { transform: rotate(180deg); }
 .history-trigger { text-decoration: none; }
 .fact-nav-actions { justify-self: end; display: flex; align-items: center; gap: 20px; }
 .fact-nav .fact-nav-actions button { min-width: 44px; min-height: 44px; font-size: .875rem; }
-.discoveries-page .history-close { min-width: 44px; min-height: 44px; }
 .route-message { min-height: 100svh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 20px; padding: 48px 24px; text-align: center; color: var(--paper); background: var(--night); }
 .route-message h1 { margin: 0; font: 400 clamp(2.5rem, 6vw, 4rem)/1.1 var(--serif); }
 .route-message p { max-width: 60ch; margin: 0; line-height: 1.6; }
@@ -144,11 +142,6 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
 .category-item:hover { color: #fff; background: rgba(255,255,255,0.03); transform: translateX(2px); }
 .category-item.is-selected { color: #fff; font-weight: 600; background: linear-gradient(90deg, rgba(155, 173, 255, 0.1) 0%, transparent 100%); }
 .category-item.is-selected::before { content: ''; position: absolute; left: 0; top: 50%; transform: translateY(-50%); width: 3px; height: 16px; background: var(--signal); border-radius: 0 2px 2px 0; }
-.history-close { flex: 0 0 auto; width: 38px; height: 38px; display: grid; place-items: center; color: #c7ccda; background: transparent; border: 1px solid #424b5e; border-radius: 50%; cursor: pointer; transition: color 0.2s, border-color 0.2s; }
-.history-close:hover { color: white; border-color: var(--signal); }
-.history-close svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.5; }
-.history-filter-close { width: 44px; height: 44px; margin-left: auto; visibility: hidden; opacity: 0; pointer-events: none; transition: opacity var(--duration-fast) var(--ease-out); }
-.history-filter.is-pinned .history-filter-close, .history-filter-close:focus-visible { visibility: visible; opacity: 1; pointer-events: auto; }
 .history-content { flex: 1; min-width: 0; padding: 32px 38px; overflow: visible; }
 .history-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 32px; padding-bottom: 40px; }
 .history-card { position: relative; border-radius: 12px; overflow: hidden; background: rgba(255,255,255,0.015); border: 1px solid rgba(255,255,255,0.04); transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease; min-height: 340px; display: flex; }
@@ -506,7 +499,6 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  .history-filter-close { transition: opacity var(--duration-fast) ease !important; }
 }
 
 @media (max-width: 720px) {
@@ -560,10 +552,9 @@ button:focus-visible, select:focus-visible, a:focus-visible, summary:focus-visib
   .share-section button:not(.paragraph-listen) { justify-self: start; }
   .fact-end { padding-top: 72px; }
   .history-header { padding: 28px 22px 22px; }
-  .history-filter { display: grid; grid-template-columns: minmax(0, 1fr) 44px; align-items: center; gap: 12px; padding: max(12px, env(safe-area-inset-top)) 22px 12px; }
+  .history-filter { display: grid; grid-template-columns: minmax(0, 1fr); align-items: center; gap: 12px; padding: max(12px, env(safe-area-inset-top)) 22px 12px; }
   .history-filter-search { max-width: none; }
   .history-filter-control { width: 100%; grid-column: 1 / -1; grid-row: 2; }
-  .history-filter-close { grid-column: 2; grid-row: 1; }
   .history-content { padding: 24px 22px; }
   .history-grid { grid-template-columns: 1fr; gap: 20px; }
   .history-load-more-container { padding: 16px 22px 32px; }
