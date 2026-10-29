@@ -294,6 +294,36 @@ The explanation remains readable without opening optional mathematics.
   Preserve the existing sentence highlighting and stop controls.
 - **Depth:** Analogy and model-limit insets use flat Raised Night fields, without shadows or nested cards.
 
+### Biology Lesson
+
+Biology extends the existing dark reader with context, participants, relationships, and conditions.
+Reuse the `physics-*` reading primitives deliberately: section rhythm, serif headings, prose width,
+flat insets, native disclosures, supporting images, and narration behavior. Keep the existing palette,
+reader controls, progress line, references, sharing, and archive routes. Use spacing instead of
+decorative dividers; retain scientific connections, focus outlines, and control boundaries.
+
+- **Structure:** Keep the question and goal, organism/system context, conditions, big idea, key players,
+  connections, explanation, worked example, changed condition, misconceptions, evidence limits,
+  checks, and takeaways in one reading flow. Support five lesson types: process, structure/function,
+  inheritance, adaptation/evolution, and ecosystem. Each changes the explanation heading and map type.
+- **Layout:** Keep the shared `1040px` wrapper, `75ch` prose width, and `64px` section spacing.
+  Reduce spacing to `48px` at `720px`. Context uses three columns on desktop and one on phones.
+  Keep numbered diagram keys and written relationships readable beneath the map.
+- **Maps:** Render static node-and-link SVG maps only: sequence, structure map, inheritance,
+  population sequence, and relationship map. Infer inheritance levels from explicit parent-to-descendant
+  edges, never node order. Preserve captions, sources, text descriptions, and limits. Invalid map data
+  falls back to its text description. Do not imply anatomical precision or add executable model content.
+- **Optional depth:** Terms, deeper detail, diagram description/limits, and answers start closed in native
+  `<details>`. Keep summaries at least `44px` high. Section narration skips closed disclosures;
+  opening one opts its content into the next playback. Narration must not reveal answers automatically.
+  Checks have no scoring or saved state.
+- **Images:** Request one relevant cover and at most one purposeful supporting image. The supporting
+  image needs its API-supplied purpose, caption, and alt text. Place it beside the big idea or causal
+  explanation, keep its natural aspect ratio, and retain the enlarge control. Images do not replace maps.
+- **Review scope:** The reviewed desktop and mobile captures use the process lesson fixture only.
+  See `.impeccable/review/biology-desktop.png` and `.impeccable/review/biology-mobile.png`.
+  These captures do not establish visual review of the other four lesson types or live generated content.
+
 ### Error Message
 
 - **Style:** A compact centered alert with muted oxblood surface and border, pale rose text, `12px` corners, and an explicit `role="alert"`.

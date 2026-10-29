@@ -10,6 +10,8 @@ import { WellnessContent } from './WellnessView.jsx'
 import { WELLNESS_CATEGORIES, asList } from './wellness.js'
 import PhysicsLesson from './PhysicsLesson.jsx'
 import { hasPhysicsLesson } from './physics.js'
+import BiologyLesson from './BiologyLesson.jsx'
+import { hasBiologyLesson } from './biology.js'
 
 const SPECIALIZED_MYTH_CATEGORIES = {
   digital_myths: 'Digital Myths',
@@ -242,7 +244,7 @@ function collectNarrationSentences(source) {
     : [...source.querySelectorAll('[data-narration-content]')]
 
   return elements.flatMap((element) => {
-    // Physics answers and optional maths stay opt-in during section playback.
+    // Lesson answers and optional detail stay opt-in during section playback.
     if (element.closest('.physics-lesson') && element.closest('details:not([open])')) return []
     // Keep the DOM text unchanged so sentence offsets line up with the text
     // nodes used by highlightSentence, including Markdown whitespace.
@@ -838,6 +840,7 @@ function FactView({ fact, onReset, onBack }) {
   const isIndianDiet = fact.category === 'indian_diet'
   const isTraining = ['fitness', 'home_workouts'].includes(fact.category)
   const isPhysicsLesson = hasPhysicsLesson(fact)
+  const isBiologyLesson = hasBiologyLesson(fact)
   const explanationFirst = isIndianDiet || isTraining
   const storyText = fact.detailed_explanation
   const mechanicsText = fact.core_mechanics || fact.how_it_works
@@ -1021,7 +1024,7 @@ function FactView({ fact, onReset, onBack }) {
   )
 
   return (
-    <article className={`fact-view${explanationFirst ? ' wellness-reader' : ''}${isIndianDiet ? ' indian-diet-view' : ''}${isPhysicsLesson ? ' physics-reader' : ''}`} ref={articleRef}>
+    <article className={`fact-view${explanationFirst ? ' wellness-reader' : ''}${isIndianDiet ? ' indian-diet-view' : ''}${isPhysicsLesson ? ' physics-reader' : ''}${isBiologyLesson ? ' biology-reader' : ''}`} ref={articleRef}>
       <span className="reading-progress" aria-hidden="true">
         <i style={{ transform: `scaleX(${readingProgress})` }} />
       </span>
@@ -1058,7 +1061,13 @@ function FactView({ fact, onReset, onBack }) {
       <nav className="reading-nav" aria-label="On this page">
         <div className="reading-nav-glass">
           <a href="#overview">Overview</a>
-          {isPhysicsLesson ? <>
+          {isBiologyLesson ? <>
+            <a href="#biology-idea">The idea</a>
+            <a href="#biology-players">Key players</a>
+            <a href="#biology-explanation">How it works</a>
+            <a href="#biology-change">Change a condition</a>
+            <a href="#biology-check">Check understanding</a>
+          </> : isPhysicsLesson ? <>
             <a href="#physics-idea">The idea</a>
             <a href="#physics-explanation">Why it happens</a>
             <a href="#physics-example">Example</a>
@@ -1077,7 +1086,7 @@ function FactView({ fact, onReset, onBack }) {
       </nav>
 
       <div className="fact-body">
-        {isPhysicsLesson ? <PhysicsLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : <>
+        {isBiologyLesson ? <BiologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPhysicsLesson ? <PhysicsLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : <>
         <section className="fact-overview" id="overview" ref={overviewRef}>
           <NarratedHeading narrationId="overview" narration={narration} targetRef={overviewRef}>The short version</NarratedHeading>
           <MarkdownContent narration={narration}>{fact.summary || fact.headline_fact}</MarkdownContent>
