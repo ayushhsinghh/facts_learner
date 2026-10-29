@@ -100,3 +100,16 @@ test('unknown nutrition stays distinct from zero and invalid values', async () =
   assert.equal(nutrientValue(0), '0')
   assert.equal(nutrientValue(12.34), '12.3')
 })
+
+
+test('generation polling allows the server budget for four five-minute attempts', async (t) => {
+  const delays = []
+  const schedule = globalThis.setTimeout
+  t.mock.method(globalThis, 'setTimeout', (callback, delay, ...args) => {
+    delays.push(delay)
+    return schedule(callback, delay, ...args)
+  })
+  t.mock.method(globalThis, 'fetch', async () => response({ status: 'completed', data: { fact: target } }))
+  await waitForFact({ job_id: 'job', timeout_seconds: 1230 }, undefined, { intervalMs: 1 })
+  assert.ok(delays.includes(1245000), 'The client must allow the full server budget plus a response margin')
+})

@@ -90,7 +90,7 @@ export async function waitForFact(job, signal, options = {}) {
   if (signal?.aborted) abort()
   else signal?.addEventListener('abort', abort, { once: true })
   const serverTimeout = Number(job.timeout_seconds)
-  const timeoutMs = options.timeoutMs ?? ((Number.isFinite(serverTimeout) && serverTimeout > 0 ? Math.min(serverTimeout, 900) : 270) + 15) * 1000
+  const timeoutMs = options.timeoutMs ?? ((Number.isFinite(serverTimeout) && serverTimeout > 0 ? Math.min(serverTimeout, 1800) : 1230) + 15) * 1000
   const intervalMs = options.intervalMs ?? 4000
   const timer = setTimeout(() => controller.abort(new Error('This discovery took too long. Please try again.')), timeoutMs)
   try {

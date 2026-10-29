@@ -22,6 +22,18 @@ function Section({ id, title, narration, Heading, children, className = '' }) {
 }
 function Sources({ item, fact }) { return <SourceLinks sourceIds={item?.source_ids} fact={fact} /> }
 
+function SupportingImage({ fact, slot, onOpenImage }) {
+  const image = fact.physics_lesson.supporting_image
+  const url = fact.images?.[slot]
+  if (!url || image?.slot !== slot) return null
+  return <figure className="physics-supporting-image">
+    <button type="button" onClick={() => onOpenImage(url)} aria-label={`Enlarge image: ${image.alt}`}>
+      <img src={url} alt={image.alt} loading="lazy" />
+    </button>
+    <figcaption data-narration-content>{image.caption}</figcaption>
+  </figure>
+}
+
 export function PhysicsDiagram({ diagram, fact }) {
   const markerId = useId().replaceAll(':', '')
   if (!validDiagram(diagram)) return diagram?.description ? <Paragraph>{diagram.description}</Paragraph> : null
@@ -86,7 +98,7 @@ function Mathematics({ equations, fact }) {
   </details>
 }
 
-export default function PhysicsLesson({ fact, narration, Heading, MarkdownContent }) {
+export default function PhysicsLesson({ fact, narration, Heading, MarkdownContent, onOpenImage }) {
   const lesson = fact.physics_lesson
   const sectionProps = { narration, Heading }
   const example = lesson.worked_example
@@ -103,12 +115,14 @@ export default function PhysicsLesson({ fact, narration, Heading, MarkdownConten
       <MarkdownContent narration={narration} standalone={false}>{lesson.intuition.explanation}</MarkdownContent>
       {lesson.intuition.analogy && <aside className="physics-analogy"><h3>A way to picture it</h3><Paragraph>{lesson.intuition.analogy}</Paragraph><h4>Where the comparison stops</h4><Paragraph>{lesson.intuition.analogy_limit}</Paragraph></aside>}
       <Sources item={lesson.intuition} fact={fact} />
+      <SupportingImage fact={fact} slot="overview" onOpenImage={onOpenImage} />
     </Section>
     {lesson.diagram && <Section {...sectionProps} id="physics-diagram" title="See the idea"><PhysicsDiagram diagram={lesson.diagram} fact={fact} /></Section>}
     <Section {...sectionProps} id="physics-explanation" title="Why it happens">
       <ol className="physics-explanation">{list(lesson.explanation_steps).map((step, i) => <li key={step.id || i}>
         <h3>{step.title}</h3><MarkdownContent narration={narration} standalone={false}>{step.explanation}</MarkdownContent><Sources item={step} fact={fact} />
       </li>)}</ol>
+      <SupportingImage fact={fact} slot="how_it_works" onOpenImage={onOpenImage} />
     </Section>
     <Section {...sectionProps} id="physics-example" title="Work through an example">
       <h3>{example.question}</h3><Bullets items={example.starting_conditions} />

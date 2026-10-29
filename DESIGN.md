@@ -268,7 +268,9 @@ Controls use gently rounded `12px` corners and rectangular proportions. Signatur
 ### Physics Lesson
 
 A linear explanation extends the existing dark reader. The lesson uses Index Night, Mineral Paper,
-Raised Night insets, blue-violet emphasis, flat rules, existing sources, and grouped narration.
+Raised Night insets, blue-violet emphasis, existing sources, and grouped narration.
+Separate Physics sections, disclosures, definitions, and checks with spacing rather than decorative rules.
+Keep scientific diagram strokes, the reading progress line, focus outlines, and control boundaries.
 Its current dark surface takes priority over the older warm-paper description for this component.
 The explanation remains readable without opening optional mathematics.
 
@@ -280,7 +282,11 @@ The explanation remains readable without opening optional mathematics.
   initially; the main explanation and example result remain visible. Answers reveal without scoring or saving.
 - **Diagram:** Render only the static SVG allowlist: comparison, force, ray, energy flow, and graph.
   Keep labels, a text description, assumptions, and sources attached. Graphs also provide a data table.
-  Invalid diagram data falls back to its text description. Do not add generated raster art or executable model content.
+  Invalid diagram data falls back to its text description. Do not add executable model content.
+  Physics requests one relevant generated cover. At most one supporting illustration may accompany
+  the basic idea or causal steps when the API supplies its learning purpose, caption, and alt text.
+  Supporting images use the prose width without cropping, with an enlarge button and caption.
+  Generated images do not replace structured scientific diagrams.
 - **Mathematics:** Load KaTeX only when the mathematics disclosure opens. Preserve spoken formulas,
   symbol meanings, units, assumptions, and readable error fallbacks. Keep formula overflow inside its region.
 - **Narration:** Skip content inside closed lesson disclosures during section playback. Opening a disclosure
