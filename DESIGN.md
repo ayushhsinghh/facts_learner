@@ -33,6 +33,22 @@ typography:
     fontSize: "clamp(1.7rem, 3vw, 2.25rem)"
     fontWeight: 400
     lineHeight: 1.05
+  physics-title:
+    fontFamily: "Instrument Serif, Georgia, serif"
+    fontSize: "clamp(3rem, 6vw, 5.4rem)"
+    fontWeight: 400
+  physics-question:
+    fontFamily: "Instrument Serif, Georgia, serif"
+    fontSize: "clamp(2.6rem, 4.5vw, 3.8rem)"
+    fontWeight: 400
+    lineHeight: 1.1
+    letterSpacing: "-0.02em"
+  physics-heading:
+    fontFamily: "Instrument Serif, Georgia, serif"
+    fontSize: "clamp(2rem, 3.4vw, 2.8rem)"
+    fontWeight: 400
+    lineHeight: 1.1
+    letterSpacing: "-0.02em"
   body:
     fontFamily: "DM Sans, sans-serif"
     fontSize: "1rem"
@@ -73,6 +89,10 @@ components:
     rounded: "{rounded.control}"
     padding: "0 23px"
     height: "64px"
+  physics-lesson:
+    textColor: "{colors.paper}"
+    typography: "{typography.body}"
+    width: "1040px"
   error-message:
     backgroundColor: "{colors.error-surface}"
     textColor: "{colors.error-ink}"
@@ -142,6 +162,12 @@ Near-black and mineral-white establish the nocturnal index. Restrained blue-viol
 - **Body** (400, `1rem`, line-height `1.8`): Article prose and lists, held to a readable maximum of roughly `72ch`.
 - **Label** (400, `0.72rem`, tracking `0.13em`): Uppercase category labels and utility chrome; metadata may step down to `0.62rem`–`0.78rem` while retaining generous tracking.
 
+The Physics lesson uses three component-specific serif roles: `physics-title` for its compact masthead,
+`physics-question` for its opening question, and `physics-heading` for its sections. These roles preserve
+the established families while adapting the scale for sustained explanation. Its subordinate headings use
+Instrument Serif (400, `1.65rem`, line-height `1.25`); its learning goal uses DM Sans (`1.1rem`).
+These exceptions apply to the Physics lesson only.
+
 ### Named Rules
 
 **The Editorial Scale Rule.** Reserve Instrument Serif's largest sizes for the question, search state, fact title, quotations, and section hierarchy; ordinary controls and navigation remain in DM Sans.
@@ -153,6 +179,12 @@ The discovery surface fills at least one small viewport height and centers a sin
 The fact reveal starts with a static `68px` utility header, followed by a dark full-width hero, a compact in-flow contents strip, and a warm reading canvas capped at `920px`. The header is visible only at the document top and scrolls away normally; a two-pixel reading-progress line is the sole fixed element. The one-minute summary, a compact “Did you know?” note, and key evidence stay visible. Long material is grouped into four closed semantic native disclosures so the reader chooses the depth: story, mechanics, world context, and surprises. API-authored Markdown is normalized at the rendering boundary so escaped line breaks become real headings, paragraphs, and lists. The timeline uses a dedicated date gutter beside an uninterrupted event rail, keeping long historical ranges separate from its line and markers. Takeaways, taxonomy, share copy, metadata, quotations, and references remain part of this single document flow rather than becoming cards.
 
 At `720px` and below, the discovery header's secondary phrase is removed, the search controls stack, progress details become one column, and the in-flow contents strip scrolls horizontally. Fact metadata wraps, disclosures retain full-width tap targets, takeaway and taxonomy items become one column, timelines reduce their year rail, and the dark evidence and share insets deliberately bleed to the reading canvas edges. Minimum page width is `320px`; principal horizontal content padding is `20px`–`24px` on small screens.
+
+The Physics lesson keeps the existing reader shell and a centered lesson wrapper capped at `1040px`.
+Prose stays within `75ch`; the diagram section can use the full wrapper width. Section spacing is `64px`,
+reducing to `48px` at the existing `720px` breakpoint. Example givens and diagram keys use two columns
+on wide screens and one column on phones. Equations and graph data can scroll within their own region.
+The compact masthead uses `80px` top and `64px` bottom padding, reducing to `64px` and `40px` on phones.
 
 **The Center-to-Column Rule.** The journey begins as a centered moment and resolves into a vertically paced reading document; do not introduce sidebars, card grids, or persistent multi-panel navigation.
 
@@ -232,6 +264,29 @@ Controls use gently rounded `12px` corners and rectangular proportions. Signatur
 
 - **Style:** A flat Raised Night inset combines an italic Instrument Serif quotation with key figures or statistics. It has no border radius and no card shadow.
 - **Responsive:** The two-column composition collapses to one column and bleeds to the mobile reading edge.
+
+### Physics Lesson
+
+A linear explanation extends the existing dark reader. The lesson uses Index Night, Mineral Paper,
+Raised Night insets, blue-violet emphasis, flat rules, existing sources, and grouped narration.
+Its current dark surface takes priority over the older warm-paper description for this component.
+The explanation remains readable without opening optional mathematics.
+
+- **Structure:** Keep the question, goal, basic idea, static diagram, causal explanation, worked example,
+  limits, knowledge checks, and takeaways in one document flow. Reuse the existing in-flow contents links,
+  reader controls, progress line, references, and sharing.
+- **Disclosures:** Use native `<details>` for background, diagram description, numerical steps,
+  mathematics, derivation, and answers. Summaries retain at least a `44px` target. Keep these closed
+  initially; the main explanation and example result remain visible. Answers reveal without scoring or saving.
+- **Diagram:** Render only the static SVG allowlist: comparison, force, ray, energy flow, and graph.
+  Keep labels, a text description, assumptions, and sources attached. Graphs also provide a data table.
+  Invalid diagram data falls back to its text description. Do not add generated raster art or executable model content.
+- **Mathematics:** Load KaTeX only when the mathematics disclosure opens. Preserve spoken formulas,
+  symbol meanings, units, assumptions, and readable error fallbacks. Keep formula overflow inside its region.
+- **Narration:** Skip content inside closed lesson disclosures during section playback. Opening a disclosure
+  explicitly opts its content into the next playback. Section playback must not open answers or mathematics.
+  Preserve the existing sentence highlighting and stop controls.
+- **Depth:** Analogy and model-limit insets use flat Raised Night fields, without shadows or nested cards.
 
 ### Error Message
 
