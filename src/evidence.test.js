@@ -1,6 +1,22 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { safeSourceUrl, sourceRecords, citedSources, legacyReferences, legacyReferenceParts } from './evidence.js'
+import { OFFICIAL_EDITION_URL } from './constitution.js'
+
+test('bottom references preserve sources previously shown in myth evidence cards', () => {
+  assert.deepEqual(legacyReferences({
+    sources_or_references: ['A study'],
+    debunk_evidence: [{ source: 'Another study' }, { source: 'A study' }, null, { source: {} }],
+  }), ['A study', 'Another study'])
+})
+
+test('the official constitutional edition stays available once in bottom references', () => {
+  const fact = { article_type: 'constitution_lesson', constitution_lesson: {} }
+  const records = sourceRecords(fact)
+  assert.equal(records.length, 1)
+  assert.equal(records[0].url, OFFICIAL_EDITION_URL)
+  assert.equal(sourceRecords({ ...fact, sources: records }).length, 1)
+})
 
 test('source IDs resolve once, without accepting unsafe URLs or duplicates', () => {
   const sources = sourceRecords({ sources: [

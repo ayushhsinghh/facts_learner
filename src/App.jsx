@@ -3,7 +3,7 @@ import ReactMarkdown from 'react-markdown'
 import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useSearchParams } from 'react-router-dom'
 import { fetchCategories, fetchFact, fetchHistory, getFactStatus, startFact, waitForFact, shouldPollImages } from './api.js'
 import { archiveUrl, factUrl, matchesFact } from './navigation.js'
-import { EvidenceReferences, SourceLinks, referenceCount, ImageStatus } from './Evidence.jsx'
+import { EvidenceReferences, referenceCount, ImageStatus } from './Evidence.jsx'
 import { usePageScroll } from './usePageScroll.js'
 import SearchRitual from './SearchRitual.jsx'
 import { WellnessContent } from './WellnessView.jsx'
@@ -89,7 +89,6 @@ function groupCategories(categories) {
   }
   return groups
 }
-
 
 function AmbientField() {
   return (
@@ -1063,7 +1062,7 @@ function FactView({ fact, onReset, onBack }) {
         <div className="fact-hero-content">
           <NarratedHeading as="h1" narrationId="headline" narration={narration} targetRef={heroRef}>{fact.topic}</NarratedHeading>
           <p data-narration-content>{fact.headline_fact}</p>
-          {(isPsychologyLesson || isConstitutionLesson) ? <details className={isConstitutionLesson ? 'constitution-article-meta' : 'psychology-article-meta'}><summary>About this discovery</summary><Meta fact={fact} /></details> : <Meta fact={fact} />}
+          <Meta fact={fact} />
         </div>
       </header>
 
@@ -1128,7 +1127,7 @@ function FactView({ fact, onReset, onBack }) {
             {fact.quote && (
               <blockquote>
                 “{typeof fact.quote === 'string' ? fact.quote : fact.quote.text}”
-                <SourceLinks sourceIds={fact.quote?.source_ids} fact={fact} />
+
                 {fact.quote?.confidence === 'unverified' && (
                   <small style={{ marginLeft: '8px', backgroundColor: 'var(--red-9)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', verticalAlign: 'middle', fontWeight: 600 }}>UNVERIFIED</small>
                 )}
@@ -1228,7 +1227,7 @@ function FactView({ fact, onReset, onBack }) {
                                 {item.evidence && (
                                   <div className="mc-evidence">
                                     <span className="mc-label">Evidence</span>
-                                    <p>{item.evidence}</p><SourceLinks sourceIds={item.source_ids} fact={fact} />
+                                    <p>{item.evidence}</p>
                                   </div>
                                 )}
                               </div>
@@ -1371,8 +1370,7 @@ function EvidenceCard({ item, fact }) {
         {item.year && <span className="evidence-year">{item.year}</span>}
       </div>
       {finding && <p className="evidence-finding" data-narration-content>{finding}</p>}
-      {item.source && <cite className="evidence-source">{item.source}</cite>}
-      <SourceLinks sourceIds={item.source_ids} fact={fact} />
+
     </div>
   )
 }
@@ -1617,7 +1615,7 @@ function MythBusterView({ fact, onReset, onBack }) {
             {fact.quote && (
               <blockquote>
                 “{typeof fact.quote === 'string' ? fact.quote : fact.quote.text}”
-                <SourceLinks sourceIds={fact.quote?.source_ids} fact={fact} />
+
                 {fact.quote?.confidence === 'unverified' && (
                   <small style={{ marginLeft: '8px', backgroundColor: 'var(--red-9, #e03131)', color: 'white', padding: '2px 6px', borderRadius: '4px', fontSize: '0.7em', verticalAlign: 'middle', fontWeight: 600 }}>UNVERIFIED</small>
                 )}
@@ -1707,7 +1705,7 @@ function MythBusterView({ fact, onReset, onBack }) {
                             <div className="misconception-grid">
                               <div className="mc-myth"><span className="mc-label">Myth</span><p>{item.myth}</p></div>
                               <div className="mc-reality"><span className="mc-label">Reality</span><p>{item.reality}</p></div>
-                              {item.evidence && <div className="mc-evidence"><span className="mc-label">Evidence</span><p>{item.evidence}</p><SourceLinks sourceIds={item.source_ids} fact={fact} /></div>}
+                              {item.evidence && <div className="mc-evidence"><span className="mc-label">Evidence</span><p>{item.evidence}</p></div>}
                             </div>
                           )}
                         </li>

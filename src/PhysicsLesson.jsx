@@ -1,7 +1,6 @@
 import { lazy, Suspense, useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import ArticleImages from './ArticleImages.jsx'
-import { SourceLinks } from './Evidence.jsx'
 import { archiveUrl } from './navigation.js'
 import { list, graphGeometry, validDiagram, calculationLines } from './physics.js'
 import './physics.css'
@@ -21,8 +20,6 @@ function Section({ id, title, narration, Heading, children, className = '' }) {
     <div className="physics-section-body">{children}</div>
   </section>
 }
-function Sources({ item, fact }) { return <SourceLinks sourceIds={item?.source_ids} fact={fact} /> }
-
 
 
 export function PhysicsDiagram({ diagram, fact }) {
@@ -65,7 +62,7 @@ export function PhysicsDiagram({ diagram, fact }) {
     {isSequence && <ol className="physics-diagram-key">{diagram.items.map((item, i) => <li key={i} data-narration-content><strong>{item.label}</strong><span>{item.detail}</span></li>)}</ol>}
     {diagram.type === 'force' && <ul className="physics-vector-key">{diagram.vectors.map((item, i) => <li key={i} data-narration-content>F{i + 1}: {item.label}</li>)}</ul>}
     {diagram.type === 'ray' && <ol className="physics-vector-key">{diagram.rays.map((item, i) => <li key={i} data-narration-content>{item.label}</li>)}</ol>}
-    <figcaption><Paragraph>{diagram.caption}</Paragraph><Sources item={diagram} fact={fact} /></figcaption>
+    <figcaption><Paragraph>{diagram.caption}</Paragraph></figcaption>
     {list(diagram.assumptions).length > 0 && <div className="physics-assumptions"><h4>What this diagram assumes</h4><Bullets items={diagram.assumptions} /></div>}
     <details className="physics-details"><summary>Diagram description{graph && ' & data'}</summary><Paragraph>{diagram.description}</Paragraph>
       {graph && <div className="physics-table-scroll" tabIndex={0} role="region" aria-label="Graph data"><table><caption>{diagram.title}: plotted values</caption><thead><tr><th>{diagram.x_label} ({diagram.x_unit})</th><th>{diagram.y_label} ({diagram.y_unit})</th></tr></thead><tbody>{diagram.points.map((p, i) => <tr key={i}><td>{p.x}</td><td>{p.y}</td></tr>)}</tbody></table></div>}
@@ -84,7 +81,7 @@ function Mathematics({ equations, fact }) {
       <dl className="physics-symbols">{list(equation.symbols).map(symbol => <div key={symbol.id} data-narration-content><dt>{symbol.symbol}</dt><dd>{symbol.meaning} <span>({symbol.unit})</span></dd></div>)}</dl>
       <h4>When this equation applies</h4><Bullets items={equation.assumptions} />
       {list(equation.derivation_steps).length > 0 && <details className="physics-details"><summary>Follow the derivation</summary><ol>{equation.derivation_steps.map((step, j) => <li key={j} data-narration-content>{step}</li>)}</ol></details>}
-      <Sources item={equation} fact={fact} />
+
     </section>)}
   </details>
 }
@@ -105,13 +102,13 @@ export default function PhysicsLesson({ fact, narration, Heading, MarkdownConten
     <Section {...sectionProps} id="physics-idea" title="The basic idea">
       <MarkdownContent narration={narration} standalone={false}>{lesson.intuition.explanation}</MarkdownContent>
       {lesson.intuition.analogy && <aside className="physics-analogy"><h3>A way to picture it</h3><Paragraph>{lesson.intuition.analogy}</Paragraph><h4>Where the comparison stops</h4><Paragraph>{lesson.intuition.analogy_limit}</Paragraph></aside>}
-      <Sources item={lesson.intuition} fact={fact} />
+
       <ArticleImages fact={fact} placement="overview" onOpenImage={onOpenImage} />
     </Section>
     {lesson.diagram && <Section {...sectionProps} id="physics-diagram" title="See the idea"><PhysicsDiagram diagram={lesson.diagram} fact={fact} /></Section>}
     <Section {...sectionProps} id="physics-explanation" title="Why it happens">
       <ol className="physics-explanation">{list(lesson.explanation_steps).map((step, i) => <li key={step.id || i}>
-        <h3>{step.title}</h3><MarkdownContent narration={narration} standalone={false}>{step.explanation}</MarkdownContent><Sources item={step} fact={fact} />
+        <h3>{step.title}</h3><MarkdownContent narration={narration} standalone={false}>{step.explanation}</MarkdownContent>
       </li>)}</ol>
       <ArticleImages fact={fact} placement="explanation" onOpenImage={onOpenImage} />
     </Section>
@@ -122,15 +119,15 @@ export default function PhysicsLesson({ fact, narration, Heading, MarkdownConten
       {list(example.calculations).length > 0 && <details className="physics-details"><summary>Show the numerical steps</summary><ol>{calculationLines(example).map(calc => <li key={calc.id} data-narration-content><strong>{calc.explanation}</strong><p>{calc.expression}</p></li>)}</ol></details>}
       <div className="physics-result"><h4>The result</h4><Paragraph>{example.result}</Paragraph><Paragraph>{example.interpretation}</Paragraph></div>
       {fact.physics_validation?.arithmetic_checked && <p className="physics-note">Numerical steps checked for arithmetic and SI dimensions. This does not independently verify the physical model.</p>}
-      <Sources item={example} fact={fact} />
+
       <ArticleImages fact={fact} placement="example" onOpenImage={onOpenImage} />
       {list(lesson.mathematics).length > 0 && <Mathematics equations={lesson.mathematics} fact={fact} />}
     </Section>
     {list(lesson.misconceptions).length > 0 && <Section {...sectionProps} id="physics-misconceptions" title="An easy mistake to make">
-      {lesson.misconceptions.map((item, i) => <div className="physics-misconception" key={i}><h3>{item.belief}</h3><Paragraph>{item.correction}</Paragraph><Paragraph>{item.explanation}</Paragraph><Sources item={item} fact={fact} /></div>)}
+      {lesson.misconceptions.map((item, i) => <div className="physics-misconception" key={i}><h3>{item.belief}</h3><Paragraph>{item.correction}</Paragraph><Paragraph>{item.explanation}</Paragraph></div>)}
     </Section>}
     <Section {...sectionProps} id="physics-limits" title="Use the idea—and know its limits">
-      {list(lesson.applications).map((item, i) => <div className="physics-application" key={i}><h3>{item.title}</h3><Paragraph>{item.explanation}</Paragraph><Sources item={item} fact={fact} /></div>)}
+      {list(lesson.applications).map((item, i) => <div className="physics-application" key={i}><h3>{item.title}</h3><Paragraph>{item.explanation}</Paragraph></div>)}
       <aside className="physics-assumptions"><h3>Where the model stops</h3><Bullets items={lesson.model_limits} /></aside>
       <ArticleImages fact={fact} placement="limits" onOpenImage={onOpenImage} />
     </Section>

@@ -1,6 +1,6 @@
 import { citedSources, legacyReferences, legacyReferenceParts, sourceRecords } from './evidence.js'
 
-export function SourceLinks({ sourceIds, fact }) {
+function SourceLinks({ sourceIds, fact }) {
   const sources = citedSources(sourceIds, sourceRecords(fact))
   if (!sources.length) return null
   return <span className="claim-source-links">Sources: {sources.map((source, index) => (

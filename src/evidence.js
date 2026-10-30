@@ -1,3 +1,5 @@
+import { OFFICIAL_EDITION_URL } from './constitution.js'
+
 export function safeSourceUrl(value) {
   if (typeof value !== 'string') return ''
   const text = value.trim()
@@ -17,6 +19,12 @@ export function sourceRecords(fact) {
     ids.add(source.id)
     records.push({ ...source, url: safeSourceUrl(source.url) })
   }
+  if (fact.article_type === 'constitution_lesson' && fact.constitution_lesson
+    && !records.some(source => source.url === OFFICIAL_EDITION_URL)) {
+    let id = 'official-constitutional-edition'
+    while (ids.has(id)) id += '-edition'
+    records.push({ id, title: 'Official Constitution of India — 2024 edition', url: OFFICIAL_EDITION_URL })
+  }
   return records
 }
 
@@ -26,8 +34,11 @@ export function citedSources(sourceIds, sources) {
 }
 
 export function legacyReferences(fact) {
-  return (Array.isArray(fact.sources_or_references) ? fact.sources_or_references : [])
-    .filter((source) => typeof source === 'string' && source.trim())
+  const references = [
+    ...(Array.isArray(fact.sources_or_references) ? fact.sources_or_references : []),
+    ...(Array.isArray(fact.debunk_evidence) ? fact.debunk_evidence.map(item => item?.source) : []),
+  ]
+  return [...new Set(references.filter(source => typeof source === 'string' && source.trim()))]
 }
 
 export function legacyReferenceParts(text) {

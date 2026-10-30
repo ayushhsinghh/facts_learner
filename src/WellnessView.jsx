@@ -1,5 +1,4 @@
 import ReactMarkdown from 'react-markdown'
-import { SourceLinks } from './Evidence.jsx'
 import { asList, nutrientValue } from './wellness.js'
 import './wellness.css'
 
@@ -34,7 +33,7 @@ function TrainingGuide({ guide, fact }) {
       {exercises.map((exercise, i) => <details className="training-exercise" key={`${exercise.name}-${i}`}>
         <summary><h4 className="training-exercise-title" data-narration-content><span>{exercise.name}</span> <small>{[exercise.sets && `${exercise.sets} sets`, exercise.reps, typeof exercise.rest_seconds === 'number' && `${exercise.rest_seconds}s rest`].filter(Boolean).join(' · ')}</small></h4><svg viewBox="0 0 20 20" fill="none" aria-hidden="true"><path d="m5 8 5 5 5-5" /></svg></summary>
         <div className="training-exercise-content">
-        <Steps items={exercise.steps} /><SourceLinks sourceIds={exercise.source_ids} fact={fact} />
+        <Steps items={exercise.steps} />
         <dl className="exercise-options">{exercise.easier_option && <div data-narration-content><dt>Make it easier</dt><dd> {exercise.easier_option}</dd></div>}{exercise.progression && <div data-narration-content><dt>Build from here</dt><dd> {exercise.progression}</dd></div>}</dl>
         </div>
       </details>)}</div>}
@@ -68,7 +67,7 @@ function NutritionGuide({ guide, fact }) {
             ['fat_g', 'Fat', 'g'], ['fiber_g', 'Fibre', 'g'],
           ].map(([key, label, unit]) => <div key={key} data-narration-content><dt>{label}</dt><dd> {nutrientValue(food[key])}<span> {unit}</span></dd></div>)}</dl>
           {asList(food.key_micronutrients).length > 0 && <div className="nutrition-micronutrients"><h4>Vitamins & minerals</h4><Tips items={food.key_micronutrients} /></div>}
-          <SourceLinks sourceIds={food.source_ids} fact={fact} />
+
         </div>
       </details>)}</div>
     </section>}
