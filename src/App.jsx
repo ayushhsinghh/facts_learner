@@ -1868,8 +1868,8 @@ function FactPage({ cache, onBack, onReset }) {
   const pollImagesNeeded = shouldPollImages(data.fact)
   const countryPhotoHash=hasCountryProfile(data.fact)?data.fact.content_hash:null
   useEffect(()=>{
-    if(!countryPhotoHash||data.fact?.country_photo_enrichment?.status==='completed'&&data.fact?.country_photo_enrichment?.version===2)return
-    if(jobId&&data.fact?.country_media?.photo_layout==='contextual_v2')return
+    if(!countryPhotoHash||data.fact?.country_photo_enrichment?.status==='completed'&&data.fact?.country_photo_enrichment?.version===3)return
+    if(jobId&&pollImagesNeeded)return
     const controller=new AbortController()
     enrichCountryPhotos(data.fact,controller.signal,media=>{
       if(controller.signal.aborted)return
@@ -1883,7 +1883,7 @@ function FactPage({ cache, onBack, onReset }) {
       })
     }).catch(()=>{}) // Optional photo enrichment never blocks the article or narration.
     return ()=>controller.abort()
-  },[countryPhotoHash,url,cache])
+  },[countryPhotoHash,url,cache,pollImagesNeeded])
   useEffect(() => {
     if (!data.fact || !jobId || !pollImagesNeeded) return undefined
     const controller = new AbortController()

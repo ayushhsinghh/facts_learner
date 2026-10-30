@@ -484,9 +484,9 @@ one-sentence introduction, visible metadata and adjacent asset credit. Separate 
   requested asset, another available image, a licensed gallery photo, then bundled Natural Earth
   world-map artwork. Broken URLs advance this chain. Gallery items are deduplicated at the fact root;
   persisted media status and history retain available results.
-- **Photo carousel:** Show Unsplash scenes only. Use distinct landscape, named-city streets, daily
-  markets and architecture themes, selecting one scene per theme and up to four per batch. Deduplicate
-  source, photographer and description. Use native swipe/scroll with previous/next controls of at least
+- **Photo carousel:** Search twelve distinct topics, using country-specific destinations where supplied. Prefer Unsplash
+  and use topic-filtered Wikimedia fallback. Target at least ten photos, with up to two per topic
+  (24 total); unavailable or irrelevant topics stay empty. Deduplicate source and description. Use native swipe/scroll with previous/next controls of at least
   `44px` and Left/Right keyboard navigation. Never autoplay. Respect reduced-motion preferences. Keep
   credits available through the adjacent info button and in the shared enlargement dialog. Preserve image proportions.
 - **Subject figures:** Place a Wikimedia Commons figure with each notable person, notable place,

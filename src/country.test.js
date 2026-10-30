@@ -90,3 +90,11 @@ test('a portrait cannot replace the country cover when landscapes are unavailabl
   const f=fixture();f.images={};f.image_credits={};f.country_photo_galleries={country_people_0:[{...credit,provider:'wikimedia',subject_kind:'people',subject:'A person'}]}
   assert.equal(countryVisualCandidates(f)[0].url,'/maps/country-fallback.svg')
 })
+
+test('contextual Commons scenes join the carousel while inline topic figures stay separate',()=>{
+  const f=fixture()
+  f.country_photo_galleries={country_scene_5:[{...credit,provider:'wikimedia',scene_query:'wildlife birds'}],
+    country_culture_0:[{...credit,source_url:credit.source_url+'-food',provider:'wikimedia',subject_kind:'culture',subject:'Food'}]}
+  assert.equal(countryScenes(f).length,1)
+  assert.equal(countryScenes(f)[0].credit.scene_query,'wildlife birds')
+})

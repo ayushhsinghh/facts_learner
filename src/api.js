@@ -143,7 +143,7 @@ export async function enrichCountryPhotos(fact,signal,onUpdate,options={}) {
   if(!fact?.content_hash||fact.article_type!=='country_profile')return
   const controller=new AbortController(),abort=()=>controller.abort(signal?.reason)
   if(signal?.aborted)abort();else signal?.addEventListener('abort',abort,{once:true})
-  const timer=setTimeout(()=>controller.abort(),options.timeoutMs??240000)
+  const timer=setTimeout(()=>controller.abort(),options.timeoutMs??360000)
   const endpoint=`${API_ROOT}/api/facts/${encodeURIComponent(fact.content_hash)}/country-photos`
   try {
     let result=await parseResponse(await fetch(endpoint,{method:'POST',headers:{Accept:'application/json'},signal:controller.signal}))

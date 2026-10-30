@@ -51,7 +51,7 @@ export function countryGallery(fact) {
   return result
 }
 export function countryScenes(fact) {
-  return countryGallery(fact).filter(item=>item.credit.provider==='unsplash')
+  return countryGallery(fact).filter(item=>item.credit.provider==='unsplash'||Boolean(item.credit.scene_query&&!item.credit.subject_kind))
 }
 export function countrySubjectPhoto(fact,kind,index,subject) {
   const group=fact?.country_photo_galleries?.[`country_${kind}_${index}`]
