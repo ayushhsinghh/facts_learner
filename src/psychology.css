@@ -5,10 +5,8 @@
 .psychology-study + .psychology-study, .psychology-alternative + .psychology-alternative, .psychology-application + .psychology-application { margin-top: 48px; }
 .psychology-replication { margin-top: 40px; }
 .psychology-study-meta { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 24px; }
-.psychology-reader .fact-hero { padding-block: 48px 24px; }
-.psychology-reader .fact-hero h1 { max-width: 23ch; font-size: clamp(2.8rem, 5vw, 4.2rem); }
 .psychology-reader .fact-body { padding-top: 40px; }
 .psychology-article-meta { margin-top: 24px; }
-.psychology-article-meta > summary { min-height: 44px; cursor: pointer; color: var(--signal-strong); font-size: .85rem; }
+.psychology-article-meta > summary { width: fit-content; min-height: 44px; cursor: pointer; color: var(--signal-strong); font-size: .85rem; }
 .psychology-article-meta .fact-meta { margin-top: 16px; padding-top: 0; }
 @media (max-width: 720px) { .psychology-scenario { padding: 20px; } .psychology-study-meta { grid-template-columns: 1fr; gap: 0; } }

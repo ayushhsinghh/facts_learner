@@ -1,0 +1,6 @@
+.article-illustration { width: 100%; margin: 40px 0; }
+.article-illustration button { display: block; width: 100%; padding: 0; border: 0; background: var(--night-soft); cursor: zoom-in; }
+.article-illustration img { display: block; width: 100%; height: auto; }
+.article-illustration figcaption { margin-top: 14px; color: var(--muted); font-size: .85rem; line-height: 1.6; }
+.fact-overview > .article-illustration { grid-column: 2; }
+@media (max-width: 720px) { .article-illustration { margin-block: 28px; } .fact-overview > .article-illustration { grid-column: 1; } }

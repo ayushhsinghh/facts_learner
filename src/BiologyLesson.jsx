@@ -1,5 +1,6 @@
 import { useId, useRef } from 'react'
 import { Link } from 'react-router-dom'
+import ArticleImages from './ArticleImages.jsx'
 import { SourceLinks } from './Evidence.jsx'
 import { archiveUrl } from './navigation.js'
 import { BIOLOGY_TYPES, biologyDiagramLayout } from './biology.js'
@@ -17,12 +18,7 @@ function Section({ id, title, Heading, narration, children }) {
     <div className="physics-section-body">{children}</div>
   </section>
 }
-function SupportingImage({ fact, slot, onOpenImage }) {
-  const image = fact.biology_lesson.supporting_image
-  if (image?.slot !== slot || !fact.images?.[slot]) return null
-  return <figure className="physics-supporting-image"><button type="button" aria-label={`Enlarge image: ${image.alt}`} onClick={() => onOpenImage(fact.images[slot])}>
-    <img src={fact.images[slot]} alt={image.alt} loading="lazy" /></button><figcaption data-narration-content>{image.caption}</figcaption></figure>
-}
+
 export function BiologyDiagram({ diagram, fact }) {
   const marker = useId().replaceAll(':', '')
   const layout = biologyDiagramLayout(diagram)
@@ -57,7 +53,7 @@ export default function BiologyLesson({ fact, narration, Heading, MarkdownConten
     <Section {...props} id="biology-idea" title="The big idea">{markdown(lesson.big_idea.explanation)}
       {lesson.big_idea.analogy && <aside className="physics-analogy"><h3>A way to picture it</h3><Text>{lesson.big_idea.analogy}</Text><h4>Where the comparison stops</h4><Text>{lesson.big_idea.analogy_limit}</Text></aside>}
       <Sources item={lesson.big_idea} fact={fact} />
-      <SupportingImage fact={fact} slot="overview" onOpenImage={onOpenImage} />
+      <ArticleImages fact={fact} placement="overview" onOpenImage={onOpenImage} />
       {list(lesson.key_terms).length > 0 && <details className="physics-details"><summary>Words used in this lesson</summary><dl>{lesson.key_terms.map((term, i) => <div key={i} data-narration-content><dt>{term.term}</dt><dd>{term.definition}</dd></div>)}</dl></details>}
     </Section>
     <Section {...props} id="biology-players" title="Meet the key players"><dl className="biology-players">{lesson.key_players.map(player => <div key={player.id}><dt data-narration-content>{player.name}</dt><dd data-narration-content>{player.role}</dd><Sources item={player} fact={fact} /></div>)}</dl></Section>
@@ -65,11 +61,12 @@ export default function BiologyLesson({ fact, narration, Heading, MarkdownConten
     <Section {...props} id="biology-explanation" title={type.title}>
       <ol className="physics-explanation">{lesson.explanation_steps.map(step => <li key={step.id}><h3>{step.title}</h3>{markdown(step.explanation)}
         <p className="physics-note" data-narration-content>Involved: {step.player_ids.map(id => lesson.key_players.find(player => player.id === id)?.name).filter(Boolean).join(', ')}</p><Sources item={step} fact={fact} /></li>)}</ol>
-      <SupportingImage fact={fact} slot="how_it_works" onOpenImage={onOpenImage} />
+      <ArticleImages fact={fact} placement="explanation" onOpenImage={onOpenImage} />
     </Section>
     <Section {...props} id="biology-example" title="Work through an example"><h3>{lesson.worked_example.title}</h3><Text>{lesson.worked_example.situation}</Text>
       <ol className="physics-reasoning">{list(lesson.worked_example.reasoning_steps).map((step, i) => <li key={i} data-narration-content>{step}</li>)}</ol>
       <div className="physics-result"><h4>What happens</h4><Text>{lesson.worked_example.outcome}</Text><Text>{lesson.worked_example.interpretation}</Text></div><Sources item={lesson.worked_example} fact={fact} />
+      <ArticleImages fact={fact} placement="example" onOpenImage={onOpenImage} />
     </Section>
     <Section {...props} id="biology-change" title="Change one condition"><h3>{lesson.change_scenario.question}</h3>
       <h4>The change</h4><Text>{lesson.change_scenario.changed_condition}</Text><h4>What we expect</h4><Text>{lesson.change_scenario.expected_effect}</Text>
@@ -82,6 +79,7 @@ export default function BiologyLesson({ fact, narration, Heading, MarkdownConten
         {list(lesson.evidence_and_limits.uncertainties).length > 0 && <><h4>What remains uncertain</h4><Bullets items={lesson.evidence_and_limits.uncertainties} /></>}
       </aside>
       <p className="physics-note">Source links are supplied with the article. They do not indicate independent scientific review.</p>
+      <ArticleImages fact={fact} placement="limits" onOpenImage={onOpenImage} />
       {lesson.deeper_detail.map((item, i) => <details className="physics-details" key={i}><summary>{item.title}</summary>{markdown(item.explanation)}<Sources item={item} fact={fact} /></details>)}
     </Section>
     <Section {...props} id="biology-check" title="Check your understanding"><p className="physics-note">Think it through, then open the answer. Nothing is scored or saved.</p>

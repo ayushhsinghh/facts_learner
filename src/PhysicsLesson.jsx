@@ -1,5 +1,6 @@
 import { lazy, Suspense, useId, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
+import ArticleImages from './ArticleImages.jsx'
 import { SourceLinks } from './Evidence.jsx'
 import { archiveUrl } from './navigation.js'
 import { list, graphGeometry, validDiagram, calculationLines } from './physics.js'
@@ -22,17 +23,7 @@ function Section({ id, title, narration, Heading, children, className = '' }) {
 }
 function Sources({ item, fact }) { return <SourceLinks sourceIds={item?.source_ids} fact={fact} /> }
 
-function SupportingImage({ fact, slot, onOpenImage }) {
-  const image = fact.physics_lesson.supporting_image
-  const url = fact.images?.[slot]
-  if (!url || image?.slot !== slot) return null
-  return <figure className="physics-supporting-image">
-    <button type="button" onClick={() => onOpenImage(url)} aria-label={`Enlarge image: ${image.alt}`}>
-      <img src={url} alt={image.alt} loading="lazy" />
-    </button>
-    <figcaption data-narration-content>{image.caption}</figcaption>
-  </figure>
-}
+
 
 export function PhysicsDiagram({ diagram, fact }) {
   const markerId = useId().replaceAll(':', '')
@@ -115,14 +106,14 @@ export default function PhysicsLesson({ fact, narration, Heading, MarkdownConten
       <MarkdownContent narration={narration} standalone={false}>{lesson.intuition.explanation}</MarkdownContent>
       {lesson.intuition.analogy && <aside className="physics-analogy"><h3>A way to picture it</h3><Paragraph>{lesson.intuition.analogy}</Paragraph><h4>Where the comparison stops</h4><Paragraph>{lesson.intuition.analogy_limit}</Paragraph></aside>}
       <Sources item={lesson.intuition} fact={fact} />
-      <SupportingImage fact={fact} slot="overview" onOpenImage={onOpenImage} />
+      <ArticleImages fact={fact} placement="overview" onOpenImage={onOpenImage} />
     </Section>
     {lesson.diagram && <Section {...sectionProps} id="physics-diagram" title="See the idea"><PhysicsDiagram diagram={lesson.diagram} fact={fact} /></Section>}
     <Section {...sectionProps} id="physics-explanation" title="Why it happens">
       <ol className="physics-explanation">{list(lesson.explanation_steps).map((step, i) => <li key={step.id || i}>
         <h3>{step.title}</h3><MarkdownContent narration={narration} standalone={false}>{step.explanation}</MarkdownContent><Sources item={step} fact={fact} />
       </li>)}</ol>
-      <SupportingImage fact={fact} slot="how_it_works" onOpenImage={onOpenImage} />
+      <ArticleImages fact={fact} placement="explanation" onOpenImage={onOpenImage} />
     </Section>
     <Section {...sectionProps} id="physics-example" title="Work through an example">
       <h3>{example.question}</h3><Bullets items={example.starting_conditions} />
@@ -132,6 +123,7 @@ export default function PhysicsLesson({ fact, narration, Heading, MarkdownConten
       <div className="physics-result"><h4>The result</h4><Paragraph>{example.result}</Paragraph><Paragraph>{example.interpretation}</Paragraph></div>
       {fact.physics_validation?.arithmetic_checked && <p className="physics-note">Numerical steps checked for arithmetic and SI dimensions. This does not independently verify the physical model.</p>}
       <Sources item={example} fact={fact} />
+      <ArticleImages fact={fact} placement="example" onOpenImage={onOpenImage} />
       {list(lesson.mathematics).length > 0 && <Mathematics equations={lesson.mathematics} fact={fact} />}
     </Section>
     {list(lesson.misconceptions).length > 0 && <Section {...sectionProps} id="physics-misconceptions" title="An easy mistake to make">
@@ -140,6 +132,7 @@ export default function PhysicsLesson({ fact, narration, Heading, MarkdownConten
     <Section {...sectionProps} id="physics-limits" title="Use the idea—and know its limits">
       {list(lesson.applications).map((item, i) => <div className="physics-application" key={i}><h3>{item.title}</h3><Paragraph>{item.explanation}</Paragraph><Sources item={item} fact={fact} /></div>)}
       <aside className="physics-assumptions"><h3>Where the model stops</h3><Bullets items={lesson.model_limits} /></aside>
+      <ArticleImages fact={fact} placement="limits" onOpenImage={onOpenImage} />
     </Section>
     <Section {...sectionProps} id="physics-check" title="Check your understanding">
       <p className="physics-note">Think it through first. Then open the answer. Nothing is scored or saved.</p>

@@ -14,6 +14,11 @@ import BiologyLesson from './BiologyLesson.jsx'
 import { hasBiologyLesson } from './biology.js'
 import PsychologyLesson from './PsychologyLesson.jsx'
 import { hasPsychologyLesson } from './psychology.js'
+import ConstitutionLesson from './ConstitutionLesson.jsx'
+import { hasConstitutionLesson } from './constitution.js'
+import ArticleImages from './ArticleImages.jsx'
+import ImageLightbox from './ImageLightbox.jsx'
+import { overviewImage } from './articleImages.js'
 
 const SPECIALIZED_MYTH_CATEGORIES = {
   digital_myths: 'Digital Myths',
@@ -697,8 +702,8 @@ function DiscoveriesPage({ categories, cache, rememberFact }) {
                   : 'Earlier discovery'
                 return (
                   <article key={`${item.generated_at || index}-${item.topic || 'fact'}`} className="history-card">
-                    {(item.images?.myth_visual || item.images?.overview) && (
-                      <div className="history-card-bg" style={{ backgroundImage: `url(${item.images.myth_visual || item.images.overview})` }} />
+                    {overviewImage(item) && (
+                      <div className="history-card-bg" style={{ backgroundImage: `url(${overviewImage(item)})` }} />
                     )}
                     <Link className="history-card-link" to={factUrl(item)} state={{ from: `${location.pathname}${location.search}` }} onClick={() => rememberFact(item)}>
                       <span className="history-item-meta">
@@ -844,6 +849,7 @@ function FactView({ fact, onReset, onBack }) {
   const isPhysicsLesson = hasPhysicsLesson(fact)
   const isBiologyLesson = hasBiologyLesson(fact)
   const isPsychologyLesson = hasPsychologyLesson(fact)
+  const isConstitutionLesson = hasConstitutionLesson(fact)
   const explanationFirst = isIndianDiet || isTraining
   const storyText = fact.detailed_explanation
   const mechanicsText = fact.core_mechanics || fact.how_it_works
@@ -1027,7 +1033,7 @@ function FactView({ fact, onReset, onBack }) {
   )
 
   return (
-    <article className={`fact-view${explanationFirst ? ' wellness-reader' : ''}${isIndianDiet ? ' indian-diet-view' : ''}${isPhysicsLesson ? ' physics-reader' : ''}${isBiologyLesson ? ' biology-reader' : ''}${isPsychologyLesson ? ' psychology-reader' : ''}`} ref={articleRef}>
+    <article className={`fact-view${explanationFirst ? ' wellness-reader' : ''}${isIndianDiet ? ' indian-diet-view' : ''}${isPhysicsLesson ? ' physics-reader' : ''}${isBiologyLesson ? ' biology-reader' : ''}${isPsychologyLesson ? ' psychology-reader' : ''}${isConstitutionLesson ? ' constitution-reader' : ''}`} ref={articleRef}>
       <span className="reading-progress" aria-hidden="true">
         <i style={{ transform: `scaleX(${readingProgress})` }} />
       </span>
@@ -1057,14 +1063,20 @@ function FactView({ fact, onReset, onBack }) {
         <div className="fact-hero-content">
           <NarratedHeading as="h1" narrationId="headline" narration={narration} targetRef={heroRef}>{fact.topic}</NarratedHeading>
           <p data-narration-content>{fact.headline_fact}</p>
-          {isPsychologyLesson ? <details className="psychology-article-meta"><summary>About this discovery</summary><Meta fact={fact} /></details> : <Meta fact={fact} />}
+          {(isPsychologyLesson || isConstitutionLesson) ? <details className={isConstitutionLesson ? 'constitution-article-meta' : 'psychology-article-meta'}><summary>About this discovery</summary><Meta fact={fact} /></details> : <Meta fact={fact} />}
         </div>
       </header>
 
       <nav className="reading-nav" aria-label="On this page">
         <div className="reading-nav-glass">
           <a href="#overview">Overview</a>
-          {isPsychologyLesson ? <>
+          {isConstitutionLesson ? <>
+            <a href="#constitution-idea">Plain meaning</a>
+            <a href="#constitution-basis">The provision</a>
+            <a href="#constitution-example">Example</a>
+            <a href="#constitution-limits">Limits</a>
+            <a href="#constitution-check">Check understanding</a>
+          </> : isPsychologyLesson ? <>
             <a href="#psychology-idea">The idea</a>
             <a href="#psychology-explanation">Explanation</a>
             <a href="#psychology-evidence">Evidence</a>
@@ -1095,18 +1107,11 @@ function FactView({ fact, onReset, onBack }) {
       </nav>
 
       <div className="fact-body">
-        {isPsychologyLesson ? <PsychologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isBiologyLesson ? <BiologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPhysicsLesson ? <PhysicsLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : <>
+        {isConstitutionLesson ? <ConstitutionLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPsychologyLesson ? <PsychologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isBiologyLesson ? <BiologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPhysicsLesson ? <PhysicsLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : <>
         <section className="fact-overview" id="overview" ref={overviewRef}>
           <NarratedHeading narrationId="overview" narration={narration} targetRef={overviewRef}>The short version</NarratedHeading>
           <MarkdownContent narration={narration}>{fact.summary || fact.headline_fact}</MarkdownContent>
-          {(fact.images?.overview || fact.images?.history) && (
-            <img
-              src={fact.images.overview || fact.images.history}
-              alt="Overview context"
-              className="fact-inline-image fact-overview-image zoomable"
-              onClick={() => setEnlargedImage(fact.images.overview || fact.images.history)}
-            />
-          )}
+          <ArticleImages fact={fact} placement="overview" onOpenImage={setEnlargedImage} />
         </section>
 
         {!explanationFirst && practiceSection}
@@ -1155,14 +1160,7 @@ function FactView({ fact, onReset, onBack }) {
               {hasMechanics && (
                 <Disclosure title="How it works" description="Mechanisms, variants, and step-by-step detail" narration={narration} open={explanationFirst}>
                   <ReadingBlock text={mechanicsText} narration={narration} />
-                  {fact.images?.how_it_works && (
-                    <img
-                      src={fact.images.how_it_works}
-                      alt="Mechanics illustration"
-                      className="fact-inline-image fact-mechanics-image zoomable"
-                      onClick={() => setEnlargedImage(fact.images.how_it_works)}
-                    />
-                  )}
+                  <ArticleImages fact={fact} placement="explanation" onOpenImage={setEnlargedImage} />
                   <ReadingBlock title="Technical detail" text={technicalText} narration={narration} />
                   {breakdown.key_mechanisms_or_types?.length > 0 && (
                     <ReadingBlock title="Mechanisms and types" narration={narration}>
@@ -1328,6 +1326,11 @@ function FactView({ fact, onReset, onBack }) {
           </div>
         )}
 
+        {!(isPhysicsLesson || isBiologyLesson || isPsychologyLesson || isConstitutionLesson) && <>
+          {!hasMechanics && <ArticleImages fact={fact} placement="explanation" onOpenImage={setEnlargedImage} />}
+          <ArticleImages fact={fact} placement="example" onOpenImage={setEnlargedImage} />
+          <ArticleImages fact={fact} placement="limits" onOpenImage={setEnlargedImage} />
+        </>}
         <ImageStatus fact={fact} />
         <footer className="fact-end">
           <span aria-hidden="true" />
@@ -1337,14 +1340,7 @@ function FactView({ fact, onReset, onBack }) {
         <span className="sr-only" role="status" aria-live="polite">{narrationState.error}</span>
       </div>
 
-      {enlargedImage && (
-        <div className="image-lightbox" onClick={() => setEnlargedImage(null)}>
-          <button type="button" className="lightbox-close" onClick={() => setEnlargedImage(null)} aria-label="Close image">
-            <CloseIcon />
-          </button>
-          <img src={enlargedImage} alt="Enlarged view" onClick={(e) => e.stopPropagation()} />
-        </div>
-      )}
+      {enlargedImage && <ImageLightbox image={enlargedImage} onClose={() => setEnlargedImage(null)} />}
     </article>
   )
 }
@@ -1564,27 +1560,16 @@ function MythBusterView({ fact, onReset, onBack }) {
           <div className="mb-comparison">
             <div className="mb-side mb-myth-side">
               <span className="mb-side-label mb-side-myth">The Myth</span>
-              {fact.images?.myth_visual && (
-                <img src={fact.images.myth_visual} alt="Myth depiction" className="fact-inline-image mb-side-image zoomable" onClick={() => setEnlargedImage(fact.images.myth_visual)} />
-              )}
+              <ArticleImages fact={fact} slot="myth_visual" onOpenImage={setEnlargedImage} />
               <MarkdownContent narration={narration}>{mythText}</MarkdownContent>
             </div>
             <div className="mb-side mb-truth-side">
               <span className="mb-side-label mb-side-truth">The Truth</span>
-              {fact.images?.truth_visual && (
-                <img src={fact.images.truth_visual} alt="Truth depiction" className="fact-inline-image mb-side-image zoomable" onClick={() => setEnlargedImage(fact.images.truth_visual)} />
-              )}
+              <ArticleImages fact={fact} slot="truth_visual" onOpenImage={setEnlargedImage} />
               <MarkdownContent narration={narration}>{truthText}</MarkdownContent>
             </div>
           </div>
-          {fact.images?.overview && (
-            <img
-              src={fact.images.overview}
-              alt="Visual context for the myth and the evidence"
-              className="fact-inline-image mb-overview-image zoomable"
-              onClick={() => setEnlargedImage(fact.images.overview)}
-            />
-          )}
+          <ArticleImages fact={fact} slot="overview" onOpenImage={setEnlargedImage} />
         </section>
 
         {fact.did_you_know && (
@@ -1663,14 +1648,7 @@ function MythBusterView({ fact, onReset, onBack }) {
             {hasMechanics && (
               <Disclosure title="What the science shows" description="Mechanisms, biological evidence, and step-by-step processes" narration={narration}>
                 <ReadingBlock text={mechanicsText} narration={narration} />
-                {fact.images?.how_it_works && (
-                  <img
-                    src={fact.images.how_it_works}
-                    alt="Scientific explanation of how the underlying process works"
-                    className="fact-inline-image fact-mechanics-image zoomable"
-                    onClick={() => setEnlargedImage(fact.images.how_it_works)}
-                  />
-                )}
+                <ArticleImages fact={fact} slot="how_it_works" onOpenImage={setEnlargedImage} />
                 <ReadingBlock title="Technical detail" text={breakdown.scientific_or_technical_detail} narration={narration} />
                 {breakdown.key_mechanisms_or_types?.length > 0 && (
                   <ReadingBlock title="Key mechanisms" narration={narration}>
@@ -1826,12 +1804,7 @@ function MythBusterView({ fact, onReset, onBack }) {
         <span className="sr-only" role="status" aria-live="polite">{narrationState.error}</span>
       </div>
 
-      {enlargedImage && (
-        <div className="image-lightbox" onClick={() => setEnlargedImage(null)}>
-          <button type="button" className="lightbox-close" onClick={() => setEnlargedImage(null)} aria-label="Close image"><CloseIcon /></button>
-          <img src={enlargedImage} alt="Enlarged view" onClick={(e) => e.stopPropagation()} />
-        </div>
-      )}
+      {enlargedImage && <ImageLightbox image={enlargedImage} onClose={() => setEnlargedImage(null)} />}
     </article>
   )
 }

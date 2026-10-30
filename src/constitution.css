@@ -1,0 +1,18 @@
+.constitution-scenario { margin-top: 32px; padding: 28px; background: var(--night-soft); }
+.constitution-scenario p:last-child { margin-bottom: 0; }
+.constitution-provision + .constitution-provision, .constitution-confusion + .constitution-confusion { margin-top: 40px; }
+.constitution-source-context { margin-top: 36px; }
+.constitution-excerpt { margin: 0 0 24px; padding: 24px; background: var(--night-soft); }
+.constitution-excerpt p:last-child { margin-bottom: 0; }
+.constitution-map { margin-top: 40px; }
+.constitution-comparison { margin: 0; }
+.constitution-comparison-panes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 32px; margin-block: 24px; }
+.constitution-comparison-panes h4 { margin-top: 0; }
+.constitution-timeline { margin: 0; }
+.constitution-timeline li { padding-bottom: 32px; }
+.constitution-timeline time { display: block; margin-bottom: 12px; color: var(--signal-strong); font-variant-numeric: tabular-nums; }
+.constitution-reader .fact-body { padding-top: 40px; }
+.constitution-article-meta { margin-top: 24px; }
+.constitution-article-meta > summary { width: fit-content; min-height: 44px; cursor: pointer; color: var(--signal-strong); font-size: .85rem; }
+.constitution-article-meta .fact-meta { margin-top: 16px; padding-top: 0; }
+@media (max-width: 720px) { .constitution-scenario { padding: 20px; } .constitution-comparison-panes { grid-template-columns: 1fr; gap: 16px; } }

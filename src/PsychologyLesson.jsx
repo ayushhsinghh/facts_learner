@@ -1,5 +1,6 @@
 import { useRef } from 'react'
 import { Link } from 'react-router-dom'
+import ArticleImages from './ArticleImages.jsx'
 import { SourceLinks } from './Evidence.jsx'
 import { BiologyDiagram } from './BiologyLesson.jsx'
 import { archiveUrl } from './navigation.js'
@@ -15,12 +16,7 @@ function Section({ id, title, Heading, narration, children }) {
   const ref = useRef(null)
   return <section id={id} className="physics-section" ref={ref}><Heading narrationId={id} narration={narration} targetRef={ref}>{title}</Heading><div className="physics-section-body">{children}</div></section>
 }
-function SupportingImage({ fact, slot, onOpenImage }) {
-  const image = fact.psychology_lesson.supporting_image
-  if (image?.slot !== slot || !fact.images?.[slot]) return null
-  return <figure className="physics-supporting-image"><button type="button" aria-label={`Enlarge image: ${image.alt}`} onClick={() => onOpenImage(fact.images[slot])}>
-    <img src={fact.images[slot]} alt={image.alt} loading="lazy" /></button><figcaption data-narration-content>{image.caption}</figcaption></figure>
-}
+
 const designNames = { randomized_experiment: 'Randomized experiment', nonrandomized_experiment: 'Nonrandomized experiment', observational: 'Observational study', review: 'Research review', meta_analysis: 'Meta-analysis: a combined analysis of studies' }
 const replicationNames = { consistent: 'Repeat-study findings described as consistent', mixed: 'Repeat-study findings described as mixed', limited: 'Limited repeat-study evidence', not_assessed: 'Replication not assessed for this article' }
 
@@ -37,7 +33,7 @@ export default function PsychologyLesson({ fact, narration, Heading, MarkdownCon
       </div>}
     </Section>
     <Section {...props} id="psychology-idea" title="The big idea"><h3>{lesson.big_idea.name}</h3>{markdown(lesson.big_idea.explanation)}<Sources item={lesson.big_idea} fact={fact} />
-      <SupportingImage fact={fact} slot="overview" onOpenImage={onOpenImage} />
+      <ArticleImages fact={fact} placement="overview" onOpenImage={onOpenImage} />
       {lesson.key_terms.length > 0 && <details className="physics-details"><summary>Words used in this lesson</summary><dl>{lesson.key_terms.map((item, i) => <div key={i}><dt data-narration-content>{item.term}</dt><dd data-narration-content>{item.definition}</dd></div>)}</dl></details>}
     </Section>
     <Section {...props} id="psychology-explanation" title={PSYCHOLOGY_TYPES[lesson.lesson_type].title}>
@@ -45,11 +41,12 @@ export default function PsychologyLesson({ fact, narration, Heading, MarkdownCon
       {lesson.diagram && <div className="psychology-map"><BiologyDiagram diagram={psychologyDiagram(lesson.diagram)} fact={fact} />
         {lesson.diagram.edges?.some(edge => edge.relationship_type === 'association') && <p className="physics-note" data-narration-content>Dashed connections show association, not established causation.</p>}
       </div>}
-      <SupportingImage fact={fact} slot="how_it_works" onOpenImage={onOpenImage} />
+      <ArticleImages fact={fact} placement="explanation" onOpenImage={onOpenImage} />
     </Section>
     <Section {...props} id="psychology-example" title="Work through a situation"><h3>{lesson.worked_example.title}</h3><Text>{lesson.worked_example.situation}</Text>
       <ol className="physics-reasoning">{list(lesson.worked_example.reasoning_steps).map((step, i) => <li key={i} data-narration-content>{step}</li>)}</ol>
       <div className="physics-result"><h4>The outcome</h4><Text>{lesson.worked_example.outcome}</Text><Text>{lesson.worked_example.interpretation}</Text></div><Sources item={lesson.worked_example} fact={fact} />
+      <ArticleImages fact={fact} placement="example" onOpenImage={onOpenImage} />
     </Section>
     <Section {...props} id="psychology-evidence" title="What the evidence shows">
       {lesson.evidence.map((item, i) => <section className="psychology-study" key={i}><h3>{item.title}</h3><Text>{item.finding}</Text>
@@ -75,6 +72,7 @@ export default function PsychologyLesson({ fact, narration, Heading, MarkdownCon
       </aside>
       {lesson.deeper_detail.map((item, i) => <details className="physics-details" key={i}><summary>{item.title}</summary>{markdown(item.explanation)}<Sources item={item} fact={fact} /></details>)}
     </Section>
+    <ArticleImages fact={fact} placement="limits" onOpenImage={onOpenImage} />
     <Section {...props} id="psychology-application" title="Use the idea carefully">{lesson.practical_application.map((item, i) => <div className="psychology-application" key={i}><h3>{item.suggestion}</h3><Text>{item.reasoning}</Text><h4>What this does not promise</h4><Text>{item.limitations}</Text><Sources item={item} fact={fact} /></div>)}</Section>
     <Section {...props} id="psychology-check" title="Check your understanding"><p className="physics-note">Think it through, then open the answer. Nothing is scored or saved.</p>
       {lesson.knowledge_checks.map(check => <div className="physics-check" key={check.id}><h3 data-narration-content>{check.question}</h3><details className="physics-details"><summary>Reveal answer and explanation</summary><Text>{check.answer}</Text><Text>{check.explanation}</Text></details></div>)}

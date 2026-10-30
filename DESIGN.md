@@ -162,11 +162,11 @@ Near-black and mineral-white establish the nocturnal index. Restrained blue-viol
 - **Body** (400, `1rem`, line-height `1.8`): Article prose and lists, held to a readable maximum of roughly `72ch`.
 - **Label** (400, `0.72rem`, tracking `0.13em`): Uppercase category labels and utility chrome; metadata may step down to `0.62rem`–`0.78rem` while retaining generous tracking.
 
-The Physics lesson uses three component-specific serif roles: `physics-title` for its compact masthead,
-`physics-question` for its opening question, and `physics-heading` for its sections. These roles preserve
-the established families while adapting the scale for sustained explanation. Its subordinate headings use
-Instrument Serif (400, `1.65rem`, line-height `1.25`); its learning goal uses DM Sans (`1.1rem`).
-These exceptions apply to the Physics lesson only.
+Physics, Biology, Psychology, and Constitution use the shared large serif hero title.
+Their opening question and section headings retain the lesson-specific serif roles. These roles preserve
+the established families while adapting the scale for sustained explanation. Subordinate headings use
+Instrument Serif (400, `1.65rem`, line-height `1.25`); learning goals use DM Sans (`1.1rem`).
+These lesson roles do not change the global typography tokens.
 
 ### Named Rules
 
@@ -176,7 +176,7 @@ These exceptions apply to the Physics lesson only.
 
 The discovery surface fills at least one small viewport height and centers a single column within an `820px` maximum. Header and footer are pinned to the viewport edges with fluid inline padding; the category form narrows to `600px` and uses a two-column select/action arrangement on wide screens. Ambient geometry may cross the composition, but it is fixed behind content and never participates in interaction.
 
-The fact reveal starts with a static `68px` utility header, followed by a dark full-width hero, a compact in-flow contents strip, and a warm reading canvas capped at `920px`. The header is visible only at the document top and scrolls away normally; a two-pixel reading-progress line is the sole fixed element. The one-minute summary, a compact “Did you know?” note, and key evidence stay visible. Long material is grouped into four closed semantic native disclosures so the reader chooses the depth: story, mechanics, world context, and surprises. API-authored Markdown is normalized at the rendering boundary so escaped line breaks become real headings, paragraphs, and lists. The timeline uses a dedicated date gutter beside an uninterrupted event rail, keeping long historical ranges separate from its line and markers. Takeaways, taxonomy, share copy, metadata, quotations, and references remain part of this single document flow rather than becoming cards.
+The fact reveal starts with a static `72px` utility header, followed by a dark full-width hero, a compact in-flow contents strip, and a warm reading canvas capped at `920px`. The header is visible only at the document top and scrolls away normally; a two-pixel reading-progress line is the sole fixed element. The one-minute summary, a compact “Did you know?” note, and key evidence stay visible. Long material is grouped into four closed semantic native disclosures so the reader chooses the depth: story, mechanics, world context, and surprises. API-authored Markdown is normalized at the rendering boundary so escaped line breaks become real headings, paragraphs, and lists. The timeline uses a dedicated date gutter beside an uninterrupted event rail, keeping long historical ranges separate from its line and markers. Takeaways, taxonomy, share copy, metadata, quotations, and references remain part of this single document flow rather than becoming cards.
 
 At `720px` and below, the discovery header's secondary phrase is removed, the search controls stack, progress details become one column, and the in-flow contents strip scrolls horizontally. Fact metadata wraps, disclosures retain full-width tap targets, takeaway and taxonomy items become one column, timelines reduce their year rail, and the dark evidence and share insets deliberately bleed to the reading canvas edges. Minimum page width is `320px`; principal horizontal content padding is `20px`–`24px` on small screens.
 
@@ -184,7 +184,10 @@ The Physics lesson keeps the existing reader shell and a centered lesson wrapper
 Prose stays within `75ch`; the diagram section can use the full wrapper width. Section spacing is `64px`,
 reducing to `48px` at the existing `720px` breakpoint. Example givens and diagram keys use two columns
 on wide screens and one column on phones. Equations and graph data can scroll within their own region.
-The compact masthead uses `80px` top and `64px` bottom padding, reducing to `64px` and `40px` on phones.
+Physics, Biology, Psychology, and Constitution share the full-width cover hero with the other readers.
+Its minimum height is `calc(100svh - 72px)` on desktop and mobile, below the static navigation.
+Keep the large Instrument Serif title over a quiet dark overlay. Place metadata in the closed
+“About this discovery” disclosure. The contents and lesson question follow the hero in normal flow.
 
 **The Center-to-Column Rule.** The journey begins as a centered moment and resolves into a vertically paced reading document; do not introduce sidebars, card grids, or persistent multi-panel navigation.
 
@@ -283,10 +286,7 @@ The explanation remains readable without opening optional mathematics.
 - **Diagram:** Render only the static SVG allowlist: comparison, force, ray, energy flow, and graph.
   Keep labels, a text description, assumptions, and sources attached. Graphs also provide a data table.
   Invalid diagram data falls back to its text description. Do not add executable model content.
-  Physics requests one relevant generated cover. At most one supporting illustration may accompany
-  the basic idea or causal steps when the API supplies its learning purpose, caption, and alt text.
-  Supporting images use the prose width without cropping, with an enlarge button and caption.
-  Generated images do not replace structured scientific diagrams.
+  Follow the shared Article Images contract below. Generated images do not replace structured scientific diagrams.
 - **Mathematics:** Load KaTeX only when the mathematics disclosure opens. Preserve spoken formulas,
   symbol meanings, units, assumptions, and readable error fallbacks. Keep formula overflow inside its region.
 - **Narration:** Skip content inside closed lesson disclosures during section playback. Opening a disclosure
@@ -317,9 +317,7 @@ decorative dividers; retain scientific connections, focus outlines, and control 
   `<details>`. Keep summaries at least `44px` high. Section narration skips closed disclosures;
   opening one opts its content into the next playback. Narration must not reveal answers automatically.
   Checks have no scoring or saved state.
-- **Images:** Request one relevant cover and at most one purposeful supporting image. The supporting
-  image needs its API-supplied purpose, caption, and alt text. Place it beside the big idea or causal
-  explanation, keep its natural aspect ratio, and retain the enlarge control. Images do not replace maps.
+- **Images:** Follow the shared Article Images contract below. Images do not replace maps.
 - **Review scope:** The reviewed desktop and mobile captures use the process lesson fixture only.
   See `.impeccable/review/biology-desktop.png` and `.impeccable/review/biology-mobile.png`.
   These captures do not establish visual review of the other four lesson types or live generated content.
@@ -332,8 +330,8 @@ section rhythm, prose width, disclosures, static maps, and narration behavior. K
 Instrument Serif / DM Sans typography, reader controls, progress, references, sharing, and archive routes.
 Separate content with spacing rather than decorative rules; retain meaningful diagram strokes and controls.
 
-- **Opening:** Use a compact masthead with metadata inside the closed “About this discovery” disclosure.
-  Lead into the question, learning goal, and illustrative scene. Give the scene a flat Raised Night inset.
+- **Opening:** Use the shared full-viewport cover hero, with metadata inside the closed “About this discovery” disclosure.
+  Follow the hero with the question, learning goal, and illustrative scene. Give the scene a flat Raised Night inset.
   The scene invites thought; it does not assess personality or diagnose the reader.
 - **Formats:** Support cognitive process, learning/behavior, social influence, and research finding lessons.
   Each changes the explanation heading and map format while preserving one linear reading flow:
@@ -353,13 +351,72 @@ Separate content with spacing rather than decorative rules; retain meaningful di
   Never reveal an answer automatically. Predictions and checks have no scoring or saved state.
 - **Layout and images:** Keep the shared `1040px` wrapper, `75ch` prose width, and `64px` section rhythm,
   reducing spacing to `48px` at `720px`. Study metadata uses three columns on desktop and one on phones.
-  Request one relevant cover and at most one purposeful supporting image, with its supplied learning purpose,
-  caption, and alt text. Preserve the supporting image's natural aspect ratio and enlarge control.
-  Generated images do not replace evidence maps.
+  Follow the shared Article Images contract below. Generated images do not replace evidence maps.
 - **Review scope and disposition:** Ship the reviewed cognitive-process fixture on desktop and mobile.
   Captures: `.impeccable/review/psychology-desktop.png` and `.impeccable/review/psychology-mobile.png`.
   Disclosures start closed, and review uses no paid image generation. These captures do not establish
   visual review of the other three formats or live generated content.
+
+### Constitution Lesson
+
+Constitution extends the existing dark reader to teach one easy-to-medium idea to a non-expert.
+Reuse the `physics-*` reading primitives and `BiologyDiagram`, Nocturne palette, serif headings,
+DM Sans prose, reader controls, progress, sources, sharing, and archive routes. Use spacing rather
+than decorative rules. Keep plain meaning, original wording, and judicial interpretation distinct.
+
+- **Opening and flow:** Keep the header static and use the shared full-viewport cover hero. Keep metadata
+  inside the closed “About this discovery” disclosure. Follow with the question, learning goal, and a hypothetical scene
+  in a flat Raised Night inset. Follow with plain meaning, the provision, explanation, worked example,
+  scope, confusions, optional context, checks, and takeaways. Keep the same single-idea reading flow
+  across five schema-supported modes: right/principle, institution, procedure, amendment, and case explainer.
+- **Meaning and limits:** Label the plain-language explanation separately from constitutional text.
+  Keep the provision type, legal effect, people concerned, conditions, exceptions, and limits visible.
+  Distinguish a constitutional provision, judicial interpretation, amendment, and ordinary law.
+  Keep each example's limits beside its outcome; do not present a hypothetical situation as a judgment.
+- **Source wording:** Display original wording only when its metadata reports `matched_official_edition`,
+  the fixed `COI_2024.pdf` official source URL, edition date `2024-05-01`, and a valid comparison date.
+  Otherwise show the paraphrase explanation and official-edition link. Label the edition date and
+  comparison date separately. The generation date is not a legal verification date, and matched wording
+  does not establish current law or confirm later amendments and judgments.
+- **Optional depth and narration:** Use closed native `<details>` for source wording, terms, case notes,
+  amendment history, deeper detail, diagram descriptions, and answers. Keep summaries at least `44px`
+  high. Narration skips closed disclosures; opening one opts its content into the next playback.
+  Narration must not reveal answers automatically. Checks have no scoring or saved state.
+- **Maps and responsive layout:** Keep the shared `1040px` wrapper, `75ch` prose width, and `64px`
+  section rhythm, reducing spacing to `48px` at `720px`. Use static scope, roles, process, comparison,
+  and case maps with written relationships, sources, descriptions, and limits. Invalid map data falls
+  back to its text description. Amendment comparison panes stack on mobile. Amendment dates occupy
+  their own row above each event, separate from any timeline line or marker.
+- **Images:** Follow the shared Article Images contract below. Generated images do not replace
+  constitutional text or structured maps.
+- **Review scope and disposition:** Ship the reviewed Article 14 `right_or_principle` fixture on desktop
+  and mobile. Captures: `.impeccable/review/constitution-desktop.png` and
+  `.impeccable/review/constitution-mobile.png`. These files contain JPEG bytes despite their `.png`
+  names, at native widths of `1270px` and `380px` for `1280px` and `390px` viewports with a `10px` gutter.
+  Review uses no paid raster generation. These captures do not establish visual review of the other
+  four modes, live generated content, or legal verification.
+
+### Article Images
+
+- **New articles:** Request 3–5 purposeful images: `cover`, `overview`, and `how_it_works`, with optional
+  `explanation_2` and `explanation_3`. This includes Physics, Biology, Psychology, and Constitution.
+  The overview summarizes the whole article and takes priority on discovery cards. Cover art supplies the hero.
+- **Myths:** Keep `cover`, `overview`, `myth_visual`, and `truth_visual` as the four-image minimum.
+  An optional `how_it_works` image brings the total to five. Keep myth and truth art beside their respective content.
+- **Metadata and placement:** Root `image_details` supplies each slot's `alt`, `caption`, `learning_purpose`,
+  and `placement`. Place images in the overview, explanation, example, or limits according to that plan.
+  Captions explain the learning value; generated artwork never replaces sources, evidence, or structured diagrams.
+- **Figures:** Use the full available reading column and the natural image ratio without cropping.
+  Each image is an accessible enlarge button with at least a `44px` target. Keep its caption below the image.
+  Use the native `<dialog>` for enlargement. Focus moves to Close, remains inside the modal, and returns to
+  the opener on close. Escape and the close button dismiss the dialog.
+- **Archive compatibility:** Do not backfill stored facts. Show existing image slots when available and fall back
+  to legacy lesson `supporting_image` metadata. Missing metadata uses readable fallback alt text and default placement.
+- **Review scope:** Ship the reviewed layout shown in `.impeccable/review/article-images-desktop.png`,
+  `.impeccable/review/article-images-mobile.png`, `.impeccable/review/article-images-mobile-body.png`, and
+  `.impeccable/review/article-images-dialog.png`. The layout fixture reuses an existing car cover across slots.
+  These captures support layout and dialog review; they do not establish asset accuracy or live generation quality.
+  Review uses no paid generation and performs no deployment.
 
 ### Error Message
 

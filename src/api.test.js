@@ -64,6 +64,8 @@ test('job image state reaches the fact and partial images continue polling', asy
   assert.equal(shouldPollImages({ image_generation: { status: 'partial' } }), false)
   assert.equal(shouldPollImages({ image_generation: { status: 'failed' } }), false)
   assert.equal(shouldPollImages({ visual_suggestions: { cover: 'a', overview: 'b' }, images: { cover: 'url' } }), true)
+  assert.equal(shouldPollImages({ visual_suggestions: { explanation_2: 'An example' }, images: {} }), true)
+  assert.equal(shouldPollImages({ visual_suggestions: { explanation_3: 'A limit' }, images: { explanation_3: 'ready' } }), false)
 })
 
 test('generation polling stops on completion and failure', async (t) => {

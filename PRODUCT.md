@@ -38,6 +38,8 @@ Visitors arrive anonymously, choose from API-provided categories, wait while a f
 - Category identifiers are at most 50 characters and use alphanumeric characters plus underscores.
 - Jobs expire after 24 hours.
 - No accounts and no user-specific saved learning history; previously generated public facts remain browsable.
+- New articles request 3–5 purposeful images: a cover, an article overview, a mechanism image, and up to two further explanations. Myth articles retain the myth/truth pair within a 4–5 image plan.
+- Keep stored facts readable without image backfills. Image metadata supplies alt text, captions, learning purpose, and placement; figures support accessible enlargement.
 
 ## Brand Commitments
 
