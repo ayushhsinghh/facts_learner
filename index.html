@@ -14,7 +14,13 @@
     <script type="module" src="/src/main.jsx"></script>
     <script src="https://cdn.responsivevoice.org/sdk/latest/responsivevoice.js"></script>
     <script>
-      window.responsiveVoice?.init({ apiKey: 'WIADPciz' });
+      window.responsiveVoice?.init({
+        apiKey: 'WIADPciz',
+        // The app provides section controls; never auto-mount players on article cards.
+        features: {
+          webPlayer: { enabled: false },
+        },
+      });
     </script>
   </body>
 </html>
