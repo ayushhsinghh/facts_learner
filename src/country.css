@@ -1,0 +1,30 @@
+.country-hero-flag { display:block; width:72px; height:auto; max-height:52px; object-fit:contain; margin-bottom:28px; }
+.country-profile .physics-section-body { max-width:75ch; }
+.country-story + .country-story { margin-top:36px; }
+.country-essentials { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:28px 40px; margin:32px 0; }
+.country-essentials dt { color:var(--muted); font-size:.85rem; margin-bottom:8px; }
+.country-essentials dd { margin:0; overflow-wrap:anywhere; }
+.country-timeline { list-style:none; padding:0; }
+.country-timeline li { display:grid; grid-template-columns:minmax(100px,140px) minmax(0,1fr); gap:28px; margin-top:36px; }
+.country-timeline h3 { margin-top:0; }
+.country-date { color:var(--signal-strong); font-variant-numeric:tabular-nums; }
+.country-map { margin:0 0 32px; }
+.country-map svg { width:100%; height:380px; background:var(--night-soft); display:block; }
+.country-map path { fill:var(--faint); stroke:var(--night-soft); stroke-width:.25; vector-effect:non-scaling-stroke; }
+.country-map .country-map-selected { fill:var(--signal); }
+.country-map .country-map-pin { fill:var(--paper); stroke:var(--night); stroke-width:.5; }
+.country-map-controls { display:flex; gap:8px; margin-bottom:16px; }
+.country-map-controls button { min-height:44px; padding:8px 20px; background:var(--night-soft); color:var(--muted); border:1px solid var(--line); border-radius:24px; cursor:pointer; }
+.country-map-controls button[aria-pressed="true"] { color:var(--paper); border-color:var(--signal); }
+.country-map figcaption { color:var(--muted); font-size:.85rem; line-height:1.6; margin-top:16px; }
+.photo-credit { display:block; margin-top:12px; color:var(--muted); font-size:.75rem; line-height:1.6; overflow-wrap:anywhere; }
+.photo-credit > span { display:block; }
+.photo-credit a { color:inherit; text-underline-offset:3px; }
+.fact-hero .photo-credit { max-width:75ch; color:var(--paper); }
+.history-card.country-card .history-card-link { padding-bottom:108px; }
+.history-card > .photo-credit { position:absolute; bottom:16px; left:24px; right:24px; z-index:2; color:var(--paper); }
+.country-next { margin-top:28px; }
+.image-lightbox .lightbox-figure { margin:0; max-width:100%; max-height:100%; }
+.image-lightbox .lightbox-figure img { display:block; max-height:calc(100dvh - 240px); margin:auto; }
+.lightbox-figure figcaption { max-height:120px; overflow:auto; }
+@media(max-width:720px) { .country-essentials{grid-template-columns:1fr;gap:24px;} .country-map svg{height:300px;} .country-timeline li{grid-template-columns:1fr;gap:8px;} }

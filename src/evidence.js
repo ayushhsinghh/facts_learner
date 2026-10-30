@@ -25,6 +25,18 @@ export function sourceRecords(fact) {
     while (ids.has(id)) id += '-edition'
     records.push({ id, title: 'Official Constitution of India — 2024 edition', url: OFFICIAL_EDITION_URL })
   }
+  if (fact.article_type === 'country_profile') {
+    for (const [title,url] of [
+      ['Country identity data — mledoze/countries (ODbL 1.0)', 'https://github.com/mledoze/countries'],
+      ['Natural Earth locator map data', 'https://www.naturalearthdata.com/'],
+      ['Flagpedia country flag assets', 'https://flagpedia.net/download/api'],
+    ]) {
+      if (records.some(source=>source.url===url)) continue
+      let id=`country-data-${records.length}`
+      while(ids.has(id))id+='-source'
+      ids.add(id);records.push({id,title,url})
+    }
+  }
   return records
 }
 

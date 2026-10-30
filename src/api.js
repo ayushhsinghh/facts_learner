@@ -69,7 +69,7 @@ export function shouldPollImages(fact) {
   if (fact.image_generation) return fact.image_generation.status === 'processing'
   // Compatibility with older servers that do not expose image states.
   const prompts = fact.visual_suggestions || {}
-  const keys = ['cover', 'overview', 'how_it_works', 'explanation_2', 'explanation_3', 'myth_visual', 'truth_visual']
+  const keys = ['cover', 'overview', 'how_it_works', 'explanation_2', 'explanation_3', 'explanation_4', 'explanation_5', 'explanation_6', 'myth_visual', 'truth_visual']
     .filter((key) => prompts[key])
   if (prompts.history && !keys.includes('overview')) keys.push('overview')
   return keys.some((key) => !fact.images?.[key])

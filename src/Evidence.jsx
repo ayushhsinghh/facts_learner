@@ -19,7 +19,8 @@ export function EvidenceReferences({ fact }) {
   const claims = (Array.isArray(fact.claim_citations) ? fact.claim_citations : [])
     .filter((item) => item && typeof item.claim === 'string' && citedSources(item.source_ids, sources).length)
   return <div className="evidence-references">
-    <p className="source-note">These references are supplied by the model. The application has not independently checked them.</p>
+    <p className="source-note">{fact.article_type === 'country_profile' ? 'Narrative references are supplied by the model and have not been independently checked. Data and visual provenance is listed separately.' : 'These references are supplied by the model. The application has not independently checked them.'}</p>
+    {fact.article_type === 'country_profile' && <p className="source-note">Flag and map assets come from Flagpedia and Natural Earth. Country identity data uses a snapshot of mledoze/countries, retrieved 30 October 2026. <a href="/maps/country-data.json" download>Download the adapted country data</a> · <a href="/maps/COUNTRY_DATA_LICENSE.txt">ODbL licence</a>. Photographs retain their individual source and licence credits. Snapshot retrieval does not establish current accuracy.</p>}
     {claims.length > 0 && <>
       <h4>Claims and their sources</h4>
       <ul>{claims.map((item, index) => <li key={index} data-narration-content>

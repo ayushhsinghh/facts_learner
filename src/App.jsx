@@ -14,6 +14,11 @@ import BiologyLesson from './BiologyLesson.jsx'
 import { hasBiologyLesson } from './biology.js'
 import PsychologyLesson from './PsychologyLesson.jsx'
 import { hasPsychologyLesson } from './psychology.js'
+import CountryProfile, { CountryFlag } from './CountryProfile.jsx'
+import { hasCountryProfile } from './country.js'
+import PhotoCredit from './PhotoCredit.jsx'
+import IndianLawLesson from './IndianLawLesson.jsx'
+import { hasIndianLawLesson } from './indianLaws.js'
 import ConstitutionLesson from './ConstitutionLesson.jsx'
 import { hasConstitutionLesson } from './constitution.js'
 import ArticleImages from './ArticleImages.jsx'
@@ -700,7 +705,7 @@ function DiscoveriesPage({ categories, cache, rememberFact }) {
                   ? historyDate.format(generatedAt)
                   : 'Earlier discovery'
                 return (
-                  <article key={`${item.generated_at || index}-${item.topic || 'fact'}`} className="history-card">
+                  <article key={`${item.generated_at || index}-${item.topic || 'fact'}`} className={`history-card${item.article_type === 'country_profile' ? ' country-card' : ''}`}>
                     {overviewImage(item) && (
                       <div className="history-card-bg" style={{ backgroundImage: `url(${overviewImage(item)})` }} />
                     )}
@@ -712,6 +717,7 @@ function DiscoveriesPage({ categories, cache, rememberFact }) {
                       <strong>{item.topic || 'Untitled discovery'}</strong>
                       {item.headline_fact && <p>{item.headline_fact}</p>}
                     </Link>
+                    {item.article_type === 'country_profile' && <PhotoCredit credit={item.image_credits?.[item.images?.overview ? 'overview' : 'cover']} />}
                   </article>
                 )
               })}
@@ -750,7 +756,7 @@ function Meta({ fact }) {
     ['Reading', fact.read_time_seconds ? `${Math.max(1, Math.round(fact.read_time_seconds / 60))} min` : null],
     ['Level', fact.difficulty_level],
     ['Curiosity', fact.fun_rating ? `${fact.fun_rating}/10` : null],
-    ['Region', fact.region],
+    ['Region', fact.article_type === 'country_profile' ? fact.country_profile?.identity?.region : fact.region],
     ['Freshness', fact.content_freshness ? fact.content_freshness.charAt(0).toUpperCase() + fact.content_freshness.slice(1) : null],
     ['Discovered', readableDate],
   ].filter(([, value]) => value)
@@ -849,6 +855,8 @@ function FactView({ fact, onReset, onBack }) {
   const isBiologyLesson = hasBiologyLesson(fact)
   const isPsychologyLesson = hasPsychologyLesson(fact)
   const isConstitutionLesson = hasConstitutionLesson(fact)
+  const isIndianLawLesson = hasIndianLawLesson(fact)
+  const isCountryProfile = hasCountryProfile(fact)
   const explanationFirst = isIndianDiet || isTraining
   const storyText = fact.detailed_explanation
   const mechanicsText = fact.core_mechanics || fact.how_it_works
@@ -1032,7 +1040,7 @@ function FactView({ fact, onReset, onBack }) {
   )
 
   return (
-    <article className={`fact-view${explanationFirst ? ' wellness-reader' : ''}${isIndianDiet ? ' indian-diet-view' : ''}${isPhysicsLesson ? ' physics-reader' : ''}${isBiologyLesson ? ' biology-reader' : ''}${isPsychologyLesson ? ' psychology-reader' : ''}${isConstitutionLesson ? ' constitution-reader' : ''}`} ref={articleRef}>
+    <article className={`fact-view${explanationFirst ? ' wellness-reader' : ''}${isIndianDiet ? ' indian-diet-view' : ''}${isPhysicsLesson ? ' physics-reader' : ''}${isBiologyLesson ? ' biology-reader' : ''}${isPsychologyLesson ? ' psychology-reader' : ''}${isConstitutionLesson ? ' constitution-reader' : ''}${isIndianLawLesson ? ' indian-law-reader' : ''}${isCountryProfile ? ' country-reader' : ''}`} ref={articleRef}>
       <span className="reading-progress" aria-hidden="true">
         <i style={{ transform: `scaleX(${readingProgress})` }} />
       </span>
@@ -1060,16 +1068,31 @@ function FactView({ fact, onReset, onBack }) {
           />
         )}
         <div className="fact-hero-content">
-          <NarratedHeading as="h1" narrationId="headline" narration={narration} targetRef={heroRef}>{fact.topic}</NarratedHeading>
+          {isCountryProfile && <CountryFlag identity={fact.country_profile.identity} />}
+          <NarratedHeading as="h1" narrationId="headline" narration={narration} targetRef={heroRef}>{isCountryProfile ? fact.country_profile.identity.name : fact.topic}</NarratedHeading>
           <p data-narration-content>{fact.headline_fact}</p>
           <Meta fact={fact} />
+          {isCountryProfile && <PhotoCredit credit={fact.image_credits?.cover} />}
         </div>
       </header>
 
       <nav className="reading-nav" aria-label="On this page">
         <div className="reading-nav-glass">
           <a href="#overview">Overview</a>
-          {isConstitutionLesson ? <>
+          {isCountryProfile ? <>
+            <a href="#country-location">Location</a>
+            <a href="#country-essentials">Essentials</a>
+            <a href="#country-life">Everyday life</a>
+            <a href="#country-world">World influence</a>
+            <a href="#country-places">Places</a>
+            <a href="#country-people">People</a>
+          </> : isIndianLawLesson ? <>
+            <a href="#law-rule">The rule</a>
+            <a href="#law-applies">When it applies</a>
+            <a href="#law-explanation">Explanation</a>
+            <a href="#law-example">Example</a>
+            <a href="#law-check">Check understanding</a>
+          </> : isConstitutionLesson ? <>
             <a href="#constitution-idea">Plain meaning</a>
             <a href="#constitution-basis">The provision</a>
             <a href="#constitution-example">Example</a>
@@ -1106,7 +1129,7 @@ function FactView({ fact, onReset, onBack }) {
       </nav>
 
       <div className="fact-body">
-        {isConstitutionLesson ? <ConstitutionLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPsychologyLesson ? <PsychologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isBiologyLesson ? <BiologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPhysicsLesson ? <PhysicsLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : <>
+        {isCountryProfile ? <CountryProfile fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isIndianLawLesson ? <IndianLawLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isConstitutionLesson ? <ConstitutionLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPsychologyLesson ? <PsychologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isBiologyLesson ? <BiologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPhysicsLesson ? <PhysicsLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : <>
         <section className="fact-overview" id="overview" ref={overviewRef}>
           <NarratedHeading narrationId="overview" narration={narration} targetRef={overviewRef}>The short version</NarratedHeading>
           <MarkdownContent narration={narration}>{fact.summary || fact.headline_fact}</MarkdownContent>
@@ -1325,7 +1348,7 @@ function FactView({ fact, onReset, onBack }) {
           </div>
         )}
 
-        {!(isPhysicsLesson || isBiologyLesson || isPsychologyLesson || isConstitutionLesson) && <>
+        {!(isPhysicsLesson || isBiologyLesson || isPsychologyLesson || isConstitutionLesson || isIndianLawLesson || isCountryProfile) && <>
           {!hasMechanics && <ArticleImages fact={fact} placement="explanation" onOpenImage={setEnlargedImage} />}
           <ArticleImages fact={fact} placement="example" onOpenImage={setEnlargedImage} />
           <ArticleImages fact={fact} placement="limits" onOpenImage={setEnlargedImage} />

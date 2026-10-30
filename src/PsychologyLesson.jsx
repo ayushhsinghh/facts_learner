@@ -37,7 +37,7 @@ export default function PsychologyLesson({ fact, narration, Heading, MarkdownCon
     <Section {...props} id="psychology-explanation" title={PSYCHOLOGY_TYPES[lesson.lesson_type].title}>
       <ol className="physics-explanation">{lesson.explanation_steps.map(step => <li key={step.id}><h3>{step.title}</h3>{markdown(step.explanation)}</li>)}</ol>
       {lesson.diagram && <div className="psychology-map"><BiologyDiagram diagram={psychologyDiagram(lesson.diagram)} fact={fact} />
-        {lesson.diagram.edges?.some(edge => edge.relationship_type === 'association') && <p className="physics-note" data-narration-content>Dashed connections show association, not established causation.</p>}
+        {lesson.diagram.edges?.some(edge => edge.relationship_type === 'association') && <p className="physics-note" data-narration-content>An association does not establish causation.</p>}
       </div>}
       <ArticleImages fact={fact} placement="explanation" onOpenImage={onOpenImage} />
     </Section>

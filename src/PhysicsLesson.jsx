@@ -29,7 +29,7 @@ export function PhysicsDiagram({ diagram, fact }) {
   const isSequence = ['comparison', 'energy_flow'].includes(diagram.type)
   return <figure className="physics-diagram">
     <h3>{diagram.title}</h3>
-    <svg viewBox="0 0 640 330" aria-hidden="true" focusable="false">
+    {!isSequence && <svg viewBox="0 0 640 330" aria-hidden="true" focusable="false">
       <defs><marker id={markerId} markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 7 3.5 0 7" fill="none" stroke="currentColor" /></marker></defs>
       {diagram.type === 'force' && <>
         <rect className="physics-object" x="280" y="125" width="80" height="80" rx="4" />
@@ -41,14 +41,6 @@ export function PhysicsDiagram({ diagram, fact }) {
       {diagram.type === 'ray' && diagram.rays.map((ray, i) => <g key={i} className={`physics-line physics-line-${i % 2}`}>
         <line x1={60 + ray.x1 * 520} y1={280 - ray.y1 * 230} x2={60 + ray.x2 * 520} y2={280 - ray.y2 * 230} markerEnd={`url(#${markerId})`} />
       </g>)}
-      {isSequence && diagram.items.map((item, i) => {
-        const x = 70 + i * 500 / (diagram.items.length - 1)
-        return <g key={i}>
-          {diagram.type === 'energy_flow' && i < diagram.items.length - 1 && <line className="physics-connection" x1={x + 28} y1="160" x2={x + 500 / (diagram.items.length - 1) - 32} y2="160" markerEnd={`url(#${markerId})`} />}
-          <rect className="physics-object" x={x - 27} y="133" width="54" height="54" rx="4" />
-          <text className="physics-sequence-index" x={x} y="166" textAnchor="middle">{i + 1}</text>
-        </g>
-      })}
       {graph && <>
         <path className="physics-axis" d="M70 45V272H590" />
         <polyline className="physics-plot" points={graph.points.map(p => `${p.x},${p.y}`).join(' ')} />
@@ -58,13 +50,13 @@ export function PhysicsDiagram({ diagram, fact }) {
         <text x="70" y="292" textAnchor="middle">{graph.xMin}</text><text x="580" y="292" textAnchor="middle">{graph.xMax}</text>
         <text x="60" y="272" textAnchor="end">{graph.yMin}</text><text x="60" y="52" textAnchor="end">{graph.yMax}</text>
       </>}
-    </svg>
+    </svg>}
     {isSequence && <ol className="physics-diagram-key">{diagram.items.map((item, i) => <li key={i} data-narration-content><strong>{item.label}</strong><span>{item.detail}</span></li>)}</ol>}
     {diagram.type === 'force' && <ul className="physics-vector-key">{diagram.vectors.map((item, i) => <li key={i} data-narration-content>F{i + 1}: {item.label}</li>)}</ul>}
     {diagram.type === 'ray' && <ol className="physics-vector-key">{diagram.rays.map((item, i) => <li key={i} data-narration-content>{item.label}</li>)}</ol>}
     <figcaption><Paragraph>{diagram.caption}</Paragraph></figcaption>
     {list(diagram.assumptions).length > 0 && <div className="physics-assumptions"><h4>What this diagram assumes</h4><Bullets items={diagram.assumptions} /></div>}
-    <details className="physics-details"><summary>Diagram description{graph && ' & data'}</summary><Paragraph>{diagram.description}</Paragraph>
+    <details className="physics-details"><summary>{isSequence ? 'More context' : 'Diagram description'}{graph && ' & data'}</summary><Paragraph>{diagram.description}</Paragraph>
       {graph && <div className="physics-table-scroll" tabIndex={0} role="region" aria-label="Graph data"><table><caption>{diagram.title}: plotted values</caption><thead><tr><th>{diagram.x_label} ({diagram.x_unit})</th><th>{diagram.y_label} ({diagram.y_unit})</th></tr></thead><tbody>{diagram.points.map((p, i) => <tr key={i}><td>{p.x}</td><td>{p.y}</td></tr>)}</tbody></table></div>}
     </details>
   </figure>

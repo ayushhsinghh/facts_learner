@@ -1,0 +1,7 @@
+.law-scenario { margin-top: 32px; padding: 28px; background: var(--night-soft); }
+.law-scenario p:last-child { margin-bottom: 0; }
+.law-contrast { margin-top: 48px; }
+.law-confusion + .law-confusion { margin-top: 40px; }
+.law-changes li + li { margin-top: 32px; }
+.indian-law-reader .fact-body { padding-top: 40px; }
+@media (max-width: 720px) { .law-scenario { padding: 20px; } }

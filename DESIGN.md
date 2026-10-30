@@ -396,6 +396,80 @@ than decorative rules. Keep plain meaning, original wording, and judicial interp
   Review uses no paid raster generation. These captures do not establish visual review of the other
   four modes, live generated content, or legal verification.
 
+### Indian Laws Lesson
+
+Indian Laws extends the existing Nocturne reader for one beginner legal concept outside the Constitution.
+Reuse Instrument Serif headings, DM Sans prose, night surfaces, blue-violet controls, the shared
+full-viewport cover, static header, visible hero metadata, reading progress, narration, and sharing.
+The current reader has no diagram component or diagram chrome. Separate sections with spacing.
+
+- **Flow:** Start with the question, learning goal, and familiar situation in a flat Raised Night inset.
+  Continue with the plain-language rule, applicability, connected explanation steps, worked hypothetical,
+  optional changed-fact contrast, confusions, optional legal detail, checks, and takeaways. Support concept,
+  right/duty, procedure, comparison, and case-explainer modes within this reading flow.
+- **Authority and limits:** Treat Acts and codes as primary authority; label court interpretation and
+  commentary separately. Keep jurisdiction, people concerned, relevant dates, conditions, exceptions,
+  and limits visible. Keep each hypothetical's implications and limits together. Legal explanations are
+  paraphrases. Article-supplied status labels do not establish verified or current law. The backend does
+  not retrieve sources or independently check legal currency. Source links appear only at the bottom.
+- **Optional depth:** Terms, legal basis, case notes, law changes, commentary, deeper detail, and check
+  answers use native disclosures that start closed. Keep summaries at least `44px` high. Section narration
+  skips closed disclosures; opening one includes its content in the next playback. Narration must not
+  reveal answers automatically. Checks have no scoring or saved state.
+- **Layout and images:** Keep the shared `1040px` wrapper, `75ch` prose width, and `64px` section rhythm,
+  reducing section spacing to `48px` at `720px`. Follow the shared 3–5-image contract and enlargement
+  dialog below. Generated scenes illustrate an idea; they do not provide authentic legal evidence.
+  Stored facts without the valid structured lesson contract retain the generic reader.
+- **Review scope and disposition:** Ship the reviewed agreement-versus-contract `concept` fixture.
+  Captures: `.impeccable/review/laws-desktop-cover.png`, `laws-desktop.png`, `laws-mobile-cover.png`,
+  `laws-mobile.png`, `laws-mobile-example.png`, and `laws-mobile-detail.png` in the same directory.
+  These files contain JPEG bytes despite their `.png` names: `1270×794` desktop and `380×822` mobile.
+  Review covers the cover, reading flow, hypothetical, and optional legal detail. It does not establish
+  review of every mode, live generated content, source validity, or legal currency. No paid generation
+  or deployment forms part of this review.
+
+### Country Profile
+
+Country extends the Nocturne reader with an accessible 8–15 minute portrait. Reuse Instrument Serif
+headings, DM Sans prose, night surfaces, blue-violet controls, reading progress, section narration and
+sharing. Keep the static header, full-viewport photographic cover, Flagpedia flag, country name,
+one-sentence introduction, visible metadata and adjacent photo credit. Separate sections with spacing.
+
+- **Flow and layout:** Follow introduction, map location, essentials, everyday life, concise history,
+  world contributions and products, places, people, surprises and misunderstandings, recall checks,
+  and further curiosity. Keep main prose visible. Reuse the shared `1040px` wrapper, `75ch` prose width
+  and `64px` section spacing, reducing spacing to `48px` at `720px`. Essentials use two columns and
+  stack on phones. History dates occupy a separate column on desktop and a separate row on phones.
+- **Locator:** World and Region buttons reuse one Natural Earth map asset. Use country coordinates,
+  highlight the country and retain the small-island marker and neutral boundary caption. Keep polygon
+  rings continuous across the antimeridian and repeat them at the map seam. The map uses `380px`
+  height on desktop and `300px` on phones. If loading fails, retain the written location description.
+- **Data and sources:** Names, capitals, currencies, language lists, area and country coordinates use
+  an adapted `mledoze/countries` ODbL snapshot retrieved on `2026-10-30`. Publish the adapted data
+  and licence at `/maps/country-data.json` and `/maps/COUNTRY_DATA_LICENSE.txt`. Retrieval does not
+  establish effective dates or current accuracy. Listed languages do not prove legally official status.
+  Narrative population needs a measurement year; unknown values display “Not supplied.” Keep narrative
+  source links at the bottom and asset credits beside the asset. Narrative claims remain unverified.
+- **Photographs and credit:** Country overrides the shared generated-image budget below. Search Commons
+  for four to eight licensed photographs; add one Flagpedia flag and one Natural Earth map for at most
+  ten unique assets. World/Region reuses the map. Overview supplies the archive image. Country mode
+  uses the photo-search worker without paid generation. Missing or unlicensed photos remain unavailable
+  or partial. Metadata checks do not independently verify the exact subject, location, relevance or licence.
+  Show author, original page, licence and modification note on covers, cards, figures and enlargement.
+  Preserve natural figure ratios and the shared accessible enlargement dialog.
+- **Optional depth:** Learning goals, local names/time zones, flag symbolism, language roles and answers
+  use native disclosures that start closed. Section narration skips closed disclosures. Opening one opts
+  its content into the next playback. Checks have no scores or saved state. Older country facts without
+  the valid structured profile contract retain the generic reader.
+- **Review scope and disposition:** Ship the reviewed Japan fixture. Captures in `.impeccable/review/`:
+  `country-desktop-cover.png`, `country-desktop-map.png`, `country-mobile-cover.png`,
+  `country-mobile-map.png`, `country-mobile-essentials.png`, `country-mobile-card.png`, and
+  `country-photo-dialog.png`. Browser checks cover map switching, mobile overflow, modal Escape,
+  focus return and visible credit. `country-detector.json` is advisory; the fresh finish review requests
+  no fixes. Focused validation reports 40 frontend tests, 69 backend tests and the production build passing.
+  This review does not establish live generation, every country's layout, exact photograph relevance or
+  independent data verification. It includes no deployment or paid image generation.
+
 ### Article Images
 
 - **New articles:** Request 3–5 purposeful images: `cover`, `overview`, and `how_it_works`, with optional

@@ -69,15 +69,15 @@
 .physics-table-scroll table { width: 100%; border-collapse: collapse; font-size: .85rem; font-variant-numeric: tabular-nums; }
 .physics-table-scroll caption { text-align: left; color: var(--muted); }
 .physics-table-scroll th, .physics-table-scroll td { padding: 12px; text-align: left; }
-:is(.physics-reader, .biology-reader, .psychology-reader, .constitution-reader) :is(.fact-nav, .fact-meta, .fact-taxonomy, .source-section, .fact-end) { border-block: 0; }
-:is(.physics-reader, .biology-reader, .psychology-reader, .constitution-reader) .reading-block hr { height: 0; border: 0; }
-:is(.physics-reader, .biology-reader, .psychology-reader, .constitution-reader) .fact-body { padding-top: 64px; }
+:is(.physics-reader, .biology-reader, .psychology-reader, .constitution-reader, .indian-law-reader, .country-reader) :is(.fact-nav, .fact-meta, .fact-taxonomy, .source-section, .fact-end) { border-block: 0; }
+:is(.physics-reader, .biology-reader, .psychology-reader, .constitution-reader, .indian-law-reader, .country-reader) .reading-block hr { height: 0; border: 0; }
+:is(.physics-reader, .biology-reader, .psychology-reader, .constitution-reader, .indian-law-reader, .country-reader) .fact-body { padding-top: 64px; }
 @media (max-width: 720px) {
   .physics-lesson { --lesson-space: 48px; }
   .physics-givens, .physics-diagram-key { grid-template-columns: 1fr; gap: 16px; }
   .physics-diagram > svg { min-height: 160px; }
   .physics-diagram svg text { font-size: 20px; }
-  :is(.physics-reader, .biology-reader, .psychology-reader, .constitution-reader) .fact-body { padding-top: 48px; }
+  :is(.physics-reader, .biology-reader, .psychology-reader, .constitution-reader, .indian-law-reader, .country-reader) .fact-body { padding-top: 48px; }
   .physics-analogy, .physics-assumptions { padding: 20px; }
   .physics-explanation > li { padding-left: 8px; }
 }
