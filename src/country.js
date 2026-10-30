@@ -56,14 +56,14 @@ export function countryScenes(fact) {
 export function countrySubjectPhoto(fact,kind,index,subject) {
   const group=fact?.country_photo_galleries?.[`country_${kind}_${index}`]
   if(!Array.isArray(group))return null
-  const photo=group.map(countryPhoto).find(item=>item&&item.provider!=='unsplash'&&item.subject_kind===kind&&item.subject===subject)
-  return photo?{url:photo.url,credit:photo,alt:photo.description,caption:photo.title}:null
+  const photo=group.map(countryPhoto).find(item=>item&&item.provider!=='unsplash'&&item.subject_kind===kind&&(item.subject===subject||item.entry_title===subject))
+  return photo?{url:photo.url,credit:photo,alt:photo.description,caption:photo.image_caption||photo.subject||photo.title}:null
 }
 export function countryVisualCandidates(fact,purpose='cover') {
   if(fact?.article_type!=='country_profile')return []
   const keys=purpose==='overview'?['overview','cover']:['cover','overview']
   const seen=new Set()
-  return [...keys.map(k=>countryAsset(fact,k)).filter(Boolean),...countryScenes(fact),...countryGallery(fact),
+  return [...keys.map(k=>countryAsset(fact,k)).filter(Boolean),...countryScenes(fact),...countryGallery(fact).filter(item=>!item.credit.subject_kind||['places','cities'].includes(item.credit.subject_kind)),
     {url:'/maps/country-fallback.svg',credit:{kind:'fallback'},alt:'World map artwork',caption:'World map artwork'}]
     .filter(item=>{if(seen.has(item.url))return false;seen.add(item.url);return true})
 }

@@ -1,7 +1,7 @@
 import { createContext, useContext, useEffect, useId, useRef, useState } from 'react'
 import ReactMarkdown from 'react-markdown'
 import { Link, Route, Routes, useLocation, useNavigate, useNavigationType, useSearchParams } from 'react-router-dom'
-import { fetchCategories, fetchFact, fetchHistory, getFactStatus, startFact, waitForFact, shouldPollImages } from './api.js'
+import { fetchCategories, fetchFact, fetchHistory, getFactStatus, startFact, waitForFact, shouldPollImages, enrichCountryPhotos } from './api.js'
 import { archiveUrl, factUrl, matchesFact } from './navigation.js'
 import { EvidenceReferences, referenceCount, ImageStatus } from './Evidence.jsx'
 import { usePageScroll } from './usePageScroll.js'
@@ -751,7 +751,12 @@ function Meta({ fact }) {
   const readableDate = generatedAt && !Number.isNaN(generatedAt.valueOf())
     ? historyDate.format(generatedAt)
     : null
-  const values = [
+  const country = hasCountryProfile(fact)
+  const values = (country ? [
+    ['Reading', fact.read_time_seconds ? `${Math.max(1, Math.round(fact.read_time_seconds / 60))} min` : null],
+    ['Level', fact.difficulty_level],
+    ['Region', fact.country_profile?.identity?.region],
+  ] : [
     ['Year', fact.key_year],
     ['Reading', fact.read_time_seconds ? `${Math.max(1, Math.round(fact.read_time_seconds / 60))} min` : null],
     ['Level', fact.difficulty_level],
@@ -759,7 +764,7 @@ function Meta({ fact }) {
     ['Region', fact.article_type === 'country_profile' ? fact.country_profile?.identity?.region : fact.region],
     ['Freshness', fact.content_freshness ? fact.content_freshness.charAt(0).toUpperCase() + fact.content_freshness.slice(1) : null],
     ['Discovered', readableDate],
-  ].filter(([, value]) => value)
+  ]).filter(([, value]) => value)
 
   if (!values.length) return null
   return (
@@ -1079,14 +1084,11 @@ function FactView({ fact, onReset, onBack }) {
 
       <nav className="reading-nav" aria-label="On this page">
         <div className="reading-nav-glass">
-          <a href="#overview">Overview</a>
+          <a href="#overview">{isCountryProfile?'Start here':'Overview'}</a>
           {isCountryProfile ? <>
-            <a href="#country-location">Location</a>
-            <a href="#country-essentials">Essentials</a>
-            <a href="#country-life">Everyday life</a>
-            <a href="#country-world">World influence</a>
-            <a href="#country-places">Places</a>
-            <a href="#country-people">People</a>
+            <a href="#country-essentials">Essentials & map</a>
+            <a href="#country-life">Life & stories</a>
+            <a href="#country-check">Remember</a>
           </> : isIndianLawLesson ? <>
             <a href="#law-rule">The rule</a>
             <a href="#law-applies">When it applies</a>
@@ -1864,6 +1866,24 @@ function FactPage({ cache, onBack, onReset }) {
 
   const jobId = params.get('job')
   const pollImagesNeeded = shouldPollImages(data.fact)
+  const countryPhotoHash=hasCountryProfile(data.fact)?data.fact.content_hash:null
+  useEffect(()=>{
+    if(!countryPhotoHash||data.fact?.country_photo_enrichment?.status==='completed'&&data.fact?.country_photo_enrichment?.version===2)return
+    if(jobId&&data.fact?.country_media?.photo_layout==='contextual_v2')return
+    const controller=new AbortController()
+    enrichCountryPhotos(data.fact,controller.signal,media=>{
+      if(controller.signal.aborted)return
+      setData(current=>{
+        if(current.fact?.content_hash!==countryPhotoHash)return current
+        const updated={...current.fact,images:{...current.fact.images,...media.images},
+          image_credits:{...current.fact.image_credits,...media.image_credits},
+          country_photo_galleries:{...current.fact.country_photo_galleries,...media.country_photo_galleries},
+          country_photo_enrichment:media.country_photo_enrichment}
+        cache.set(url,updated);return {...current,fact:updated}
+      })
+    }).catch(()=>{}) // Optional photo enrichment never blocks the article or narration.
+    return ()=>controller.abort()
+  },[countryPhotoHash,url,cache])
   useEffect(() => {
     if (!data.fact || !jobId || !pollImagesNeeded) return undefined
     const controller = new AbortController()

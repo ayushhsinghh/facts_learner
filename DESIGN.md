@@ -313,6 +313,9 @@ decorative dividers; retain scientific connections, focus outlines, and control 
   population sequence, and relationship map. Infer inheritance levels from explicit parent-to-descendant
   edges, never node order. Preserve captions, sources, text descriptions, and limits. Invalid map data
   falls back to its text description. Do not imply anatomical precision or add executable model content.
+- **Open teaching detail:** Local names, time zones and the flag explanation stay visible. The flag
+  appears beside its explanation on desktop and above it on mobile, with accessible enlargement.
+  New core topics require a complete explanation, two to four supporting details and a concrete example.
 - **Optional depth:** Terms, deeper detail, diagram description/limits, and answers start closed in native
   `<details>`. Keep summaries at least `44px` high. Section narration skips closed disclosures;
   opening one opts its content into the next playback. Narration must not reveal answers automatically.
@@ -345,6 +348,9 @@ Separate content with spacing rather than decorative rules; retain meaningful di
   Associations use dashed connections without arrows; conceptual connections are also undirected.
   Procedure and causal connections use arrows. Preserve written relationships, source links, descriptions,
   and limits; invalid map data falls back to its text description.
+- **Open teaching detail:** Local names, time zones and the flag explanation stay visible. The flag
+  appears beside its explanation on desktop and above it on mobile, with accessible enlargement.
+  New core topics require a complete explanation, two to four supporting details and a concrete example.
 - **Optional depth:** Predictions, terms, study methods, deeper detail, diagram descriptions, and answers
   start closed. Keep disclosure summaries at least `44px` high. Narration skips closed disclosures,
   including prediction reveals and answers; opening a disclosure opts its content into the next playback.
@@ -412,6 +418,9 @@ The current reader has no diagram component or diagram chrome. Separate sections
   and limits visible. Keep each hypothetical's implications and limits together. Legal explanations are
   paraphrases. Article-supplied status labels do not establish verified or current law. The backend does
   not retrieve sources or independently check legal currency. Source links appear only at the bottom.
+- **Open teaching detail:** Local names, time zones and the flag explanation stay visible. The flag
+  appears beside its explanation on desktop and above it on mobile, with accessible enlargement.
+  New core topics require a complete explanation, two to four supporting details and a concrete example.
 - **Optional depth:** Terms, legal basis, case notes, law changes, commentary, deeper detail, and check
   answers use native disclosures that start closed. Keep summaries at least `44px` high. Section narration
   skips closed disclosures; opening one includes its content in the next playback. Narration must not
@@ -435,15 +444,25 @@ headings, DM Sans prose, night surfaces, blue-violet controls, reading progress,
 sharing. Keep the static header, full-viewport image cover, Flagpedia flag, country name,
 one-sentence introduction, visible metadata and adjacent asset credit. Separate sections with spacing.
 
-- **Flow and layout:** Follow introduction, map location, essentials, everyday life, concise history,
+- **Flow and layout:** Follow one introduction with visible learning goals, essentials, map location, everyday life, concise history,
   world contributions and products, places, people, surprises and misunderstandings, recall checks,
   and further curiosity. Keep main prose visible. Reuse the shared `1040px` wrapper, `75ch` prose width
-  and `64px` section spacing, reducing spacing to `48px` at `720px`. Essentials use two columns and
-  stack on phones. History dates occupy a separate column on desktop and a separate row on phones.
-- **Locator:** World and Region buttons reuse one Natural Earth map asset. Use country coordinates,
+  and `64px` section spacing, reducing spacing to `48px` at `720px`. Capital, currency, languages and
+  dated population, local names and area form a readable two-column reference, including on phones
+  from `360px`; narrower screens stack it. Time zones stay open below it. Official name, population
+  scope and snapshot caveats remain in Data dates and scope. City descriptions are optional. Keep the central idea for the recap and the
+  first surprise in the surprises section. The cover shows reading time, level and region; secondary
+  article labels and dates remain in Article details near the end. Four primary reading links lead
+  to the start, essentials/map, life/stories and recap; Explore all sections exposes chapter links.
+  History dates occupy a separate column on desktop and a separate row on phones.
+- **Locator:** World and Region buttons reuse one Natural Earth map asset. Default to Region, fitting
+  the main land area rather than a fixed 72-degree square. Use country coordinates,
   highlight the country and retain the small-island marker and neutral boundary caption. Keep polygon
   rings continuous across the antimeridian and repeat them at the map seam. The map uses `380px`
-  height on desktop and `300px` on phones. If loading fails, retain the written location description.
+  height on desktop and `300px` on phones. A readable country callout and up to four nearby-country
+  labels use snapshot coordinates, with collision filtering and pixel-scaled text/markers. Keep land
+  neighbours and named waters beside the map. The marker is not a capital. Region may omit distant
+  territories; World remains available. If loading fails, retain the written location description.
 - **Data and sources:** Names, capitals, currencies, language lists, area and country coordinates use
   an adapted `mledoze/countries` ODbL snapshot retrieved on `2026-10-30`. Publish the adapted data
   and licence at `/maps/country-data.json` and `/maps/COUNTRY_DATA_LICENSE.txt`. Retrieval does not
@@ -452,12 +471,13 @@ one-sentence introduction, visible metadata and adjacent asset credit. Separate 
   source links at the bottom and asset credits beside the asset. Narrative claims remain unverified.
 - **Illustrations, photographs and credit:** Country overrides the shared generated-image budget below.
   New `country_media.version: 2` profiles request at most four GenAI illustrations: required `cover`
-  and `overview`, plus optional `how_it_works` and `explanation_2`. New `photo_layout: contextual_v1`
+  and `overview`, plus optional `how_it_works` and `explanation_2`. New `photo_layout: contextual_v2`
   plans separate Unsplash scenes from Wikimedia Commons subject figures. There is no ten-visual cap.
-  Lifecycle state tracks subject slots; archived prior plans are not automatically regenerated. Legacy
+  Lifecycle state tracks subject slots; archived country profiles can request a cached photo-only upgrade. Legacy
   country retries remain photo-only; failed photo searches never trigger automatic paid backfill.
-  Explicitly label generated illustrations as non-documentary. Keep author, original page, licence and
-  modification note with real photos in the carousel, enlargement, covers and archive cards. Credits
+  Generated illustrations keep a small AI label and their full non-documentary notice in Image credits.
+  Keep author, original page and licence available through a subtle info button in the carousel,
+  enlargement, covers and archive cards. Do not render resizing/cropping boilerplate. Credits
   follow the asset currently displayed. Metadata checks do not independently verify subject, location,
   teaching relevance or licence accuracy. Preserve natural figure ratios and accessible enlargement.
 - **Cover and archive fallback:** Request generation for the required cover and overview. Display the
@@ -468,13 +488,17 @@ one-sentence introduction, visible metadata and adjacent asset credit. Separate 
   markets and architecture themes, selecting one scene per theme and up to four per batch. Deduplicate
   source, photographer and description. Use native swipe/scroll with previous/next controls of at least
   `44px` and Left/Right keyboard navigation. Never autoplay. Respect reduced-motion preferences. Keep
-  credits visible beside each photograph and in the shared enlargement dialog. Preserve image proportions.
-- **Subject figures:** Place a Wikimedia Commons figure beside each notable person, notable place and
-  everyday-life cultural entry when its matching subject image is available. Cultural entries can name
-  `photo_subject`; otherwise use their title. Keep native image proportions, adjacent credits and accessible
+  credits available through the adjacent info button and in the shared enlargement dialog. Preserve image proportions.
+- **Subject figures:** Place a Wikimedia Commons figure with each notable person, notable place,
+  everyday-life topic, contribution, product and optional city when a matching image is available.
+  Topic entries use concrete `photo_subject` and bounded `photo_queries`; old titles derive simpler aliases.
+  Everyday-life, contribution and product figures use the prose width, preserving a stable text layout. Keep native image proportions, adjacent credits and accessible
   enlargement. At `720px` and below, place the image after the text; portrait figures are at most `280px`
   wide. Missing or broken images leave a text-only entry with no empty figure.
-- **Optional depth:** Learning goals, local names/time zones, flag symbolism, language roles and answers
+- **Open teaching detail:** Local names, time zones and the flag explanation stay visible. The flag
+  appears beside its explanation on desktop and above it on mobile, with accessible enlargement.
+  New core topics require a complete explanation, two to four supporting details and a concrete example.
+- **Optional depth:** Learning goals, language roles and answers
   use native disclosures that start closed. Section narration skips closed disclosures. Opening one opts
   its content into the next playback. Checks have no scores or saved state. Older country facts without
   the valid structured profile contract retain the generic reader.

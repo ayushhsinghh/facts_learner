@@ -1,6 +1,6 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
-import { fetchFact, getFactStatus, waitForFact, shouldPollImages } from './api.js'
+import { fetchFact, getFactStatus, waitForFact, shouldPollImages, enrichCountryPhotos } from './api.js'
 
 const target = { category: 'space', topic: 'An archived discovery', generated_at: '2026-10-21T01:00:00Z' }
 const params = () => new URLSearchParams({ category: target.category, topic: target.topic, at: target.generated_at })
@@ -114,4 +114,24 @@ test('generation polling allows the server budget for four five-minute attempts'
   t.mock.method(globalThis, 'fetch', async () => response({ status: 'completed', data: { fact: target } }))
   await waitForFact({ job_id: 'job', timeout_seconds: 1230 }, undefined, { intervalMs: 1 })
   assert.ok(delays.includes(1245000), 'The client must allow the full server budget plus a response margin')
+})
+
+test('country photo enrichment starts a photo-only job and returns partial assets while polling',async t=>{
+  const methods=[],updates=[]
+  t.mock.method(globalThis,'fetch',async(url,options)=>{
+    methods.push(options.method||'GET')
+    return response(methods.length===1?{status:'processing',images:{}}:{status:'completed',images:{country_culture_0:'https://upload.wikimedia.org/food.jpg'}})
+  })
+  await enrichCountryPhotos({article_type:'country_profile',content_hash:'example'},new AbortController().signal,value=>updates.push(value),{intervalMs:1,timeoutMs:100})
+  assert.deepEqual(methods,['POST','GET']);assert.equal(updates[1].status,'completed')
+})
+test('leaving a country article cancels optional photo polling',async t=>{
+  const controller=new AbortController();let calls=0
+  t.mock.method(globalThis,'fetch',async()=>{calls++;return response({status:'processing'})})
+  await assert.rejects(enrichCountryPhotos({article_type:'country_profile',content_hash:'example'},controller.signal,()=>controller.abort(),{intervalMs:1,timeoutMs:100}),{name:'AbortError'})
+  assert.equal(calls,1)
+})
+test('generation responses retain the archive hash needed for optional photo enrichment',async t=>{
+  t.mock.method(globalThis,'fetch',async()=>response({status:'completed',data:{content_hash:'archive-hash',fact:{article_type:'country_profile'}}}))
+  assert.equal((await getFactStatus('job',new AbortController().signal)).data.fact.content_hash,'archive-hash')
 })

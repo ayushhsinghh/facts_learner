@@ -3,7 +3,31 @@ import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
 import { hasCountryProfile,countryPhoto,displayCountryStat,mapPath,mapPoint,COUNTRY_PHOTO_KEYS,countryGallery,countryScenes,countrySubjectPhoto,countryVisualCandidates } from './country.js'
 import { articleImages,overviewImage } from './articleImages.js'
+import { countryMapView,countryMapLabels } from './countryMapGeometry.js'
 const fixture=()=>JSON.parse(readFileSync(new URL('./fixtures/country-profile.json',import.meta.url)))
+const atlas=JSON.parse(readFileSync(new URL('../public/maps/countries.geojson',import.meta.url)))
+const registry=JSON.parse(readFileSync(new URL('../public/maps/country-data.json',import.meta.url)))
+test('regional framing teaches a small country in context with readable nearby labels',()=>{
+  const identity={...registry.CR,iso2:'CR'},view=countryMapView(identity,atlas.features,true)
+  assert.ok(view.width<30&&view.height<20)
+  const result=countryMapLabels(identity,registry,view,{width:340,height:300})
+  assert.ok(result.labels.some(item=>['Panama','Nicaragua'].includes(item.name)))
+  assert.equal(result.font/result.unit,13)
+})
+test('world and regional locator frames stay bounded across the full country snapshot',()=>{
+  for(const [iso2,data] of Object.entries(registry)){
+    for(const regional of [false,true]){
+      const identity={...data,iso2},view=countryMapView(identity,atlas.features,regional)
+      assert.ok([view.x,view.y,view.width,view.height,...view.point].every(Number.isFinite),iso2)
+      assert.ok(view.x>=0&&view.y>=0&&view.x+view.width<=360.001&&view.y+view.height<=180.001,iso2)
+      assert.ok(view.point[0]>=view.x&&view.point[0]<=view.x+view.width&&view.point[1]>=view.y&&view.point[1]<=view.y+view.height,iso2)
+      const {callout,padding}=countryMapLabels(identity,{},view,{width:320,height:300})
+      assert.ok(callout.x>=view.x&&callout.x+callout.width<=view.x+view.width+.001,iso2)
+      assert.ok(callout.y>=view.y&&callout.y+callout.height<=view.y+view.height+.001,iso2)
+      assert.ok(padding>0)
+    }
+  }
+})
 const credit={url:'https://upload.wikimedia.org/example.jpg',source_url:'https://commons.wikimedia.org/wiki/File:Example.jpg',license_url:'https://creativecommons.org/licenses/by/4.0/',author:'Actual photographer',title:'A place.jpg',description:'A documented place.',license:'CC BY 4.0'}
 test('subject images match the exact entry and do not enter the Unsplash carousel',()=>{
   const f=fixture()
@@ -54,4 +78,15 @@ test('missing population stays unknown and dateline paths do not draw across the
   assert.deepEqual(mapPoint(139,36,139),[180,54])
   const path=mapPath({type:'Polygon',coordinates:[[[179,10],[-179,10],[-179,11],[179,10]]]})
   assert.ok(!path.includes('NaN'));assert.equal((path.match(/M/g)||[]).length,3)
+})
+
+test('short image searches stay bound to the original country topic',()=>{
+  const f=fixture(),title='Gallo Pinto and Daily Cuisine'
+  f.country_photo_galleries={country_culture_0:[{...credit,provider:'wikimedia',subject_kind:'culture',subject:'Gallo Pinto',entry_title:title,image_caption:'Gallo Pinto'}]}
+  assert.equal(countrySubjectPhoto(f,'culture',0,title).caption,'Gallo Pinto')
+  assert.equal(countrySubjectPhoto(f,'culture',0,'Another topic'),null)
+})
+test('a portrait cannot replace the country cover when landscapes are unavailable',()=>{
+  const f=fixture();f.images={};f.image_credits={};f.country_photo_galleries={country_people_0:[{...credit,provider:'wikimedia',subject_kind:'people',subject:'A person'}]}
+  assert.equal(countryVisualCandidates(f)[0].url,'/maps/country-fallback.svg')
 })

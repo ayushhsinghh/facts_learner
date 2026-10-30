@@ -17,9 +17,9 @@ export function CountrySubjectImage({fact,kind,index,subject,onOpenImage}) {
   const image=countrySubjectPhoto(fact,kind,index,subject)
   if(!image||failed===image.url)return null
   return <figure className={`country-subject-image is-${kind}`}>
-    <button type="button" aria-label={`Enlarge image of ${subject}`} onClick={()=>onOpenImage(image)}>
+    <button type="button" aria-label={`Enlarge image of ${image.caption}`} onClick={()=>onOpenImage(image)}>
       <img src={image.url} alt={image.alt} loading="lazy" decoding="async" onError={()=>setFailed(image.url)}/>
     </button>
-    <figcaption>{subject}<PhotoCredit credit={image.credit}/></figcaption>
+    <figcaption>{image.caption}<PhotoCredit credit={image.credit}/></figcaption>
   </figure>
 }

@@ -58,6 +58,7 @@ export async function getFactStatus(jobId, signal) {
     signal,
   })
   const payload = await parseResponse(response)
+  if(payload?.data?.fact&&payload.data.content_hash&&!payload.data.fact.content_hash)payload.data.fact.content_hash=payload.data.content_hash
   if (payload?.data?.fact && payload.data.image_generation) {
     payload.data.fact.image_generation = payload.data.image_generation
   }
@@ -136,4 +137,21 @@ export async function fetchFact(params, signal) {
   }
   if (signal?.aborted) throw new DOMException('Aborted', 'AbortError')
   throw new Error('This discovery is no longer available in the archive.')
+}
+
+export async function enrichCountryPhotos(fact,signal,onUpdate,options={}) {
+  if(!fact?.content_hash||fact.article_type!=='country_profile')return
+  const controller=new AbortController(),abort=()=>controller.abort(signal?.reason)
+  if(signal?.aborted)abort();else signal?.addEventListener('abort',abort,{once:true})
+  const timer=setTimeout(()=>controller.abort(),options.timeoutMs??240000)
+  const endpoint=`${API_ROOT}/api/facts/${encodeURIComponent(fact.content_hash)}/country-photos`
+  try {
+    let result=await parseResponse(await fetch(endpoint,{method:'POST',headers:{Accept:'application/json'},signal:controller.signal}))
+    while(!controller.signal.aborted){
+      onUpdate(result)
+      if(result.status!=='processing')return
+      await abortableWait(options.intervalMs??3000,controller.signal)
+      result=await parseResponse(await fetch(endpoint,{headers:{Accept:'application/json'},signal:controller.signal}))
+    }
+  } finally {clearTimeout(timer);signal?.removeEventListener('abort',abort)}
 }
