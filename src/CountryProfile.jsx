@@ -1,8 +1,10 @@
 import { useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import CountryMap from './CountryMap.jsx'
+import CountryCarousel from './CountryCarousel.jsx'
+import { CountrySubjectImage } from './CountryMedia.jsx'
 import ArticleImages from './ArticleImages.jsx'
-import { displayCountryStat } from './country.js'
+import { countryScenes, displayCountryStat } from './country.js'
 import { archiveUrl } from './navigation.js'
 import './physics.css'
 import './country.css'
@@ -54,7 +56,10 @@ export default function CountryProfile({fact,narration,Heading,MarkdownContent,o
       <details className="physics-details"><summary>Understand the flag</summary><Text>{p.flag.description}</Text><Text>{p.flag.symbolism}</Text><p className="physics-note">Flag asset: Flagpedia / flagcdn.com.</p></details>
     </Section>
     <Section {...props} id="country-life" title="People and everyday life">
-      <Stories items={p.everyday_life} />
+      {p.everyday_life.map((story,index)=><div className="country-story country-illustrated-story" key={story.title}>
+        <div><h3>{story.title}</h3><Text>{story.explanation}</Text><Text>{story.why_it_matters}</Text></div>
+        <CountrySubjectImage fact={fact} kind="culture" index={index} subject={story.photo_subject||story.title} onOpenImage={onOpenImage}/>
+      </div>)}
       {p.essentials.spoken_languages.length>0&&<details className="physics-details"><summary>Language roles and regional use</summary>{p.essentials.spoken_languages.map((l,n)=><div key={n}><h3>{l.name}</h3><p className="physics-note" data-narration-content>{l.role.replaceAll('_',' ')}</p><Text>{l.explanation}</Text></div>)}</details>}
       {photos('everyday')}
     </Section>
@@ -65,10 +70,11 @@ export default function CountryProfile({fact,narration,Heading,MarkdownContent,o
       <Stories items={p.global_contributions} /><h3>Products and industries</h3><Stories items={p.products_and_industries} />{photos('contributions')}
     </Section>
     <Section {...props} id="country-places" title="Places worth understanding">
-      {p.notable_places.map((place,n)=><div className="country-story" key={n}><h3>{place.name}</h3><p className="physics-note" data-narration-content>{place.location}</p><Text>{place.explanation}</Text><Text>{place.why_it_matters}</Text></div>)}{photos('places')}
+      {p.notable_places.map((place,n)=><div className="country-story country-illustrated-story" key={place.name}><div><h3>{place.name}</h3><p className="physics-note" data-narration-content>{place.location}</p><Text>{place.explanation}</Text><Text>{place.why_it_matters}</Text></div><CountrySubjectImage fact={fact} kind="places" index={n} subject={place.name} onOpenImage={onOpenImage}/></div>)}{photos('places')}
     </Section>
+    {countryScenes(fact).length>0&&<Section {...props} id="country-photographs" title="Scenes from the country"><CountryCarousel fact={fact} onOpenImage={onOpenImage}/></Section>}
     <Section {...props} id="country-people" title="People and their contributions">
-      {p.notable_people.map((person,n)=><div className="country-story" key={n}><h3>{person.name}</h3><p className="physics-note" data-narration-content>{person.field}</p><Text>{person.connection}</Text><Text>{person.contribution}</Text><Text>{person.context}</Text></div>)}{photos('people')}
+      {p.notable_people.map((person,n)=><div className="country-story country-illustrated-story" key={person.name}><div><h3>{person.name}</h3><p className="physics-note" data-narration-content>{person.field}</p><Text>{person.connection}</Text><Text>{person.contribution}</Text><Text>{person.context}</Text></div><CountrySubjectImage fact={fact} kind="people" index={n} subject={person.name} onOpenImage={onOpenImage}/></div>)}{photos('people')}
     </Section>
     <Section {...props} id="country-surprises" title="Look a little closer">
       <Stories items={p.surprising_facts} />{photos('curiosity')}

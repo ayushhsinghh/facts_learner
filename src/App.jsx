@@ -17,6 +17,7 @@ import { hasPsychologyLesson } from './psychology.js'
 import CountryProfile, { CountryFlag } from './CountryProfile.jsx'
 import { hasCountryProfile } from './country.js'
 import PhotoCredit from './PhotoCredit.jsx'
+import { useCountryVisual, CountryCardVisual } from './CountryMedia.jsx'
 import IndianLawLesson from './IndianLawLesson.jsx'
 import { hasIndianLawLesson } from './indianLaws.js'
 import ConstitutionLesson from './ConstitutionLesson.jsx'
@@ -706,7 +707,7 @@ function DiscoveriesPage({ categories, cache, rememberFact }) {
                   : 'Earlier discovery'
                 return (
                   <article key={`${item.generated_at || index}-${item.topic || 'fact'}`} className={`history-card${item.article_type === 'country_profile' ? ' country-card' : ''}`}>
-                    {overviewImage(item) && (
+                    {item.article_type === 'country_profile' ? <CountryCardVisual fact={item} /> : overviewImage(item) && (
                       <div className="history-card-bg" style={{ backgroundImage: `url(${overviewImage(item)})` }} />
                     )}
                     <Link className="history-card-link" to={factUrl(item)} state={{ from: `${location.pathname}${location.search}` }} onClick={() => rememberFact(item)}>
@@ -717,7 +718,6 @@ function DiscoveriesPage({ categories, cache, rememberFact }) {
                       <strong>{item.topic || 'Untitled discovery'}</strong>
                       {item.headline_fact && <p>{item.headline_fact}</p>}
                     </Link>
-                    {item.article_type === 'country_profile' && <PhotoCredit credit={item.image_credits?.[item.images?.overview ? 'overview' : 'cover']} />}
                   </article>
                 )
               })}
@@ -857,6 +857,7 @@ function FactView({ fact, onReset, onBack }) {
   const isConstitutionLesson = hasConstitutionLesson(fact)
   const isIndianLawLesson = hasIndianLawLesson(fact)
   const isCountryProfile = hasCountryProfile(fact)
+  const countryVisual = useCountryVisual(fact)
   const explanationFirst = isIndianDiet || isTraining
   const storyText = fact.detailed_explanation
   const mechanicsText = fact.core_mechanics || fact.how_it_works
@@ -1061,7 +1062,7 @@ function FactView({ fact, onReset, onBack }) {
         id="fact-top"
         ref={heroRef}
       >
-        {fact.images?.cover && (
+        {isCountryProfile ? <img className="fact-hero-bg country-visual-background" src={countryVisual.asset?.url} alt="" onError={countryVisual.onError} /> : fact.images?.cover && (
           <div
             className="fact-hero-bg"
             style={{ backgroundImage: `url(${fact.images.cover})` }}
@@ -1072,7 +1073,7 @@ function FactView({ fact, onReset, onBack }) {
           <NarratedHeading as="h1" narrationId="headline" narration={narration} targetRef={heroRef}>{isCountryProfile ? fact.country_profile.identity.name : fact.topic}</NarratedHeading>
           <p data-narration-content>{fact.headline_fact}</p>
           <Meta fact={fact} />
-          {isCountryProfile && <PhotoCredit credit={fact.image_credits?.cover} />}
+          {isCountryProfile && <PhotoCredit credit={countryVisual.asset?.credit} />}
         </div>
       </header>
 

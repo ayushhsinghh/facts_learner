@@ -1,6 +1,15 @@
 .country-hero-flag { display:block; width:72px; height:auto; max-height:52px; object-fit:contain; margin-bottom:28px; }
 .country-profile .physics-section-body { max-width:75ch; }
 .country-story + .country-story { margin-top:36px; }
+.country-illustrated-story { display:grid; gap:24px; align-items:start; }
+.country-illustrated-story:has(.country-subject-image) { grid-template-columns:minmax(0,1fr) minmax(180px,.6fr); gap:32px; margin-block:48px; }
+.country-illustrated-story h3 { margin-top:0; }
+.country-subject-image { margin:0; min-width:0; }
+.country-subject-image button { display:block; width:100%; padding:0; border:0; background:var(--night-soft); cursor:zoom-in; }
+.country-subject-image img { display:block; width:100%; height:auto; max-height:360px; object-fit:contain; }
+.country-subject-image figcaption { margin-top:12px; color:var(--muted); font-size:.85rem; line-height:1.6; overflow-wrap:anywhere; }
+.country-subject-image .photo-credit { margin-top:8px; }
+@media(max-width:720px) { .country-illustrated-story:has(.country-subject-image) { grid-template-columns:1fr; gap:20px; } .country-subject-image.is-people { max-width:280px; } }
 .country-essentials { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:28px 40px; margin:32px 0; }
 .country-essentials dt { color:var(--muted); font-size:.85rem; margin-bottom:8px; }
 .country-essentials dd { margin:0; overflow-wrap:anywhere; }
@@ -24,6 +33,19 @@
 .history-card.country-card .history-card-link { padding-bottom:108px; }
 .history-card > .photo-credit { position:absolute; bottom:16px; left:24px; right:24px; z-index:2; color:var(--paper); }
 .country-next { margin-top:28px; }
+.country-visual-background { width:100%;height:100%;object-fit:cover; }
+.country-carousel-controls { display:flex;align-items:center;justify-content:space-between;margin-bottom:20px; }
+.country-carousel-controls p { margin:0;color:var(--muted);font-variant-numeric:tabular-nums; }
+.country-carousel-controls > div { display:flex;gap:12px; }
+.country-carousel-controls button { width:44px;height:44px;border:1px solid var(--line);border-radius:50%;background:var(--night-soft);color:var(--paper);cursor:pointer; }
+.country-carousel-controls button:disabled { opacity:.35;cursor:default; }
+.country-carousel-controls button svg { display:block;width:20px;height:20px;margin:auto;fill:none;stroke:currentColor;stroke-width:1.5; }
+.country-photo-track { display:flex;overflow-x:auto;scroll-snap-type:x mandatory;scroll-behavior:smooth;overscroll-behavior-x:contain; }
+.country-photo-track figure { flex:0 0 100%;min-width:0;margin:0;scroll-snap-align:start; }
+.country-photo-track figure > button { display:block;width:100%;padding:0;border:0;background:var(--night-soft);cursor:zoom-in; }
+.country-photo-track img { display:block;width:100%;height:clamp(220px,45vw,500px);object-fit:contain; }
+.country-photo-track figcaption { padding:20px 4px 12px;color:var(--muted);font-size:.85rem;line-height:1.6;overflow-wrap:anywhere; }
+@media(prefers-reduced-motion:reduce) { .country-photo-track { scroll-behavior:auto; } }
 .image-lightbox .lightbox-figure { margin:0; max-width:100%; max-height:100%; }
 .image-lightbox .lightbox-figure img { display:block; max-height:calc(100dvh - 240px); margin:auto; }
 .lightbox-figure figcaption { max-height:120px; overflow:auto; }

@@ -432,8 +432,8 @@ The current reader has no diagram component or diagram chrome. Separate sections
 
 Country extends the Nocturne reader with an accessible 8–15 minute portrait. Reuse Instrument Serif
 headings, DM Sans prose, night surfaces, blue-violet controls, reading progress, section narration and
-sharing. Keep the static header, full-viewport photographic cover, Flagpedia flag, country name,
-one-sentence introduction, visible metadata and adjacent photo credit. Separate sections with spacing.
+sharing. Keep the static header, full-viewport image cover, Flagpedia flag, country name,
+one-sentence introduction, visible metadata and adjacent asset credit. Separate sections with spacing.
 
 - **Flow and layout:** Follow introduction, map location, essentials, everyday life, concise history,
   world contributions and products, places, people, surprises and misunderstandings, recall checks,
@@ -450,25 +450,53 @@ one-sentence introduction, visible metadata and adjacent photo credit. Separate 
   establish effective dates or current accuracy. Listed languages do not prove legally official status.
   Narrative population needs a measurement year; unknown values display “Not supplied.” Keep narrative
   source links at the bottom and asset credits beside the asset. Narrative claims remain unverified.
-- **Photographs and credit:** Country overrides the shared generated-image budget below. Search Commons
-  for four to eight licensed photographs; add one Flagpedia flag and one Natural Earth map for at most
-  ten unique assets. World/Region reuses the map. Overview supplies the archive image. Country mode
-  uses the photo-search worker without paid generation. Missing or unlicensed photos remain unavailable
-  or partial. Metadata checks do not independently verify the exact subject, location, relevance or licence.
-  Show author, original page, licence and modification note on covers, cards, figures and enlargement.
-  Preserve natural figure ratios and the shared accessible enlargement dialog.
+- **Illustrations, photographs and credit:** Country overrides the shared generated-image budget below.
+  New `country_media.version: 2` profiles request at most four GenAI illustrations: required `cover`
+  and `overview`, plus optional `how_it_works` and `explanation_2`. New `photo_layout: contextual_v1`
+  plans separate Unsplash scenes from Wikimedia Commons subject figures. There is no ten-visual cap.
+  Lifecycle state tracks subject slots; archived prior plans are not automatically regenerated. Legacy
+  country retries remain photo-only; failed photo searches never trigger automatic paid backfill.
+  Explicitly label generated illustrations as non-documentary. Keep author, original page, licence and
+  modification note with real photos in the carousel, enlargement, covers and archive cards. Credits
+  follow the asset currently displayed. Metadata checks do not independently verify subject, location,
+  teaching relevance or licence accuracy. Preserve natural figure ratios and accessible enlargement.
+- **Cover and archive fallback:** Request generation for the required cover and overview. Display the
+  requested asset, another available image, a licensed gallery photo, then bundled Natural Earth
+  world-map artwork. Broken URLs advance this chain. Gallery items are deduplicated at the fact root;
+  persisted media status and history retain available results.
+- **Photo carousel:** Show Unsplash scenes only. Use distinct landscape, named-city streets, daily
+  markets and architecture themes, selecting one scene per theme and up to four per batch. Deduplicate
+  source, photographer and description. Use native swipe/scroll with previous/next controls of at least
+  `44px` and Left/Right keyboard navigation. Never autoplay. Respect reduced-motion preferences. Keep
+  credits visible beside each photograph and in the shared enlargement dialog. Preserve image proportions.
+- **Subject figures:** Place a Wikimedia Commons figure beside each notable person, notable place and
+  everyday-life cultural entry when its matching subject image is available. Cultural entries can name
+  `photo_subject`; otherwise use their title. Keep native image proportions, adjacent credits and accessible
+  enlargement. At `720px` and below, place the image after the text; portrait figures are at most `280px`
+  wide. Missing or broken images leave a text-only entry with no empty figure.
 - **Optional depth:** Learning goals, local names/time zones, flag symbolism, language roles and answers
   use native disclosures that start closed. Section narration skips closed disclosures. Opening one opts
   its content into the next playback. Checks have no scores or saved state. Older country facts without
   the valid structured profile contract retain the generic reader.
-- **Review scope and disposition:** Ship the reviewed Japan fixture. Captures in `.impeccable/review/`:
-  `country-desktop-cover.png`, `country-desktop-map.png`, `country-mobile-cover.png`,
-  `country-mobile-map.png`, `country-mobile-essentials.png`, `country-mobile-card.png`, and
-  `country-photo-dialog.png`. Browser checks cover map switching, mobile overflow, modal Escape,
-  focus return and visible credit. `country-detector.json` is advisory; the fresh finish review requests
-  no fixes. Focused validation reports 40 frontend tests, 69 backend tests and the production build passing.
-  This review does not establish live generation, every country's layout, exact photograph relevance or
-  independent data verification. It includes no deployment or paid image generation.
+- **Review scope and disposition:** Ship the reviewed hybrid country reader. The fresh
+  `country_mixed_finish_reviewer` requests no fixes. Captures in `.impeccable/review/` are
+  `country-mixed-desktop-cover.png`, `country-mixed-desktop-carousel.png`,
+  `country-mixed-mobile-carousel.png`, `country-mixed-mobile-empty-cover.png`,
+  `country-mixed-mobile-empty-card.png`, and `country-mixed-dialog.png`. They supersede the earlier
+  photo-only country review evidence for this media change. Focused validation reports 41 frontend
+  tests, 71 backend tests and a passing production build, with the existing chunk-size warning above
+  500 KB. Generated-asset appearance has source and unit coverage only; no actual GenAI calls occur.
+  A live public Commons fallback search for Costa Rica returns 12 candidates, with nine licensed,
+  country-matching photos. This does not independently verify narrative facts, exact photo subjects,
+  every country's layout or live generated-asset appearance. No paid generation or deployment occurs.
+  This is historical evidence for the hybrid reader; the contextual extension has its own focused review.
+- **Contextual extension review:** `country_context_finish_reviewer` returns ship with no material fixes
+  for the reviewed sections. The six captures in `.impeccable/review/` are
+  `country-context-desktop-people.png`, `country-context-desktop-places.png`,
+  `country-context-desktop-culture.png`, `country-context-mobile-people.png`,
+  `country-context-mobile-culture.png`, and `country-context-mobile-carousel.png`.
+  This review does not approve the full page, cover, production behavior or live generated appearance.
+  No paid generation or deployment occurs. Final focused test results belong to the implementation report.
 
 ### Article Images
 

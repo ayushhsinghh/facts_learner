@@ -21,6 +21,13 @@ export function hasCountryProfile(fact) {
     && texts(p.takeaways) && texts(p.curiosity_questions) && texts(p.related_topics))
 }
 export function countryPhoto(credit) {
+  if(credit?.provider==='unsplash') {
+    const values=['url','source_url','license_url','author_url'].map(key=>safeSourceUrl(credit[key]))
+    if(values.some(value=>!value)||!text(credit.author)||!text(credit.title)||!text(credit.description)||credit.license!=='Unsplash License')return null
+    if(new URL(values[0]).hostname!=='images.unsplash.com'||values.slice(1).some(value=>new URL(value).hostname!=='unsplash.com'))return null
+    if(new URL(values[2]).pathname!=='/license')return null
+    return {...credit,url:values[0],source_url:values[1],license_url:values[2],author_url:values[3]}
+  }
   if (!credit || !text(credit.author) || !text(credit.title) || !text(credit.description)
     || !/^(?:Public domain|CC0|CC BY(?:-SA)? [1-4]\.0)$/.test(credit.license)) return null
   const url = safeSourceUrl(credit.url), source = safeSourceUrl(credit.source_url), license = safeSourceUrl(credit.license_url)
@@ -28,6 +35,37 @@ export function countryPhoto(credit) {
   if (!['upload.wikimedia.org','thumb.wikimedia.org'].includes(new URL(url).hostname) || new URL(source).hostname !== 'commons.wikimedia.org'
     || !['creativecommons.org','www.creativecommons.org'].includes(new URL(license).hostname)) return null
   return {...credit,url,source_url:source,license_url:license}
+}
+export function countryAsset(fact,key) {
+  const url=safeSourceUrl(fact?.images?.[key]), credit=fact?.image_credits?.[key]
+  if(!url||credit?.url!==url)return null
+  if(fact.country_media?.version===2&&['cover','overview','how_it_works','explanation_2'].includes(key)&&credit.kind==='generated')
+    return {url,credit,generated:true,alt:credit.description||'Generated country illustration',caption:credit.title||'Country illustration'}
+  const photo=countryPhoto(credit)
+  return photo?{url,credit:photo,generated:false,alt:photo.description,caption:photo.title}:null
+}
+export function countryGallery(fact) {
+  const groups=fact?.country_photo_galleries||{}, seen=new Set(), result=[]
+  const values=[...Object.values(groups).flatMap(v=>Array.isArray(v)?v:[]),...COUNTRY_PHOTO_KEYS.map(k=>fact?.image_credits?.[k])]
+  for(const value of values){const photo=countryPhoto(value);if(!photo||seen.has(photo.source_url))continue;seen.add(photo.source_url);result.push({url:photo.url,credit:photo,alt:photo.description,caption:photo.title})}
+  return result
+}
+export function countryScenes(fact) {
+  return countryGallery(fact).filter(item=>item.credit.provider==='unsplash')
+}
+export function countrySubjectPhoto(fact,kind,index,subject) {
+  const group=fact?.country_photo_galleries?.[`country_${kind}_${index}`]
+  if(!Array.isArray(group))return null
+  const photo=group.map(countryPhoto).find(item=>item&&item.provider!=='unsplash'&&item.subject_kind===kind&&item.subject===subject)
+  return photo?{url:photo.url,credit:photo,alt:photo.description,caption:photo.title}:null
+}
+export function countryVisualCandidates(fact,purpose='cover') {
+  if(fact?.article_type!=='country_profile')return []
+  const keys=purpose==='overview'?['overview','cover']:['cover','overview']
+  const seen=new Set()
+  return [...keys.map(k=>countryAsset(fact,k)).filter(Boolean),...countryScenes(fact),...countryGallery(fact),
+    {url:'/maps/country-fallback.svg',credit:{kind:'fallback'},alt:'World map artwork',caption:'World map artwork'}]
+    .filter(item=>{if(seen.has(item.url))return false;seen.add(item.url);return true})
 }
 export function displayCountryStat(stat) {
   return typeof stat?.value === 'number' && Number.isFinite(stat.value) && stat.value > 0 && Number.isInteger(stat.year)

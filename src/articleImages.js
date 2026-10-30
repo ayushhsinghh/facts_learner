@@ -1,4 +1,4 @@
-import { countryPhoto, COUNTRY_PHOTO_KEYS } from './country.js'
+import { countryPhoto, countryAsset, countryVisualCandidates, COUNTRY_PHOTO_KEYS } from './country.js'
 
 const slots = ['overview', 'how_it_works', 'explanation_2', 'explanation_3', 'explanation_4', 'explanation_5', 'explanation_6', 'myth_visual', 'truth_visual']
 const defaultPlacement = { overview:'overview', how_it_works:'explanation', explanation_2:'example', explanation_3:'limits', myth_visual:'explanation', truth_visual:'explanation' }
@@ -6,7 +6,7 @@ const defaultPlacement = { overview:'overview', how_it_works:'explanation', expl
 export function overviewImage(fact) {
   const images = fact?.images || {}
   if (fact?.article_type === 'country_profile') {
-    return ['overview','cover'].map(key => countryPhoto(fact.image_credits?.[key])).find(photo => photo && Object.values(images).includes(photo.url))?.url || null
+    return countryVisualCandidates(fact,'overview')[0]?.url || null
   }
   return images.overview || images.history || images.myth_visual || images.cover || null
 }
@@ -17,9 +17,10 @@ export function articleImages(fact, { slot, placement } = {}) {
   return slots.flatMap(key => {
     const country = fact?.article_type === 'country_profile'
     if (country && !COUNTRY_PHOTO_KEYS.includes(key)) return []
-    const credit = country ? countryPhoto(fact.image_credits?.[key]) : null
+    const asset = country ? countryAsset(fact,key) : null
+    const credit = country ? asset?.credit : null
     const url = fact?.images?.[key] || (key === 'overview' ? fact?.images?.history : null)
-    if (country && (!credit || credit.url !== url)) return []
+    if (country && (!asset || !asset.generated)) return []
     if (!url || (slot && slot !== key)) return []
     const item = details.find(item => item?.slot === key) || (legacy?.slot === key ? legacy : {})
     const position = item.placement || defaultPlacement[key]
