@@ -14,6 +14,8 @@ React + Vite. Deployment target is not yet confirmed.
 
 General curious learners who want to discover an interesting fact without creating an account or managing a personal learning history. They may also revisit the shared index of facts generated previously.
 
+Assume no subject expertise. Each new article teaches one fact or useful idea through an easy-to-medium topic, simple language, short explanations and a familiar example. Define necessary terms at first use. Optional detail clarifies the same idea; it does not introduce advanced coursework. Keep scientific evidence and limits accurate and understandable.
+
 ## Product Purpose
 
 Let a visitor choose a category and receive a rich, generated fact that rewards curiosity. Success means the selection feels immediate and intriguing while the asynchronous generation period remains understandable and engaging.

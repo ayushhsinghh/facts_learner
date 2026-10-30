@@ -33,12 +33,13 @@ export function BiologyDiagram({ diagram, fact }) {
       <defs><marker id={marker} markerWidth="7" markerHeight="7" refX="6" refY="3.5" orient="auto"><path d="M0 0 7 3.5 0 7" fill="none" stroke="currentColor" /></marker></defs>
       {layout.edges.map((edge, i) => {
         const dx = edge.to.x - edge.from.x, dy = edge.to.y - edge.from.y, length = Math.hypot(dx, dy)
-        return <line key={i} x1={edge.from.x + dx / length * 24} y1={edge.from.y + dy / length * 24} x2={edge.to.x - dx / length * 28} y2={edge.to.y - dy / length * 28} markerEnd={`url(#${marker})`} />
+        const directed = !edge.relationship_type || ['procedure', 'causal'].includes(edge.relationship_type)
+        return <line key={i} x1={edge.from.x + dx / length * 24} y1={edge.from.y + dy / length * 24} x2={edge.to.x - dx / length * 28} y2={edge.to.y - dy / length * 28} strokeDasharray={edge.relationship_type === 'association' ? '6 4' : undefined} markerEnd={directed ? `url(#${marker})` : undefined} />
       })}
       {layout.nodes.map((node, i) => <g key={node.id}><circle cx={node.x} cy={node.y} r="22" /><text x={node.x} y={node.y} dy=".35em" textAnchor="middle">{i + 1}</text></g>)}
     </svg>
     <ol className="biology-diagram-key">{layout.nodes.map(node => <li key={node.id} data-narration-content><strong>{node.label}</strong><span>{node.detail}</span></li>)}</ol>
-    <div className="biology-relationships"><h4>Read the connections</h4><ul>{layout.edges.map((edge, i) => <li key={i} data-narration-content><strong>{edge.from.label} → {edge.to.label}:</strong> {edge.relationship}</li>)}</ul></div>
+    <div className="biology-relationships"><h4>Read the connections</h4><ul>{layout.edges.map((edge, i) => <li key={i} data-narration-content><strong>{edge.from.label} {['association', 'conceptual'].includes(edge.relationship_type) ? 'and' : '→'} {edge.to.label}:</strong> {edge.relationship}</li>)}</ul></div>
     <figcaption><Text>{diagram.caption}</Text><Sources item={diagram} fact={fact} /></figcaption>
     <details className="physics-details"><summary>Diagram description and limits</summary><Text>{diagram.description}</Text><Bullets items={diagram.limitations} /></details>
   </figure>

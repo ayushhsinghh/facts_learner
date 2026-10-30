@@ -12,6 +12,8 @@ import PhysicsLesson from './PhysicsLesson.jsx'
 import { hasPhysicsLesson } from './physics.js'
 import BiologyLesson from './BiologyLesson.jsx'
 import { hasBiologyLesson } from './biology.js'
+import PsychologyLesson from './PsychologyLesson.jsx'
+import { hasPsychologyLesson } from './psychology.js'
 
 const SPECIALIZED_MYTH_CATEGORIES = {
   digital_myths: 'Digital Myths',
@@ -841,6 +843,7 @@ function FactView({ fact, onReset, onBack }) {
   const isTraining = ['fitness', 'home_workouts'].includes(fact.category)
   const isPhysicsLesson = hasPhysicsLesson(fact)
   const isBiologyLesson = hasBiologyLesson(fact)
+  const isPsychologyLesson = hasPsychologyLesson(fact)
   const explanationFirst = isIndianDiet || isTraining
   const storyText = fact.detailed_explanation
   const mechanicsText = fact.core_mechanics || fact.how_it_works
@@ -1024,7 +1027,7 @@ function FactView({ fact, onReset, onBack }) {
   )
 
   return (
-    <article className={`fact-view${explanationFirst ? ' wellness-reader' : ''}${isIndianDiet ? ' indian-diet-view' : ''}${isPhysicsLesson ? ' physics-reader' : ''}${isBiologyLesson ? ' biology-reader' : ''}`} ref={articleRef}>
+    <article className={`fact-view${explanationFirst ? ' wellness-reader' : ''}${isIndianDiet ? ' indian-diet-view' : ''}${isPhysicsLesson ? ' physics-reader' : ''}${isBiologyLesson ? ' biology-reader' : ''}${isPsychologyLesson ? ' psychology-reader' : ''}`} ref={articleRef}>
       <span className="reading-progress" aria-hidden="true">
         <i style={{ transform: `scaleX(${readingProgress})` }} />
       </span>
@@ -1054,14 +1057,20 @@ function FactView({ fact, onReset, onBack }) {
         <div className="fact-hero-content">
           <NarratedHeading as="h1" narrationId="headline" narration={narration} targetRef={heroRef}>{fact.topic}</NarratedHeading>
           <p data-narration-content>{fact.headline_fact}</p>
-          <Meta fact={fact} />
+          {isPsychologyLesson ? <details className="psychology-article-meta"><summary>About this discovery</summary><Meta fact={fact} /></details> : <Meta fact={fact} />}
         </div>
       </header>
 
       <nav className="reading-nav" aria-label="On this page">
         <div className="reading-nav-glass">
           <a href="#overview">Overview</a>
-          {isBiologyLesson ? <>
+          {isPsychologyLesson ? <>
+            <a href="#psychology-idea">The idea</a>
+            <a href="#psychology-explanation">Explanation</a>
+            <a href="#psychology-evidence">Evidence</a>
+            <a href="#psychology-limits">Limits</a>
+            <a href="#psychology-check">Check understanding</a>
+          </> : isBiologyLesson ? <>
             <a href="#biology-idea">The idea</a>
             <a href="#biology-players">Key players</a>
             <a href="#biology-explanation">How it works</a>
@@ -1086,7 +1095,7 @@ function FactView({ fact, onReset, onBack }) {
       </nav>
 
       <div className="fact-body">
-        {isBiologyLesson ? <BiologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPhysicsLesson ? <PhysicsLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : <>
+        {isPsychologyLesson ? <PsychologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isBiologyLesson ? <BiologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPhysicsLesson ? <PhysicsLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : <>
         <section className="fact-overview" id="overview" ref={overviewRef}>
           <NarratedHeading narrationId="overview" narration={narration} targetRef={overviewRef}>The short version</NarratedHeading>
           <MarkdownContent narration={narration}>{fact.summary || fact.headline_fact}</MarkdownContent>

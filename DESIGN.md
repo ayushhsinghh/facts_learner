@@ -324,6 +324,43 @@ decorative dividers; retain scientific connections, focus outlines, and control 
   See `.impeccable/review/biology-desktop.png` and `.impeccable/review/biology-mobile.png`.
   These captures do not establish visual review of the other four lesson types or live generated content.
 
+### Psychology Lesson
+
+Psychology extends the existing dark reader with an experience-first explanation, evidence, and limits.
+Reuse the `physics-*` reading primitives and `BiologyDiagram` deliberately: they supply the established
+section rhythm, prose width, disclosures, static maps, and narration behavior. Keep the Nocturne palette,
+Instrument Serif / DM Sans typography, reader controls, progress, references, sharing, and archive routes.
+Separate content with spacing rather than decorative rules; retain meaningful diagram strokes and controls.
+
+- **Opening:** Use a compact masthead with metadata inside the closed “About this discovery” disclosure.
+  Lead into the question, learning goal, and illustrative scene. Give the scene a flat Raised Night inset.
+  The scene invites thought; it does not assess personality or diagnose the reader.
+- **Formats:** Support cognitive process, learning/behavior, social influence, and research finding lessons.
+  Each changes the explanation heading and map format while preserving one linear reading flow:
+  scene, idea, explanation, example, evidence, alternative explanations, limits, application, checks, and takeaways.
+- **Evidence:** Keep the finding, interpretation, research design, inference limits, participants, setting,
+  and important limitations visible. Put methods and reported numbers inside a closed native disclosure.
+  Render unknown sample counts and publication years as “Not reported”; years never use digit grouping.
+  Source links and evidence labels identify supplied references and never imply independent verification.
+  Keep replication uncertainty and alternative explanations readable without opening study methods.
+- **Maps:** Use static process maps, feedback loops, situation comparisons, or study designs.
+  Associations use dashed connections without arrows; conceptual connections are also undirected.
+  Procedure and causal connections use arrows. Preserve written relationships, source links, descriptions,
+  and limits; invalid map data falls back to its text description.
+- **Optional depth:** Predictions, terms, study methods, deeper detail, diagram descriptions, and answers
+  start closed. Keep disclosure summaries at least `44px` high. Narration skips closed disclosures,
+  including prediction reveals and answers; opening a disclosure opts its content into the next playback.
+  Never reveal an answer automatically. Predictions and checks have no scoring or saved state.
+- **Layout and images:** Keep the shared `1040px` wrapper, `75ch` prose width, and `64px` section rhythm,
+  reducing spacing to `48px` at `720px`. Study metadata uses three columns on desktop and one on phones.
+  Request one relevant cover and at most one purposeful supporting image, with its supplied learning purpose,
+  caption, and alt text. Preserve the supporting image's natural aspect ratio and enlarge control.
+  Generated images do not replace evidence maps.
+- **Review scope and disposition:** Ship the reviewed cognitive-process fixture on desktop and mobile.
+  Captures: `.impeccable/review/psychology-desktop.png` and `.impeccable/review/psychology-mobile.png`.
+  Disclosures start closed, and review uses no paid image generation. These captures do not establish
+  visual review of the other three formats or live generated content.
+
 ### Error Message
 
 - **Style:** A compact centered alert with muted oxblood surface and border, pale rose text, `12px` corners, and an explicit `role="alert"`.
