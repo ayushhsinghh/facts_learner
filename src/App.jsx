@@ -715,7 +715,9 @@ function DiscoveriesPage({ categories, cache, rememberFact }) {
                         <span>{formatCategory(item.category)}</span>
                         <time dateTime={item.generated_at || undefined}>{readableDate}</time>
                       </span>
-                      <strong>{item.topic || 'Untitled discovery'}</strong>
+                      <strong>{item.category === 'country'
+                        ? item.country_profile?.identity?.name || item.topic?.split(/[:：]/)[0]?.trim() || 'Country'
+                        : item.topic || 'Untitled discovery'}</strong>
                       {item.headline_fact && <p>{item.headline_fact}</p>}
                     </Link>
                   </article>
