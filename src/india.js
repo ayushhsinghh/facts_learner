@@ -31,8 +31,23 @@ export function indiaScenes(fact) {
   return Object.entries(fact?.image_credits||{}).flatMap(([key,value])=>{
     if(!/^india_scene_\d+$/.test(key)||!value?.india_carousel)return []
     const photo=countryPhoto(value)
-    if(!photo||photo.provider!=='unsplash'||seen.has(photo.source_url))return []
+    const popular=photo?.provider==='unsplash'&&photo.detail_fetched===true&&photo.selection_mode==='popular_fallback'&&Boolean(photo.scene_query?.trim())
+    if(!photo||!['unsplash','wikimedia'].includes(photo.provider)||(!popular&&!indiaSceneMatches(photo,photo.scene_query||'',fact))||seen.has(photo.source_url))return []
     seen.add(photo.source_url)
-    return [{url:photo.url,credit:photo,alt:photo.description,caption:photo.title}]
+    return [{url:photo.url,credit:photo,alt:photo.description,caption:photo.image_caption||photo.title}]
   })
+}
+
+const photoWords=value=>new Set((String(value||'').toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=3).map(w=>w.length>4&&w.endsWith('s')&&!w.endsWith('ss')?w.slice(0,-1):w))
+const photoNoise=new Set(['india','indian','photo','photograph','the','and','for','with','from','near','view','landscape','village','hill','hills'])
+export function indiaSceneMatches(photo,query,fact) {
+  const l=fact?.india_lesson||{},geography=photoWords(`${(l.region||'').split(',').slice(0,2).join(' ')} ${l.case_study?.place||''}`)
+  const subject=value=>[...photoWords(value)].filter(w=>!geography.has(w)&&!photoNoise.has(w))
+  const tags=Array.isArray(photo.tags)?photo.tags.filter(t=>typeof t==='string').join(' '):''
+  let wanted=subject(query)
+  const core=subject(fact?.topic),evidence=photoWords(`${photo.title||''} ${photo.description||''} ${photo.alt_description||''} ${photo.location_country||''} ${photo.location_name||''} ${tags}`)
+  const regional=[...photoWords(query)].filter(w=>geography.has(w)&&!photoNoise.has(w))
+  let minimum=Math.min(2,wanted.length)
+  if(!wanted.length&&regional.length){wanted=core;minimum=1}
+  return wanted.length>0&&wanted.filter(w=>evidence.has(w)).length>=minimum&&(!core.length||core.some(w=>evidence.has(w)))&&(!regional.length||regional.some(w=>evidence.has(w)))
 }

@@ -627,7 +627,28 @@ order, image loading, no horizontal overflow, enlargement, close control and rev
 No paid image generation, production writes or deployment ran.
 
 India's “See the story in photographs” section follows the case study, using the shared carousel
-controls and contained image frame. It only shows attributed Unsplash scenes marked for the India
+controls and contained image frame. It only shows attributed Unsplash or Wikimedia scenes marked for the India
 carousel; inline topic photos never enter it. Empty searches omit the section. Desktop/mobile review
 uses two topic-matched, tracked Unsplash photos in a temporary fixture. Actual selected counts depend
 on source availability and relevance filters; the 12-image figure is a maximum, not a guaranteed count.
+
+India carousel repair: match the subject as well as geography. Try a shorter subject query and use
+licensed Wikimedia fallback for sparse Unsplash topics. A Meghalaya river cannot qualify for a root-bridge
+query merely through its location. The frontend also filters unsuitable older results; image retry
+rechecks saved carousel assets without regenerating existing cover/overview illustrations.
+
+India photo matching accepts substantive returned tags as well as captions, with matching regional
+context when a regional keyword is present. Keyword combinations broaden retrieval without admitting
+location-only matches. This changes photo selection; the existing carousel interaction/layout remains.
+
+Unsplash selection now sorts each returned search page by likes and retrieves full metadata by
+photo ID. Reject failed details or unsuitable tags and try the next most-liked candidate, keeping
+at most three matches per search. Detail responses are cached in memory for ten minutes. New India
+carousel plans have up to 18 slots (three per topic); earlier 12-slot plans remain compatible.
+Standalone region searches are supported and still require subject evidence in full metadata.
+No extra AI images are generated.
+
+India carousel popular fallback: if one search cannot yield three tag matches, retain its three
+most-liked valid photos. The gallery still combines multiple searches. Match filtering must not hide
+server-selected popular fallbacks; source credits, captions and image provenance remain intact.
+Deduplicate actual images/URLs, without treating similar captions as proof of duplicate photographs.
