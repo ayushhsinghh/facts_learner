@@ -21,6 +21,8 @@ import FashionLesson from './FashionLesson.jsx'
 import { hasFashionLesson } from './fashion.js'
 import GeographyLesson from './GeographyLesson.jsx'
 import { hasGeographyLesson } from './geography.js'
+import TechnologyLesson from './TechnologyLesson.jsx'
+import { hasTechnologyLesson } from './technology.js'
 import { hasIndiaLesson } from './india.js'
 import CountryProfile, { CountryFlag } from './CountryProfile.jsx'
 import { hasCountryProfile } from './country.js'
@@ -762,10 +764,10 @@ function Meta({ fact }) {
     ? historyDate.format(generatedAt)
     : null
   const country = hasCountryProfile(fact)
-  const values = (country || hasIndiaLesson(fact) || hasFoodLesson(fact) || hasFashionLesson(fact) || hasGeographyLesson(fact) ? [
+  const values = (country || hasIndiaLesson(fact) || hasFoodLesson(fact) || hasFashionLesson(fact) || hasGeographyLesson(fact) || hasTechnologyLesson(fact) ? [
     ['Reading', fact.read_time_seconds ? `${Math.max(1, Math.round(fact.read_time_seconds / 60))} min` : null],
     ['Level', fact.difficulty_level],
-    ['Region', country ? fact.country_profile?.identity?.region : fact.region],
+    hasTechnologyLesson(fact)?['Domain',fact.technology_lesson.identity.domain]:['Region', country ? fact.country_profile?.identity?.region : fact.region],
   ] : [
     ['Year', fact.key_year],
     ['Reading', fact.read_time_seconds ? `${Math.max(1, Math.round(fact.read_time_seconds / 60))} min` : null],
@@ -875,6 +877,7 @@ function FactView({ fact, onReset, onBack }) {
   const isFoodLesson = hasFoodLesson(fact)
   const isFashionLesson = hasFashionLesson(fact)
   const isGeographyLesson = hasGeographyLesson(fact)
+  const isTechnologyLesson = hasTechnologyLesson(fact)
   const isCountryProfile = hasCountryProfile(fact)
   const countryVisual = useCountryVisual(fact)
   const explanationFirst = isIndianDiet || isTraining
@@ -1060,7 +1063,7 @@ function FactView({ fact, onReset, onBack }) {
   )
 
   return (
-    <article className={`fact-view${explanationFirst ? ' wellness-reader' : ''}${isIndianDiet ? ' indian-diet-view' : ''}${isPhysicsLesson ? ' physics-reader' : ''}${isBiologyLesson ? ' biology-reader' : ''}${isPsychologyLesson ? ' psychology-reader' : ''}${isConstitutionLesson ? ' constitution-reader' : ''}${isIndianLawLesson ? ' indian-law-reader' : ''}${isCountryProfile ? ' country-reader' : ''}${isIndiaLesson ? ' india-reader' : ''}${isFoodLesson ? ' food-reader' : ''}${isFashionLesson ? ' fashion-reader' : ''}${isGeographyLesson ? ' geography-reader' : ''}`} ref={articleRef}>
+    <article className={`fact-view${explanationFirst ? ' wellness-reader' : ''}${isIndianDiet ? ' indian-diet-view' : ''}${isPhysicsLesson ? ' physics-reader' : ''}${isBiologyLesson ? ' biology-reader' : ''}${isPsychologyLesson ? ' psychology-reader' : ''}${isConstitutionLesson ? ' constitution-reader' : ''}${isIndianLawLesson ? ' indian-law-reader' : ''}${isCountryProfile ? ' country-reader' : ''}${isIndiaLesson ? ' india-reader' : ''}${isFoodLesson ? ' food-reader' : ''}${isFashionLesson ? ' fashion-reader' : ''}${isGeographyLesson ? ' geography-reader' : ''}${isTechnologyLesson ? ' technology-reader' : ''}`} ref={articleRef}>
       <span className="reading-progress" aria-hidden="true">
         <i style={{ transform: `scaleX(${readingProgress})` }} />
       </span>
@@ -1089,18 +1092,24 @@ function FactView({ fact, onReset, onBack }) {
         )}
         <div className="fact-hero-content">
           {isCountryProfile && <CountryFlag identity={fact.country_profile.identity} />}
-          <NarratedHeading as="h1" narrationId="headline" narration={narration} targetRef={heroRef}>{isCountryProfile ? fact.country_profile.identity.name : isGeographyLesson ? fact.geography_lesson.identity.name : isFashionLesson ? fact.fashion_lesson.identity.name : isFoodLesson ? fact.food_lesson.identity.name : fact.topic}</NarratedHeading>
-          <p data-narration-content>{isGeographyLesson ? fact.geography_lesson.hook : isFashionLesson ? fact.fashion_lesson.hook : isFoodLesson ? fact.food_lesson.hook : fact.headline_fact}</p>
+          <NarratedHeading as="h1" narrationId="headline" narration={narration} targetRef={heroRef}>{isCountryProfile ? fact.country_profile.identity.name : isTechnologyLesson ? fact.technology_lesson.identity.name : isGeographyLesson ? fact.geography_lesson.identity.name : isFashionLesson ? fact.fashion_lesson.identity.name : isFoodLesson ? fact.food_lesson.identity.name : fact.topic}</NarratedHeading>
+          <p data-narration-content>{isTechnologyLesson ? fact.technology_lesson.hook : isGeographyLesson ? fact.geography_lesson.hook : isFashionLesson ? fact.fashion_lesson.hook : isFoodLesson ? fact.food_lesson.hook : fact.headline_fact}</p>
           <Meta fact={fact} />
           {isCountryProfile && <PhotoCredit credit={countryVisual.asset?.credit} />}
-          {(isIndiaLesson || isFoodLesson || isFashionLesson || isGeographyLesson) && <PhotoCredit credit={fact.image_credits?.cover} />}
+          {(isIndiaLesson || isFoodLesson || isFashionLesson || isGeographyLesson || isTechnologyLesson) && <PhotoCredit credit={fact.image_credits?.cover} />}
         </div>
       </header>
 
       <nav className="reading-nav" aria-label="On this page">
         <div className="reading-nav-glass">
           <a href="#overview">{isCountryProfile?'Start here':'Overview'}</a>
-          {isGeographyLesson ? <>
+          {isTechnologyLesson ? <>
+            <a href="#technology-system">System</a>
+            <a href="#technology-walkthrough">How it works</a>
+            <a href="#technology-example">Example</a>
+            <a href="#technology-tradeoffs">Trade-offs</a>
+            <a href="#technology-check">Remember</a>
+          </> : isGeographyLesson ? <>
             <a href="#geography-location">Location</a>
             <a href="#geography-process">Explanation</a>
             <a href="#geography-example">Real example</a>
@@ -1171,7 +1180,7 @@ function FactView({ fact, onReset, onBack }) {
       </nav>
 
       <div className="fact-body">
-        {isGeographyLesson ? <GeographyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isFashionLesson ? <FashionLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isFoodLesson ? <FoodLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isIndiaLesson ? <IndiaLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isCountryProfile ? <CountryProfile fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isIndianLawLesson ? <IndianLawLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isConstitutionLesson ? <ConstitutionLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPsychologyLesson ? <PsychologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isBiologyLesson ? <BiologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPhysicsLesson ? <PhysicsLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : <>
+        {isTechnologyLesson ? <TechnologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isGeographyLesson ? <GeographyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isFashionLesson ? <FashionLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isFoodLesson ? <FoodLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isIndiaLesson ? <IndiaLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isCountryProfile ? <CountryProfile fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isIndianLawLesson ? <IndianLawLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isConstitutionLesson ? <ConstitutionLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPsychologyLesson ? <PsychologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isBiologyLesson ? <BiologyLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : isPhysicsLesson ? <PhysicsLesson fact={fact} narration={narration} Heading={NarratedHeading} MarkdownContent={MarkdownContent} onOpenImage={setEnlargedImage} /> : <>
         <section className="fact-overview" id="overview" ref={overviewRef}>
           <NarratedHeading narrationId="overview" narration={narration} targetRef={overviewRef}>The short version</NarratedHeading>
           <MarkdownContent narration={narration}>{fact.summary || fact.headline_fact}</MarkdownContent>
@@ -1390,7 +1399,7 @@ function FactView({ fact, onReset, onBack }) {
           </div>
         )}
 
-        {!(isPhysicsLesson || isBiologyLesson || isPsychologyLesson || isConstitutionLesson || isIndianLawLesson || isCountryProfile || isIndiaLesson || isFoodLesson || isFashionLesson || isGeographyLesson) && <>
+        {!(isPhysicsLesson || isBiologyLesson || isPsychologyLesson || isConstitutionLesson || isIndianLawLesson || isCountryProfile || isIndiaLesson || isFoodLesson || isFashionLesson || isGeographyLesson || isTechnologyLesson) && <>
           {!hasMechanics && <ArticleImages fact={fact} placement="explanation" onOpenImage={setEnlargedImage} />}
           <ArticleImages fact={fact} placement="example" onOpenImage={setEnlargedImage} />
           <ArticleImages fact={fact} placement="limits" onOpenImage={setEnlargedImage} />

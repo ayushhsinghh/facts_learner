@@ -1,0 +1,52 @@
+.technology-reader :is(.fact-nav,.fact-meta,.fact-taxonomy,.source-section,.fact-end) { border-block: 0; }
+.technology-reader .fact-body { padding-top: 64px; }
+.technology-reader .fact-hero h1 { font-size: clamp(3.3rem,8vw,6rem); }
+.technology-lesson { max-width: 1120px; }
+.technology-lesson .physics-section-body { max-width: 72ch; }
+.technology-lesson #technology-walkthrough .physics-section-body { max-width: 100%; }
+.technology-setting { display: flex; flex-wrap: wrap; gap: 12px 40px; }
+.technology-setting dt { font-size: .8rem; color: var(--muted); }
+.technology-version,.technology-notice { padding: 18px 22px; background: var(--night-soft); }
+.technology-version { margin: 28px 0; }
+.technology-version p:last-child { margin-bottom: 0; }
+.technology-input-output,.technology-tradeoff { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 32px; }
+.technology-parts > div,.technology-layer { scroll-margin-top: 28px; }
+.technology-parts dd p:last-child { margin-bottom: 0; }
+.technology-explanation + .technology-explanation { margin-top: 36px; }
+.technology-walkthrough { max-width: 72ch; }
+.technology-walkthrough > li { padding-left: 12px; margin-bottom: 36px; }
+.technology-lesson .technology-component-links { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 0; margin: 12px 0 24px; list-style: none; font-size: .85rem; }
+.technology-component-links li + li { margin: 0; }
+.technology-diagram { margin: 0 0 48px; }
+.technology-flow-scroll { max-width: 100%; overflow-x: auto; }
+.technology-flow { display: flex; align-items: center; justify-content: center; gap: 16px; min-width: max-content; padding: 16px 4px; }
+.technology-flow-node { width: 168px; flex: 0 0 168px; padding: 22px 18px; border: 1px solid var(--line); border-radius: 12px; text-align: center; background: var(--night-soft); overflow-wrap: anywhere; }
+.technology-flow-node > a { font-weight: 500; font-size: 1rem; }
+.technology-flow-node > span { display: block; margin-top: 10px; color: var(--muted); font-size: .8rem; }
+.technology-flow-links { flex: 0 0 150px; width: 150px; display: flex; flex-direction: column; gap: 18px; }
+.technology-flow-link { text-align: center; }
+.technology-flow-link svg { width: 100%; max-width: 100px; height: 24px; color: var(--signal-strong); }
+.technology-flow-link p { margin: 4px 0 0; font-size: .85rem; line-height: 1.5; }
+.technology-flow-link .technology-flow-payload { display: block; margin-top: 6px; color: var(--muted); }
+.technology-diagram figcaption { margin-top: 20px; color: var(--muted); font-size: .85rem; line-height: 1.6; }
+.technology-layers { display: flex; flex-direction: column; gap: 24px; }
+.technology-layer { padding: 24px; background: var(--night-soft); }
+.technology-layer h4,.technology-comparison h4 { margin-top: 0; font: 400 1.65rem/1.25 var(--serif); }
+.technology-dependencies { font-size: .9rem; }
+.technology-comparison { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,230px),1fr)); gap: 32px; }
+.technology-photograph { position: relative; margin: 36px 0; }
+.technology-photograph > button { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+.technology-photograph img { display: block; width: 100%; height: auto; max-height: 680px; object-fit: contain; }
+.technology-photograph figcaption { margin-top: 12px; color: var(--muted); font-size: .85rem; line-height: 1.6; }
+@media(max-width:720px) {
+  .technology-reader .fact-body { padding-top: 48px; }
+  .technology-input-output,.technology-tradeoff { grid-template-columns: 1fr; gap: 16px; }
+  .technology-setting { gap: 8px 24px; }
+  .technology-version,.technology-notice,.technology-layer { padding: 16px 20px; }
+  .technology-flow { flex-direction: column; min-width: 0; padding: 8px 4px; }
+  .technology-flow-node { width: 100%; max-width: 320px; flex: none; }
+  .technology-flow-links { width: 100%; flex: none; gap: 12px; }
+  .technology-flow-link { display: grid; grid-template-columns: 44px minmax(0,1fr); gap: 16px; align-items: center; text-align: left; }
+  .technology-flow-link svg { width: 64px; max-width: none; height: 24px; transform: rotate(90deg); justify-self: center; }
+  .technology-flow-link p { padding-block: 12px; margin: 0; }
+}
