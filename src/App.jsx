@@ -1896,7 +1896,7 @@ function FactPage({ cache, onBack, onReset }) {
     return ()=>controller.abort()
   },[countryPhotoHash,url,cache,pollImagesNeeded])
   useEffect(() => {
-    if (!data.fact || !jobId || !pollImagesNeeded) return undefined
+    if (!data.fact || !pollImagesNeeded) return undefined
     const controller = new AbortController()
     let timer
     function stopImages() {
@@ -1906,10 +1906,12 @@ function FactPage({ cache, onBack, onReset }) {
       } }))
     }
     // This also bounds a stalled fetch, not only the gaps between polls.
-    const deadlineTimer = window.setTimeout(() => { controller.abort(); stopImages() }, 345000)
+    const mediaTimeout=Math.min(1200,Math.max(330,Number(data.fact?.image_generation?.timeout_seconds)||330))
+    const deadlineTimer = window.setTimeout(() => { controller.abort(); stopImages() }, mediaTimeout*1000+15000)
     async function pollImages() {
       try {
-        const result = await getFactStatus(jobId, controller.signal)
+        const result = jobId?await getFactStatus(jobId, controller.signal)
+          :{status:'completed',data:{fact:await fetchFact(new URLSearchParams(location.search),controller.signal)}}
         if (controller.signal.aborted) return
         const updated = result.data?.fact
         if (result.status === 'completed' && matchesFact(updated, new URLSearchParams(location.search))) {

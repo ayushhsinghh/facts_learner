@@ -1,7 +1,7 @@
 import test from 'node:test'
 import assert from 'node:assert/strict'
 import { readFileSync } from 'node:fs'
-import { hasIndiaLesson, indiaPhotos } from './india.js'
+import { hasIndiaLesson, indiaPhotos, indiaScenes } from './india.js'
 const fixture=()=>JSON.parse(readFileSync(new URL('./fixtures/india-lesson.json',import.meta.url)))
 test('India uses its focused reader and preserves old generic articles',()=>{
   assert.equal(hasIndiaLesson(fixture()),true)
@@ -75,4 +75,18 @@ test('verified popular fallbacks remain visible even when the tags do not match'
   assert.equal(indiaScenes(f).length,1)
   f.image_credits.india_scene_0={...photo,detail_fetched:false}
   assert.equal(indiaScenes(f).length,0)
+})
+
+test('the text-ranked carousel waits for ten finalized photos and preserves legacy fallback',()=>{
+  const f=fixture();f.india_media={photo_ranking_version:1};f.photo_selection={status:'collecting',mode:'text_ranking'}
+  const base={provider:'unsplash',india_carousel:true,selection_mode:'llm_ranked',ranking_model:'gpt-6-luna',scene_query:'Stepwell',
+    author_url:'https://unsplash.com/@photographer',license_url:'https://unsplash.com/license',license:'Unsplash License',author:'Photographer',title:'A photograph',description:'Metadata selected by the text ranker'}
+  f.image_credits=Object.fromEntries(Array.from({length:10},(_,n)=>[`india_scene_${n}`,{...base,url:`https://images.unsplash.com/scene${n}`,source_url:`https://unsplash.com/photos/scene${n}`}]))
+  assert.equal(indiaScenes(f).length,0)
+  f.photo_selection={status:'completed',mode:'text_ranking'}
+  assert.equal(indiaScenes(f).length,10)
+  delete f.image_credits.india_scene_9
+  assert.equal(indiaScenes(f).length,0)
+  f.photo_selection={status:'completed',mode:'legacy_fallback'}
+  assert.equal(indiaScenes(f).length,9)
 })

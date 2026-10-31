@@ -46,8 +46,9 @@ export default function IndiaLesson({fact,narration,Heading,MarkdownContent,onOp
       <p className="physics-note" data-narration-content>{l.case_study.place}</p>{body(l.case_study.story)}{photos('case-study')}
       <h3>What this shows</h3>{body(l.case_study.what_it_shows)}
     </Section>
-    {scenes.length>0&&<Section {...props} id="india-photographs" title="See the story in photographs">
-      <CountryCarousel images={scenes} label="Photographs connected to this India topic" onOpenImage={onOpenImage}/>
+    {(scenes.length>0||fact.india_media?.photo_ranking_version===1)&&<Section {...props} id="india-photographs" title="See the story in photographs">
+      {scenes.length>0?<CountryCarousel images={scenes} label="Photographs connected to this India topic" onOpenImage={onOpenImage}/>
+        :<p role="status">{['insufficient','completed'].includes(fact.photo_selection?.status)?'Not enough relevant photographs are available for this lesson.':'Photographs are being selected. You can keep reading while they arrive.'}</p>}
     </Section>}
     {l.timeline.length>0&&<Section {...props} id="india-timeline" title="How the story changed">
       <ol className="india-timeline">{l.timeline.map((event,index)=><li key={index}><p className="physics-note" data-narration-content>{event.period}</p><h3>{event.event}</h3>{body(event.significance)}</li>)}</ol>

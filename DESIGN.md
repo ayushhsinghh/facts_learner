@@ -652,3 +652,11 @@ India carousel popular fallback: if one search cannot yield three tag matches, r
 most-liked valid photos. The gallery still combines multiple searches. Match filtering must not hide
 server-selected popular fallbacks; source credits, captions and image provenance remain intact.
 Deduplicate actual images/URLs, without treating similar captions as proof of duplicate photographs.
+
+Text-ranked India photos keep the article readable during collection, ranking and retries. The photo
+section displays “Photographs are being selected. You can keep reading while they arrive.” until
+finalization. Do not reveal a partial ranked carousel below ten assets. A terminal shortage has a clear
+insufficient-photographs message. The explicitly requested legacy fallback retains its old counts and
+presentation. The archive reader also polls background media, and browser navigation cancels polling.
+A local fixture review confirmed the article remains rendered while photo ranking is pending, without
+a route-level loading screen or horizontal overflow. Capture: india-ranking-pending.png.

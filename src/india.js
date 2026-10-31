@@ -28,14 +28,18 @@ export function indiaPhotos(fact, sectionId) {
 
 export function indiaScenes(fact) {
   const seen=new Set()
-  return Object.entries(fact?.image_credits||{}).flatMap(([key,value])=>{
+  const ranked=fact?.india_media?.photo_ranking_version===1&&fact?.photo_selection?.mode!=='legacy_fallback'
+  if(ranked&&fact?.photo_selection?.status!=='completed')return []
+  const result=Object.entries(fact?.image_credits||{}).flatMap(([key,value])=>{
     if(!/^india_scene_\d+$/.test(key)||!value?.india_carousel)return []
     const photo=countryPhoto(value)
     const popular=photo?.provider==='unsplash'&&photo.detail_fetched===true&&photo.selection_mode==='popular_fallback'&&Boolean(photo.scene_query?.trim())
-    if(!photo||!['unsplash','wikimedia'].includes(photo.provider)||(!popular&&!indiaSceneMatches(photo,photo.scene_query||'',fact))||seen.has(photo.source_url))return []
+    const selected=photo?.provider==='unsplash'&&photo.selection_mode==='llm_ranked'&&photo.ranking_model==='gpt-6-luna'
+    if(!photo||!['unsplash','wikimedia'].includes(photo.provider)||(!popular&&!selected&&!indiaSceneMatches(photo,photo.scene_query||'',fact))||seen.has(photo.source_url))return []
     seen.add(photo.source_url)
     return [{url:photo.url,credit:photo,alt:photo.description,caption:photo.image_caption||photo.title}]
   })
+  return ranked&&result.length<10?[]:result
 }
 
 const photoWords=value=>new Set((String(value||'').toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=3).map(w=>w.length>4&&w.endsWith('s')&&!w.endsWith('ss')?w.slice(0,-1):w))
