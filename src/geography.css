@@ -1,0 +1,51 @@
+.geography-reader :is(.fact-nav,.fact-meta,.fact-taxonomy,.source-section,.fact-end) { border-block: 0; }
+.geography-reader .fact-body { padding-top: 64px; }
+.geography-reader .fact-hero h1 { font-size: clamp(3.3rem,8vw,6rem); }
+.geography-lesson { max-width: 1120px; }
+.geography-lesson .physics-section-body { max-width: 72ch; }
+.geography-lesson :is(#geography-location,#geography-process) .physics-section-body { max-width: 100%; }
+.geography-lesson #geography-process .geography-explanation { max-width: 72ch; }
+.geography-setting { display: flex; flex-wrap: wrap; gap: 12px 40px; }
+.geography-setting dt { color: var(--muted); font-size: .8rem; }
+.geography-notice { padding: 18px 22px; background: var(--night-soft); }
+.geography-explanation + .geography-explanation { margin-top: 36px; }
+.geography-map,.geography-diagram { margin: 40px 0; }
+.geography-map-heading { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 20px; }
+.geography-map-heading h3 { margin: 0; }
+.geography-map-heading [role=group] { display: flex; gap: 8px; }
+.geography-map-heading button { min-height: 44px; padding: 8px 18px; color: var(--muted); background: transparent; border: 1px solid var(--line); border-radius: 100px; cursor: pointer; }
+.geography-map-heading button[aria-pressed=true] { color: var(--paper); background: var(--night-soft); border-color: var(--signal); }
+.geography-map-stage { height: 380px; background: var(--night-soft); display: grid; place-items: center; overflow: hidden; }
+.geography-map-stage > p { padding: 24px; }
+.geography-map-stage svg { display: block; height: 100%; width: 100%; }
+.geography-map-land { fill: #26303e; stroke: #566174; stroke-width: .75; }
+.geography-map-location circle { fill: var(--signal-strong); stroke: var(--night); }
+.geography-map-location line { stroke: var(--signal); }
+.geography-map-location rect { fill: var(--night); }
+.geography-map-location text { fill: var(--paper); font-family: 'DM Sans', sans-serif; }
+.geography-map-key,.geography-diagram-key { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 12px 36px; }
+.geography-map-key > div,.geography-diagram-key > div { min-width: 0; }
+.geography-map figcaption,.geography-diagram figcaption { margin: 16px 0 24px; font-size: .85rem; line-height: 1.6; color: var(--muted); }
+.geography-diagram-scroll { max-width: 100%; overflow-x: auto; color: var(--signal-strong); }
+.geography-diagram-scroll svg { display: block; width: 100%; min-width: 680px; }
+.geography-diagram-hint { display: none; }
+.geography-diagram-node rect { fill: var(--night-soft); stroke: var(--line); stroke-width: 1; }
+.geography-diagram-node text { fill: var(--paper); font: 16px 'DM Sans', sans-serif; }
+.geography-diagram-arrow { stroke: var(--signal-strong); stroke-width: 1.5; }
+.geography-relationship { fill: var(--signal-strong); font: 13px 'DM Sans', sans-serif; paint-order: stroke; stroke: var(--night); stroke-width: 5px; }
+.geography-terrain { fill: #26303e; stroke: var(--muted); stroke-width: 1; }
+.geography-comparison { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,230px),1fr)); gap: 32px; }
+.geography-comparison h4 { font: 400 1.65rem/1.25 var(--serif); margin-top: 0; }
+.geography-terms { margin: 0 0 32px; }
+.geography-photograph { position: relative; margin: 36px 0; }
+.geography-photograph > button { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+.geography-photograph img { display: block; width: 100%; height: auto; max-height: 680px; object-fit: contain; }
+.geography-photograph figcaption { margin-top: 12px; color: var(--muted); font-size: .85rem; line-height: 1.6; }
+@media(max-width:720px) {
+  .geography-reader .fact-body { padding-top: 48px; }
+  .geography-diagram-hint { display: block; }
+  .geography-map-stage { height: 360px; }
+  .geography-map-key,.geography-diagram-key { grid-template-columns: 1fr; gap: 12px; }
+  .geography-setting { gap: 8px 24px; }
+  .geography-notice { padding: 16px 20px; }
+}
