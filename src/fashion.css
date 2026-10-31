@@ -1,0 +1,27 @@
+.fashion-reader :is(.fact-nav,.fact-meta,.fact-taxonomy,.source-section,.fact-end) { border-block: 0; }
+.fashion-reader .fact-body { padding-top: 64px; }
+.fashion-reader .fact-hero h1 { font-size: clamp(3.3rem,8vw,6rem); }
+.fashion-lesson { max-width: 1120px; }
+.fashion-lesson .physics-section-body { max-width: 72ch; }
+.fashion-lesson #fashion-recognition .physics-section-body { max-width: 100%; }
+.fashion-identity { display: flex; flex-wrap: wrap; gap: 12px 40px; }
+.fashion-identity dt { font-size: .8rem; color: var(--muted); }
+.fashion-recognition.has-photograph { display: grid; grid-template-columns: minmax(0,1.1fr) minmax(0,1fr); gap: 56px; align-items: start; }
+.fashion-feature-list > div { scroll-margin-top: 28px; }
+.fashion-feature-list > div + div,.fashion-explanation + .fashion-explanation,.fashion-care-item + .fashion-care-item { margin-top: 36px; }
+.fashion-photograph { position: relative; margin: 36px 0; }
+.fashion-recognition-image .fashion-photograph { margin-top: 0; }
+.fashion-photograph > button { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+.fashion-photograph img { display: block; width: 100%; height: auto; max-height: 680px; object-fit: contain; }
+.fashion-photograph figcaption { margin-top: 12px; font-size: .85rem; color: var(--muted); line-height: 1.6; }
+.fashion-feature-link { display: inline-block; min-height: 44px; font-size: .9rem; }
+.fashion-observation { padding: 18px 22px; background: var(--night-soft); }
+.fashion-properties dt { font: 400 1.65rem/1.25 var(--serif); }
+.fashion-properties > div + div { margin-top: 20px; }
+.fashion-properties dd p:last-child { margin-bottom: 0; }
+@media(max-width:720px) {
+  .fashion-reader .fact-body { padding-top: 48px; }
+  .fashion-recognition.has-photograph { grid-template-columns: 1fr; gap: 28px; }
+  .fashion-identity { gap: 8px 24px; }
+  .fashion-observation { padding: 16px 20px; }
+}
