@@ -18,7 +18,7 @@ export function articleImages(fact, { slot, placement } = {}) {
     const country = fact?.article_type === 'country_profile'
     if (country && !COUNTRY_PHOTO_KEYS.includes(key)) return []
     const asset = country ? countryAsset(fact,key) : null
-    const credit = country ? asset?.credit : null
+    const credit = country ? asset?.credit : fact?.article_type === 'india_lesson' ? fact?.image_credits?.[key] : null
     const url = fact?.images?.[key] || (key === 'overview' ? fact?.images?.history : null)
     if (country && (!asset || !asset.generated)) return []
     if (!url || (slot && slot !== key)) return []

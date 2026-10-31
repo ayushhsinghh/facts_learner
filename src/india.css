@@ -1,0 +1,15 @@
+.india-setting { display:grid; grid-template-columns:1fr 1fr; gap:24px 40px; margin:32px 0; }
+.india-setting dt { color:var(--muted); font-size:.85rem; margin-bottom:8px; }
+.india-setting dd { margin:0; line-height:1.65; }
+.india-terms { margin:28px 0; }
+.india-terms > div { margin-bottom:24px; }
+.india-terms dt { color:var(--paper); font-weight:600; margin-bottom:8px; }
+.india-terms dd { margin:0; color:var(--muted); line-height:1.8; }
+.india-topic-photo { margin:32px 0; }
+.india-topic-photo > button { display:block; width:100%; padding:0; border:0; background:var(--night-soft); cursor:zoom-in; }
+.india-topic-photo img { display:block; width:100%; aspect-ratio:4/3; max-height:520px; object-fit:contain; }
+.india-topic-photo figcaption { color:var(--muted); font-size:.85rem; line-height:1.6; margin-top:12px; overflow-wrap:anywhere; }
+.india-timeline { list-style:none; padding:0; margin:0; }
+.india-timeline li + li,.india-nuance { margin-top:32px; }
+.india-lesson #india-explanation { scroll-margin-top:40px; }
+@media(max-width:480px) { .india-setting { grid-template-columns:1fr; gap:20px; } .india-topic-photo { margin:24px 0; } }

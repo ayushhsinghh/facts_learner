@@ -607,3 +607,27 @@ Narration opens enclosing disclosures within the selected section before highlig
 Fitness and Home Workouts use written exercise instructions only. No external exercise catalog,
 video search, video player, or provider credential is required. Keep sources, safety information,
 and all generated practice-guide fields available independently of third-party services.
+
+## India topic reader
+
+Use the incumbent Nocturne reading world and full-height shared cover. Keep the hero to title,
+headline, reading time, level and region. The body uses the shared 1040px wrapper, 75ch reading
+measure and 64px section rhythm (48px on phones), without rules or repeated card containers.
+Show the opening question and short answer first. Keep regional/time context, key terms, chapters,
+case study, meaningful chronology, wider connections and nuance open. Only recall answers collapse.
+Chapter photos use a stable 4:3 frame with contained images, a maximum height of 520px, enlargement
+and subtle photo-credit controls. They sit directly with the relevant explanation and never crop out
+scientific or architectural detail. The setting stacks below 480px. Main learning links lead to context,
+explanation, case study and recall. References appear only at the bottom.
+
+Review on 2026-10-31 used a stepwell fixture and real licensed Wikimedia photos, not a new model
+response. The sample case uses UNESCO's Rani-ki-Vav description; this does not verify future lessons.
+Desktop and 390px mobile captures are in `.impeccable/review/india-*`. The review checks reading
+order, image loading, no horizontal overflow, enlargement, close control and reveal-answer behavior.
+No paid image generation, production writes or deployment ran.
+
+India's “See the story in photographs” section follows the case study, using the shared carousel
+controls and contained image frame. It only shows attributed Unsplash scenes marked for the India
+carousel; inline topic photos never enter it. Empty searches omit the section. Desktop/mobile review
+uses two topic-matched, tracked Unsplash photos in a temporary fixture. Actual selected counts depend
+on source availability and relevance filters; the 12-image figure is a maximum, not a guaranteed count.

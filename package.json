@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build && node scripts/build-pages.mjs",
-    "test": "node --test src/navigation.test.js src/api.test.js src/evidence.test.js src/physics.test.js src/biology.test.js src/psychology.test.js src/constitution.test.js src/articleImages.test.js src/indianLaws.test.js src/country.test.js",
+    "test": "node --test src/navigation.test.js src/api.test.js src/evidence.test.js src/physics.test.js src/biology.test.js src/psychology.test.js src/constitution.test.js src/articleImages.test.js src/indianLaws.test.js src/country.test.js src/india.test.js",
     "preview": "vite preview"
   },
   "dependencies": {
