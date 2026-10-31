@@ -10,7 +10,7 @@ export function useCountryVisual(fact,purpose='cover') {
 }
 export function CountryCardVisual({fact}) {
   const {asset,onError}=useCountryVisual(fact,'overview')
-  return asset?<><img className="history-card-bg country-visual-background" src={asset.url} alt="" loading="lazy" onError={onError}/><PhotoCredit credit={asset.credit}/></>:null
+  return asset?<img className="history-card-bg country-visual-background" src={asset.url} alt="" loading="lazy" onError={onError}/>:null
 }
 export function CountrySubjectImage({fact,kind,index,subject,onOpenImage}) {
   const [failed,setFailed]=useState(null)
