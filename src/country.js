@@ -51,6 +51,18 @@ export function countryGallery(fact) {
   return result
 }
 export function countryScenes(fact) {
+  if(fact?.country_media?.photo_ranking_version===1&&fact?.photo_selection?.mode!=='legacy_fallback') {
+    if(fact?.photo_selection?.status!=='completed')return []
+    const seen=new Set(),result=[]
+    for(const [key,group] of Object.entries(fact.country_photo_galleries||{})) {
+      if(!key.startsWith('country_ranked_')||!Array.isArray(group))continue
+      for(const value of group){const photo=countryPhoto(value)
+        if(!photo||photo.provider!=='unsplash'||!photo.country_carousel||photo.selection_mode!=='llm_ranked'||photo.ranking_model!=='gpt-6-luna'||seen.has(photo.source_url))continue
+        seen.add(photo.source_url);result.push({url:photo.url,credit:photo,alt:photo.description,caption:photo.title})
+      }
+    }
+    return result.length>=10?result:[]
+  }
   return countryGallery(fact).filter(item=>item.credit.provider==='unsplash'||Boolean(item.credit.scene_query&&!item.credit.subject_kind))
 }
 export function countrySubjectPhoto(fact,kind,index,subject) {

@@ -1879,7 +1879,7 @@ function FactPage({ cache, onBack, onReset }) {
   const pollImagesNeeded = shouldPollImages(data.fact)
   const countryPhotoHash=hasCountryProfile(data.fact)?data.fact.content_hash:null
   useEffect(()=>{
-    if(!countryPhotoHash||data.fact?.country_photo_enrichment?.status==='completed'&&data.fact?.country_photo_enrichment?.version===3)return
+    if(!countryPhotoHash||data.fact?.country_photo_enrichment?.status==='completed'&&data.fact?.country_photo_enrichment?.version===4)return
     if(jobId&&pollImagesNeeded)return
     const controller=new AbortController()
     enrichCountryPhotos(data.fact,controller.signal,media=>{
@@ -1889,7 +1889,8 @@ function FactPage({ cache, onBack, onReset }) {
         const updated={...current.fact,images:{...current.fact.images,...media.images},
           image_credits:{...current.fact.image_credits,...media.image_credits},
           country_photo_galleries:{...current.fact.country_photo_galleries,...media.country_photo_galleries},
-          country_photo_enrichment:media.country_photo_enrichment}
+          country_photo_enrichment:media.country_photo_enrichment,
+          country_media:media.country_media||current.fact.country_media,photo_selection:media.photo_selection||current.fact.photo_selection}
         cache.set(url,updated);return {...current,fact:updated}
       })
     }).catch(()=>{}) // Optional photo enrichment never blocks the article or narration.

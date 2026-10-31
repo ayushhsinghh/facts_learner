@@ -79,7 +79,10 @@ export default function CountryProfile({fact,narration,Heading,MarkdownContent,o
     <Section {...props} id="country-places" title="Places worth understanding">
       {p.notable_places.map((place,n)=><div className="country-story country-illustrated-story" key={place.name}><div><h3>{place.name}</h3><p className="physics-note" data-narration-content>{place.location}</p><Text>{place.explanation}</Text><TopicDetails item={place}/><Text>{place.why_it_matters}</Text></div><CountrySubjectImage fact={fact} kind="places" index={n} subject={place.name} onOpenImage={onOpenImage}/></div>)}{photos('places')}
     </Section>
-    {countryScenes(fact).length>0&&<Section {...props} id="country-photographs" title="Scenes from the country"><CountryCarousel fact={fact} onOpenImage={onOpenImage}/></Section>}
+    {(countryScenes(fact).length>0||fact.country_media?.photo_ranking_version===1)&&<Section {...props} id="country-photographs" title="Scenes from the country">
+      {countryScenes(fact).length>0?<CountryCarousel fact={fact} onOpenImage={onOpenImage}/>
+        :<p role="status">{['insufficient','completed'].includes(fact.photo_selection?.status)?'Not enough relevant photographs are available for this country.':'Photographs are being selected. You can keep reading while they arrive.'}</p>}
+    </Section>}
     <Section {...props} id="country-people" title="People and their contributions">
       {p.notable_people.map((person,n)=><div className="country-story country-illustrated-story" key={person.name}><div><h3>{person.name}</h3><p className="physics-note" data-narration-content>{person.field}</p><Text>{person.connection}</Text><Text>{person.contribution}</Text><TopicDetails item={person}/><Text>{person.context}</Text></div><CountrySubjectImage fact={fact} kind="people" index={n} subject={person.name} onOpenImage={onOpenImage}/></div>)}{photos('people')}
     </Section>

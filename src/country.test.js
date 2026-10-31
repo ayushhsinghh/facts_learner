@@ -98,3 +98,18 @@ test('contextual Commons scenes join the carousel while inline topic figures sta
   assert.equal(countryScenes(f).length,1)
   assert.equal(countryScenes(f)[0].credit.scene_query,'wildlife birds')
 })
+
+test('country ranked carousels wait for ten photos and do not mix old scene galleries',()=>{
+  const f=fixture();f.country_media={photo_ranking_version:1};f.photo_selection={status:'collecting',mode:'text_ranking'}
+  const base={provider:'unsplash',country_carousel:true,selection_mode:'llm_ranked',ranking_model:'gpt-6-luna',
+    author_url:'https://unsplash.com/@photographer',license_url:'https://unsplash.com/license',license:'Unsplash License',author:'Photographer',title:'Japan scene',description:'A photograph of Japan'}
+  f.country_photo_galleries=Object.fromEntries(Array.from({length:10},(_,n)=>[`country_ranked_${n}`,[{...base,url:`https://images.unsplash.com/scene${n}`,source_url:`https://unsplash.com/photos/scene${n}`}]]))
+  f.country_photo_galleries.explanation_3=[{...base,country_carousel:false,scene_query:'Older scene',url:'https://images.unsplash.com/old',source_url:'https://unsplash.com/photos/old'}]
+  assert.equal(countryScenes(f).length,0)
+  f.photo_selection={status:'completed',mode:'text_ranking'}
+  assert.equal(countryScenes(f).length,10)
+  delete f.country_photo_galleries.country_ranked_9
+  assert.equal(countryScenes(f).length,0)
+  f.photo_selection={status:'completed',mode:'legacy_fallback'}
+  assert.ok(countryScenes(f).length>0)
+})

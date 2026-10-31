@@ -484,9 +484,11 @@ one-sentence introduction, visible metadata and adjacent asset credit. Separate 
   requested asset, another available image, a licensed gallery photo, then bundled Natural Earth
   world-map artwork. Broken URLs advance this chain. Gallery items are deduplicated at the fact root;
   persisted media status and history retain available results.
-- **Photo carousel:** Search twelve distinct topics, using country-specific destinations where supplied. Prefer Unsplash
-  and use topic-filtered Wikimedia fallback. Target at least ten photos, with up to two per topic
-  (24 total); unavailable or irrelevant topics stay empty. Deduplicate source and description. Use native swipe/scroll with previous/next controls of at least
+- **Photo carousel:** Ranking-enabled profiles share India's text-only selection pipeline, with country-specific
+  searches for complementary places, everyday life, food, cities and landscapes. Reveal 10–18 ranked Unsplash
+  photos together; keep the article readable with a pending message during selection. Show an insufficient state
+  when relevant metadata cannot support ten photos. After five failed ranking retries, use the legacy twelve-topic
+  Unsplash/Commons plan (up to 24 photos). Version-4 photo-only enrichment upgrades saved profiles. Use native swipe/scroll with previous/next controls of at least
   `44px` and Left/Right keyboard navigation. Never autoplay. Respect reduced-motion preferences. Keep
   credits available through the adjacent info button and in the shared enlargement dialog. Preserve image proportions.
 - **Subject figures:** Place a Wikimedia Commons figure with each notable person, notable place,
