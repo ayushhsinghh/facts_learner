@@ -77,6 +77,18 @@ test('verified popular fallbacks remain visible even when the tags do not match'
   assert.equal(indiaScenes(f).length,0)
 })
 
+test('ranked Wikimedia photographs support the same ten-photo India carousel',()=>{
+  const f=fixture();f.india_media={photo_ranking_version:1};f.photo_selection={status:'completed',mode:'text_ranking'}
+  const base={provider:'wikimedia',india_carousel:true,selection_mode:'llm_ranked',ranking_model:'gpt-6-luna',
+    license_url:'https://creativecommons.org/licenses/by-sa/4.0/',license:'CC BY-SA 4.0',
+    author:'Photographer',title:'Aranmula mirror',description:'The metal mirror discussed in this lesson',scene_query:'Aranmula kannadi'}
+  f.image_credits=Object.fromEntries(Array.from({length:10},(_,n)=>[`india_scene_${n}`,{...base,
+    url:`https://upload.wikimedia.org/mirror${n}.jpg`,source_url:`https://commons.wikimedia.org/wiki/File:Mirror${n}.jpg`}]))
+  assert.equal(indiaScenes(f).length,10)
+  f.image_credits.india_scene_9={...f.image_credits.india_scene_9,license:'All rights reserved'}
+  assert.equal(indiaScenes(f).length,0)
+})
+
 test('the text-ranked carousel waits for ten finalized photos and preserves legacy fallback',()=>{
   const f=fixture();f.india_media={photo_ranking_version:1};f.photo_selection={status:'collecting',mode:'text_ranking'}
   const base={provider:'unsplash',india_carousel:true,selection_mode:'llm_ranked',ranking_model:'gpt-6-luna',scene_query:'Stepwell',
