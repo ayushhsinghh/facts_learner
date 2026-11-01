@@ -1,0 +1,39 @@
+.agriculture-reader :is(.fact-nav,.fact-meta,.fact-taxonomy,.source-section,.fact-end) { border-block: 0; }
+.agriculture-reader .fact-body { padding-top: 64px; }
+.agriculture-reader .fact-hero h1 { font-size: clamp(3.3rem,8vw,6rem); }
+.agriculture-lesson { max-width: 1040px; }
+.agriculture-lesson .physics-section-body { max-width: 72ch; }
+.agriculture-context,.agriculture-tradeoff { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px 36px; }
+.agriculture-context dd p:last-child { margin-bottom: 0; }
+.agriculture-context-limit,.agriculture-observe { padding: 20px 24px; background: var(--night-soft); }
+.agriculture-explanation + .agriculture-explanation { margin-top: 40px; }
+.agriculture-process { margin-top: 40px; }
+.agriculture-process > li { padding: 8px 0 36px 12px; scroll-margin-top: 28px; }
+.agriculture-diagram { margin: 0 0 48px; }
+.agriculture-diagram figcaption { margin: 24px 0 16px; font-size: .9rem; color: var(--muted); }
+.agriculture-path { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,190px),1fr)); gap: 24px 40px; margin: 24px 0; }
+.agriculture-path li { padding-left: 4px; }
+.agriculture-path a { font-weight: 500; }
+.agriculture-path p { margin-top: 12px; font-size: .9rem; }
+.agriculture-lesson .agriculture-path li + li { margin-top: 0; }
+.agriculture-season > li { padding: 12px 0 24px 12px; }
+.agriculture-season h4,.agriculture-layer h4,.agriculture-comparison h4 { margin-top: 0; font: 400 1.65rem/1.25 var(--serif); }
+.agriculture-lesson .agriculture-diagram-links { display: flex; flex-wrap: wrap; gap: 12px 24px; padding: 0; list-style: none; font-size: .85rem; }
+.agriculture-diagram-links li + li { margin-top: 0; }
+.agriculture-layers { display: flex; flex-direction: column; gap: 4px; }
+.agriculture-layer { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,2fr); align-items: start; gap: 24px; padding: 24px; background: var(--night-soft); scroll-margin-top: 28px; }
+.agriculture-layer p:last-child { margin-bottom: 0; }
+.agriculture-relationships { font-size: .95rem; }
+.agriculture-comparison { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); gap: 36px; }
+.agriculture-measurement + .agriculture-measurement { margin-top: 32px; }
+.agriculture-measurement strong { font-weight: 500; color: var(--signal-strong); }
+.agriculture-photograph { position: relative; margin: 36px 0; }
+.agriculture-photograph > button { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+.agriculture-photograph img { display: block; width: 100%; height: auto; max-height: 680px; object-fit: contain; }
+.agriculture-photograph figcaption { margin-top: 12px; color: var(--muted); font-size: .85rem; line-height: 1.6; }
+@media(max-width:720px) {
+  .agriculture-reader .fact-body { padding-top: 48px; }
+  .agriculture-context,.agriculture-tradeoff,.agriculture-layer,.agriculture-path { grid-template-columns: 1fr; gap: 16px; }
+  .agriculture-layer { padding: 20px; }
+  .agriculture-context-limit,.agriculture-observe { padding: 16px 20px; }
+}

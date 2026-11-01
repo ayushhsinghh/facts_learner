@@ -1,0 +1,43 @@
+.nature-reader :is(.fact-nav,.fact-meta,.fact-taxonomy,.source-section,.fact-end) { border-block: 0; }
+.nature-reader .fact-body { padding-top: 64px; }
+.nature-reader .fact-hero h1 { font-size: clamp(3.3rem,8vw,6rem); }
+.nature-lesson { max-width: 1120px; }
+.nature-lesson .physics-section-body { max-width: 72ch; }
+.nature-lesson #nature-recognition .physics-section-body { max-width: 100%; }
+.nature-context { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 16px 36px; }
+.nature-context dd p:last-child { margin-bottom: 0; }
+.nature-recognition.has-photo { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,1fr); gap: 48px; align-items: start; }
+.nature-recognition-photos .nature-photograph { margin-top: 0; }
+.nature-feature,.nature-steps > li,.nature-explanation { scroll-margin-top: 28px; }
+.nature-feature + .nature-feature,.nature-explanation + .nature-explanation { margin-top: 40px; }
+.nature-feature { max-width: 72ch; }
+.nature-steps > li { padding: 8px 0 36px 12px; }
+.nature-care-note,.nature-conservation { padding: 20px 24px; background: var(--night-soft); }
+.nature-lesson .nature-relationship { color: var(--signal-strong); }
+.nature-diagram { margin: 0 0 48px; }
+.nature-path { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,210px),1fr)); gap: 24px 40px; margin: 24px 0; }
+.nature-lesson .nature-network-nodes { list-style: none; padding: 0; }
+.nature-path li { padding-left: 4px; }
+.nature-path p { margin-top: 12px; font-size: .9rem; }
+.nature-lesson .nature-path li + li { margin-top: 0; }
+.nature-structure > div { display: grid; grid-template-columns: minmax(0,1fr) minmax(0,2fr); gap: 24px; }
+.nature-cycle-return { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px; }
+.nature-cycle-return svg { width: 22px; height: 22px; align-self: center; fill: none; stroke: var(--signal-strong); stroke-width: 1.5; flex-shrink: 0; }
+.nature-relationships { font-size: .95rem; }
+.nature-lesson .nature-relationships > div { padding: 20px 24px; margin-bottom: 12px; background: var(--night-soft); }
+.nature-diagram figcaption { margin: 24px 0 16px; color: var(--muted); font-size: .9rem; }
+.nature-comparison { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,220px),1fr)); gap: 36px; }
+.nature-comparison h4 { margin-top: 0; font: 400 1.65rem/1.25 var(--serif); }
+.nature-measurement + .nature-measurement { margin-top: 32px; }
+.nature-measurement strong { font-weight: 500; color: var(--signal-strong); }
+.nature-photograph { position: relative; margin: 36px 0; }
+.nature-photograph > button { display: block; width: 100%; padding: 0; border: 0; background: transparent; cursor: zoom-in; }
+.nature-photograph img { display: block; width: 100%; height: auto; max-height: 680px; object-fit: contain; }
+.nature-photograph figcaption { margin-top: 12px; color: var(--muted); font-size: .85rem; line-height: 1.6; }
+.nature-photo-feature { display: inline-block; margin-top: 12px; font-size: .85rem; }
+@media(max-width:720px) {
+ .nature-reader .fact-body { padding-top: 48px; }
+ .nature-context,.nature-recognition.has-photo,.nature-structure > div,.nature-path { grid-template-columns: 1fr; gap: 16px; }
+ .nature-recognition.has-photo { gap: 32px; }
+ .nature-care-note,.nature-conservation,.nature-lesson .nature-relationships > div { padding: 16px 20px; }
+}
