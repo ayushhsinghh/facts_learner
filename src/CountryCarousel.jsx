@@ -20,7 +20,7 @@ export default function CountryCarousel({fact,onOpenImage,images:providedImages,
         <button type="button" aria-label={`Enlarge photograph: ${item.caption}`} onClick={()=>onOpenImage(item)}>
           <img src={item.url} alt={item.alt} loading="lazy" decoding="async" onError={()=>setFailed(previous=>new Set([...previous,item.url]))}/>
         </button>
-        <figcaption>{item.caption}<PhotoCredit credit={item.credit}/></figcaption>
+        <figcaption>{item.credit?.popular_pick&&<span>Popular on Unsplash · </span>}{item.caption}<PhotoCredit credit={item.credit}/></figcaption>
       </figure>)}
     </div>
   </div>

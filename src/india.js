@@ -34,12 +34,13 @@ export function indiaScenes(fact) {
     if(!/^india_scene_\d+$/.test(key)||!value?.india_carousel)return []
     const photo=countryPhoto(value)
     const popular=photo?.provider==='unsplash'&&photo.detail_fetched===true&&photo.selection_mode==='popular_fallback'&&Boolean(photo.scene_query?.trim())
+    const popularPick=photo?.provider==='unsplash'&&photo.popular_pick===true&&photo.selection_mode==='popular_unsplash'
     const selected=['unsplash','wikimedia'].includes(photo?.provider)&&photo.selection_mode==='llm_ranked'&&photo.ranking_model==='gpt-6-luna'
-    if(!photo||!['unsplash','wikimedia'].includes(photo.provider)||(!popular&&!selected&&!indiaSceneMatches(photo,photo.scene_query||'',fact))||seen.has(photo.source_url))return []
+    if(!photo||!['unsplash','wikimedia'].includes(photo.provider)||(!popular&&!popularPick&&!selected&&!indiaSceneMatches(photo,photo.scene_query||'',fact))||seen.has(photo.source_url))return []
     seen.add(photo.source_url)
     return [{url:photo.url,credit:photo,alt:photo.description,caption:photo.image_caption||photo.title}]
   })
-  return ranked&&result.length<10?[]:result
+  return ranked&&result.length<10&&!result.some(item=>item.credit.popular_pick===true)?[]:result
 }
 
 const photoWords=value=>new Set((String(value||'').toLocaleLowerCase().match(/[\p{L}\p{N}]+/gu)||[]).filter(w=>w.length>=3).map(w=>w.length>4&&w.endsWith('s')&&!w.endsWith('ss')?w.slice(0,-1):w))

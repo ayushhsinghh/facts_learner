@@ -113,3 +113,12 @@ test('country ranked carousels wait for ten photos and do not mix old scene gall
   f.photo_selection={status:'completed',mode:'legacy_fallback'}
   assert.ok(countryScenes(f).length>0)
 })
+
+test('popular Unsplash views remain visible below ten photos without duplicating sources',()=>{
+  const f=fixture();f.country_media={photo_ranking_version:1};f.photo_selection={status:'completed',mode:'text_ranking'}
+  const photo={provider:'unsplash',url:'https://images.unsplash.com/popular',source_url:'https://unsplash.com/photos/popular',author_url:'https://unsplash.com/@photographer',license_url:'https://unsplash.com/license',license:'Unsplash License',author:'Photographer',title:'An original photo title',description:'An original photo description',popular_pick:true,selection_mode:'popular_unsplash',country_carousel:true}
+  f.country_photo_galleries={country_ranked_0:[photo],country_ranked_1:[photo]}
+  assert.equal(countryScenes(f).length,1)
+  f.country_photo_galleries.country_ranked_0=[{...photo,license:""}];delete f.country_photo_galleries.country_ranked_1
+  assert.equal(countryScenes(f).length,0)
+})

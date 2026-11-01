@@ -57,11 +57,13 @@ export function countryScenes(fact) {
     for(const [key,group] of Object.entries(fact.country_photo_galleries||{})) {
       if(!key.startsWith('country_ranked_')||!Array.isArray(group))continue
       for(const value of group){const photo=countryPhoto(value)
-        if(!photo||photo.provider!=='unsplash'||!photo.country_carousel||photo.selection_mode!=='llm_ranked'||photo.ranking_model!=='gpt-6-luna'||seen.has(photo.source_url))continue
+        const popular=photo?.popular_pick===true&&photo.selection_mode==='popular_unsplash'
+        const ranked=photo?.selection_mode==='llm_ranked'&&photo.ranking_model==='gpt-6-luna'
+        if(!photo||photo.provider!=='unsplash'||!photo.country_carousel||(!popular&&!ranked)||seen.has(photo.source_url))continue
         seen.add(photo.source_url);result.push({url:photo.url,credit:photo,alt:photo.description,caption:photo.title})
       }
     }
-    return result.length>=10?result:[]
+    return result.length>=10||result.some(item=>item.credit.popular_pick===true)?result:[]
   }
   return countryGallery(fact).filter(item=>item.credit.provider==='unsplash'||Boolean(item.credit.scene_query&&!item.credit.subject_kind))
 }

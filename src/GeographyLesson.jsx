@@ -16,7 +16,7 @@ function Section({id,title,Heading,narration,children}) {
 function Photo({image,onOpenImage}) {
   const [failed,setFailed]=useState(false)
   if(failed)return null
-  return <figure className="geography-photograph"><button type="button" aria-label={`Enlarge photograph: ${image.caption}`} onClick={()=>onOpenImage(image)}><img src={image.url} alt={image.alt} loading="lazy" decoding="async" onError={()=>setFailed(true)}/></button><figcaption>{image.caption}<PhotoCredit credit={image.credit}/></figcaption></figure>
+  return <figure className="geography-photograph"><button type="button" aria-label={`Enlarge photograph: ${image.caption}`} onClick={()=>onOpenImage(image)}><img src={image.url} alt={image.alt} loading="lazy" decoding="async" onError={()=>setFailed(true)}/></button><figcaption>{image.credit?.popular_pick&&<span>Popular on Unsplash · </span>}{image.caption}<PhotoCredit credit={image.credit}/></figcaption></figure>
 }
 export default function GeographyLesson({fact,narration,Heading,MarkdownContent,onOpenImage}) {
   const l=fact.geography_lesson,c=l.case_study,props={Heading,narration}

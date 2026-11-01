@@ -15,7 +15,7 @@ function Section({id,title,Heading,narration,children}) {
 function Photo({image,onOpenImage,onFailure}) {
   const [failed,setFailed]=useState(false)
   if(failed)return null
-  return <figure className="fashion-photograph"><button type="button" aria-label={`Enlarge photograph: ${image.caption}`} onClick={()=>onOpenImage(image)}><img src={image.url} alt={image.alt} loading="lazy" decoding="async" onError={()=>{setFailed(true);onFailure?.(image.url)}}/></button><figcaption>{image.caption}<PhotoCredit credit={image.credit}/></figcaption></figure>
+  return <figure className="fashion-photograph"><button type="button" aria-label={`Enlarge photograph: ${image.caption}`} onClick={()=>onOpenImage(image)}><img src={image.url} alt={image.alt} loading="lazy" decoding="async" onError={()=>{setFailed(true);onFailure?.(image.url)}}/></button><figcaption>{image.credit?.popular_pick&&<span>Popular on Unsplash · </span>}{image.caption}<PhotoCredit credit={image.credit}/></figcaption></figure>
 }
 export default function FashionLesson({fact,narration,Heading,MarkdownContent,onOpenImage}) {
   const l=fact.fashion_lesson,g=l.practical_guide,props={Heading,narration}

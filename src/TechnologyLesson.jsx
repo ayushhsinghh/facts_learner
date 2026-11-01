@@ -15,7 +15,7 @@ function Section({id,title,Heading,narration,children}) {
 function Photo({image,onOpenImage}) {
   const [failed,setFailed]=useState(false)
   if(failed)return null
-  return <figure className="technology-photograph"><button type="button" aria-label={`Enlarge photograph: ${image.caption}`} onClick={()=>onOpenImage(image)}><img src={image.url} alt={image.alt} loading="lazy" decoding="async" onError={()=>setFailed(true)}/></button><figcaption>{image.caption}<PhotoCredit credit={image.credit}/></figcaption></figure>
+  return <figure className="technology-photograph"><button type="button" aria-label={`Enlarge photograph: ${image.caption}`} onClick={()=>onOpenImage(image)}><img src={image.url} alt={image.alt} loading="lazy" decoding="async" onError={()=>setFailed(true)}/></button><figcaption>{image.credit?.popular_pick&&<span>Popular on Unsplash · </span>}{image.caption}<PhotoCredit credit={image.credit}/></figcaption></figure>
 }
 export default function TechnologyLesson({fact,narration,Heading,MarkdownContent,onOpenImage}) {
   const l=fact.technology_lesson,s=l.system_model,e=l.worked_example,props={Heading,narration}
