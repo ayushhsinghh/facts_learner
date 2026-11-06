@@ -35,8 +35,8 @@ export function indiaScenes(fact) {
     const photo=countryPhoto(value)
     const popular=photo?.provider==='unsplash'&&photo.detail_fetched===true&&photo.selection_mode==='popular_fallback'&&Boolean(photo.scene_query?.trim())
     const popularPick=photo?.provider==='unsplash'&&photo.popular_pick===true&&photo.selection_mode==='popular_unsplash'
-    const selected=['unsplash','wikimedia'].includes(photo?.provider)&&photo.selection_mode==='llm_ranked'&&photo.ranking_model==='gpt-6-luna'
-    if(!photo||!['unsplash','wikimedia'].includes(photo.provider)||(!popular&&!popularPick&&!selected&&!indiaSceneMatches(photo,photo.scene_query||'',fact))||seen.has(photo.source_url))return []
+    const selected=['unsplash','pixabay','wikimedia'].includes(photo?.provider)&&photo.selection_mode==='llm_ranked'&&photo.ranking_model==='gpt-6-luna'
+    if(!photo||!['unsplash','pixabay','wikimedia'].includes(photo.provider)||(!popular&&!popularPick&&!selected&&!indiaSceneMatches(photo,photo.scene_query||'',fact))||seen.has(photo.source_url))return []
     seen.add(photo.source_url)
     return [{url:photo.url,credit:photo,alt:photo.description,caption:photo.image_caption||photo.title}]
   })

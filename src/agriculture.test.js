@@ -52,3 +52,16 @@ test('Agriculture gallery deduplicates sources and puts popular photos last',()=
   const f=fixture();f.image_credits={agriculture_scene_0:{...photo,agriculture_carousel:true,popular_pick:true},agriculture_scene_1:{...photo,source_url:'https://commons.wikimedia.org/wiki/File:Other.jpg',agriculture_carousel:true},agriculture_scene_2:{...photo,agriculture_carousel:true}}
   const scenes=agricultureScenes(f);assert.equal(scenes.length,2);assert.equal(scenes.at(-1).credit.popular_pick,true)
 })
+test('repaired photo plans bind to overview, crop context and case sections',()=>{
+  const f=fixture()
+  f.agriculture_lesson.photos=[
+    {id:'fallback_overview',section_id:'overview',kind:'process',step_id:null,subject:'Mulching',queries:['Mulching']},
+    {id:'fallback_crop',section_id:'context',kind:'crop',step_id:null,subject:'Banana',queries:['Banana farming']},
+    {id:'fallback_place',section_id:'case',kind:'named_place',step_id:null,subject:'Tamil Nadu',queries:['Tamil Nadu']},
+  ]
+  f.image_credits=Object.fromEntries(f.agriculture_lesson.photos.map((p,i)=>[`agriculture_photo_${i}`,{...photo,agriculture_photo:true,section_id:p.section_id,photo_id:p.id,step_id:null}]))
+  assert.equal(hasAgricultureLesson(f),true)
+  for(const section of ['overview','context','case'])assert.equal(agriculturePhotos(f,section).length,1)
+  f.image_credits.agriculture_photo_2.provider='unsplash'
+  assert.equal(agriculturePhotos(f,'case').length,0)
+})

@@ -122,3 +122,32 @@ test('popular Unsplash views remain visible below ten photos without duplicating
   f.country_photo_galleries.country_ranked_0=[{...photo,license:""}];delete f.country_photo_galleries.country_ranked_1
   assert.equal(countryScenes(f).length,0)
 })
+
+test('Pixabay credits require stored OCI assets and provider attribution',()=>{
+  const photo={provider:'pixabay',provider_id:'pixabay_123',stored_locally:true,
+    url:'https://objectstorage.ap-mumbai-1.oraclecloud.com/p/read-token/n/photos/b/bucket/o/photo.jpg',
+    source_url:'https://pixabay.com/photos/dal-123/',author_url:'https://pixabay.com/users/creator-123/',
+    author:'Creator',title:'Dal',description:'Indian dal',license:'Pixabay Content License',
+    license_url:'https://pixabay.com/service/license-summary/'}
+  assert.ok(countryPhoto(photo))
+  for(const change of [{stored_locally:false},{url:'https://cdn.pixabay.com/photo/test.jpg'},
+    {url:'https://objectstorage.ap-mumbai-1.oraclecloud.com.evil.example/p/test'},
+    {source_url:'https://evil.example/photo'},{license_url:'https://pixabay.com/wrong/'},
+    {author:''},{license:'CC0'}])assert.equal(countryPhoto({...photo,...change}),null)
+})
+
+test('ranked Pixabay photos display in country and India carousels',async()=>{
+  const {indiaScenes}=await import('./india.js')
+  const base={provider:'pixabay',stored_locally:true,author:'Creator',title:'Root bridge',
+    description:'Living root bridge in Meghalaya India',license:'Pixabay Content License',
+    license_url:'https://pixabay.com/service/license-summary/',author_url:'https://pixabay.com/users/creator-1/',
+    url:'https://objectstorage.ap-mumbai-1.oraclecloud.com/p/read/n/ns/b/b/o/photo.jpg',
+    country_carousel:true,india_carousel:true,selection_mode:'llm_ranked',ranking_model:'gpt-6-luna'}
+  const photos=Array.from({length:10},(_,i)=>({...base,source_url:`https://pixabay.com/photos/bridge-${i}/`}))
+  const f={photo_selection:{status:'completed'},country_media:{photo_ranking_version:1},
+    india_media:{photo_ranking_version:1},country_photo_galleries:{country_ranked_0:photos},
+    image_credits:Object.fromEntries(photos.map((p,i)=>[`india_scene_${i}`,p]))}
+  assert.equal(countryScenes(f).length,10)
+  assert.equal(indiaScenes(f).length,10)
+  assert.equal(countrySubjectPhoto({...f,country_photo_galleries:{country_person_0:[{...photos[0],subject_kind:'person',subject:'Name'}]}},'person',0,'Name'),null)
+})

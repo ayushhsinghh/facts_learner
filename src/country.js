@@ -21,6 +21,13 @@ export function hasCountryProfile(fact) {
     && texts(p.takeaways) && texts(p.curiosity_questions) && texts(p.related_topics))
 }
 export function countryPhoto(credit) {
+  if(credit?.provider==='pixabay') {
+    const values=['url','source_url','license_url','author_url'].map(key=>safeSourceUrl(credit[key]))
+    if(values.some(value=>!value)||credit.stored_locally!==true||!text(credit.author)||!text(credit.title)||!text(credit.description)||credit.license!=='Pixabay Content License')return null
+    const [image,source,license,author]=values.map(value=>new URL(value))
+    if(!/^objectstorage\.[a-z0-9-]+\.oraclecloud\.com$/.test(image.hostname)||!image.pathname.startsWith('/p/')||[source,license,author].some(value=>value.hostname!=='pixabay.com')||license.pathname!=='/service/license-summary/')return null
+    return {...credit,url:values[0],source_url:values[1],license_url:values[2],author_url:values[3]}
+  }
   if(credit?.provider==='unsplash') {
     const values=['url','source_url','license_url','author_url'].map(key=>safeSourceUrl(credit[key]))
     if(values.some(value=>!value)||!text(credit.author)||!text(credit.title)||!text(credit.description)||credit.license!=='Unsplash License')return null
@@ -57,20 +64,20 @@ export function countryScenes(fact) {
     for(const [key,group] of Object.entries(fact.country_photo_galleries||{})) {
       if(!key.startsWith('country_ranked_')||!Array.isArray(group))continue
       for(const value of group){const photo=countryPhoto(value)
-        const popular=photo?.popular_pick===true&&photo.selection_mode==='popular_unsplash'
+        const popular=photo?.provider==='unsplash'&&photo.popular_pick===true&&photo.selection_mode==='popular_unsplash'
         const ranked=photo?.selection_mode==='llm_ranked'&&photo.ranking_model==='gpt-6-luna'
-        if(!photo||photo.provider!=='unsplash'||!photo.country_carousel||(!popular&&!ranked)||seen.has(photo.source_url))continue
+        if(!photo||!['unsplash','pixabay'].includes(photo.provider)||!photo.country_carousel||(!popular&&!ranked)||seen.has(photo.source_url))continue
         seen.add(photo.source_url);result.push({url:photo.url,credit:photo,alt:photo.description,caption:photo.title})
       }
     }
     return result.length>=10||result.some(item=>item.credit.popular_pick===true)?result:[]
   }
-  return countryGallery(fact).filter(item=>item.credit.provider==='unsplash'||Boolean(item.credit.scene_query&&!item.credit.subject_kind))
+  return countryGallery(fact).filter(item=>['unsplash','pixabay'].includes(item.credit.provider)||Boolean(item.credit.scene_query&&!item.credit.subject_kind))
 }
 export function countrySubjectPhoto(fact,kind,index,subject) {
   const group=fact?.country_photo_galleries?.[`country_${kind}_${index}`]
   if(!Array.isArray(group))return null
-  const photo=group.map(countryPhoto).find(item=>item&&item.provider!=='unsplash'&&item.subject_kind===kind&&(item.subject===subject||item.entry_title===subject))
+  const photo=group.map(countryPhoto).find(item=>item&&!['unsplash','pixabay'].includes(item.provider)&&item.subject_kind===kind&&(item.subject===subject||item.entry_title===subject))
   return photo?{url:photo.url,credit:photo,alt:photo.description,caption:photo.image_caption||photo.subject||photo.title}:null
 }
 export function countryVisualCandidates(fact,purpose='cover') {

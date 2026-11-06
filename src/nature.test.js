@@ -27,3 +27,16 @@ test('Nature inline photos require exact section and feature binding; popular vi
  f.image_credits.nature_photo_0.feature_id='litter';f.image_credits.nature_photo_0.popular_pick=true;assert.equal(naturePhotos(f,'recognition').length,0)
  f.image_credits={nature_scene_0:{...photo,nature_carousel:true,popular_pick:true},nature_scene_1:{...photo,url:photo.url+'2',source_url:photo.source_url+'2',nature_carousel:true}};assert.equal(natureScenes(f).at(-1).credit.popular_pick,true)
 })
+test('repaired Nature plans bind overview, recognition features and exact-place examples',()=>{
+ const f=fixture()
+ f.nature_lesson.photos=[
+  {id:'fallback_overview',section_id:'overview',kind:'process',feature_id:null,subject:'Leaf litter',queries:['Leaf litter']},
+  {id:'fallback_feature',section_id:'recognition',kind:'material',feature_id:'litter',subject:'Leaf litter',queries:['Leaf litter forest floor']},
+  {id:'fallback_example',section_id:'example',kind:'named_place',feature_id:null,subject:'Mount Rainier National Park',queries:['Mount Rainier National Park']},
+ ]
+ f.image_credits=Object.fromEntries(f.nature_lesson.photos.map((p,i)=>[`nature_photo_${i}`,{...photo,nature_photo:true,section_id:p.section_id,photo_id:p.id,feature_id:p.feature_id}]))
+ assert.ok(hasNatureLesson(f))
+ for(const section of ['overview','recognition','example'])assert.equal(naturePhotos(f,section).length,1)
+ f.image_credits.nature_photo_1.feature_id='fragments'
+ assert.equal(naturePhotos(f,'recognition').length,0)
+})
