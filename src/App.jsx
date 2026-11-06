@@ -16,7 +16,7 @@ import PsychologyLesson from './PsychologyLesson.jsx'
 import { hasPsychologyLesson } from './psychology.js'
 import IndiaLesson from './IndiaLesson.jsx'
 import DrinksLesson from './DrinksLesson.jsx'
-import { hasDrinksLesson } from './drinks.js'
+import { hasDrinksOpening, hasDrinksLesson } from './drinks.js'
 import FoodLesson from './FoodLesson.jsx'
 import { hasFoodLesson } from './food.js'
 import FashionLesson from './FashionLesson.jsx'
@@ -1115,6 +1115,7 @@ function FactView({ fact, onReset, onBack }) {
 
       <nav className="reading-nav" aria-label="On this page">
         <div className="reading-nav-glass">
+          {isDrinksLesson&&hasDrinksOpening(fact)&&<a href="#drinks-opening">Before the first sip</a>}
           <a href="#overview">{isCountryProfile?'Start here':'Overview'}</a>
           {isDrinksLesson ? <>
             <a href="#drinks-origin">Origin</a><a href="#drinks-method">Then & now</a><a href="#drinks-flavour">Flavour</a>

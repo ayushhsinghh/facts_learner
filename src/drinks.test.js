@@ -26,3 +26,25 @@ test('Gallery deduplicates sources and keeps popular picks at the end',()=>{
  const f=fixture();f.image_credits={drinks_scene_0:{...photo,drinks_carousel:true,popular_pick:true},drinks_scene_1:{...photo,source_url:photo.source_url+'2',drinks_carousel:true},drinks_scene_2:{...photo,drinks_carousel:true}}
  const photos=drinksScenes(f);assert.equal(photos.length,2);assert.equal(photos.at(-1).credit.popular_pick,true)
 })
+const edition2=()=>JSON.parse(fs.readFileSync(new URL('./fixtures/drinks-lesson-v2.json',import.meta.url)))
+test('Second edition requires both production stories and all dedicated photo searches',()=>{
+ assert.ok(hasDrinksLesson(edition2()))
+ for(const mutate of [l=>delete l.production_evolution,l=>l.production_evolution.modern.steps=[],l=>l.photos.pop(),l=>l.photos[0].queries=['one'],l=>l.science_focus_id=null]){
+  const f=edition2();mutate(f.drinks_lesson);assert.equal(hasDrinksLesson(f),false)
+ }
+})
+test('New Drinks carousel accepts stock providers and rejects documentary section photos',()=>{
+ const f=edition2()
+ const unsplash={...photo,provider:'unsplash',url:'https://images.unsplash.com/photo-drink',source_url:'https://unsplash.com/photos/drink',license:'Unsplash License',license_url:'https://unsplash.com/license',author_url:'https://unsplash.com/@photographer',drinks_carousel:true}
+ const pixabay={...photo,provider:'pixabay',url:'https://objectstorage.ap-mumbai-1.oraclecloud.com/p/example/drink.jpg',source_url:'https://pixabay.com/photos/drink-123/',license:'Pixabay Content License',license_url:'https://pixabay.com/service/license-summary/',author_url:'https://pixabay.com/users/photographer-1/',stored_locally:true,drinks_carousel:true}
+ f.image_credits={drinks_scene_0:{...photo,drinks_carousel:true},drinks_scene_1:unsplash,drinks_scene_2:pixabay}
+ assert.deepEqual(drinksScenes(f).map(p=>p.credit.provider),['unsplash','pixabay'])
+ f.image_credits.drinks_photo_0={...unsplash,drinks_photo:true,photo_id:f.drinks_lesson.photos[0].id,section_id:'overview',entry_id:null}
+ assert.equal(drinksPhotos(f,'overview').length,0)
+})
+test('Opening hook is optional for saved articles and only renders when complete',async()=>{
+ const {hasDrinksOpening}=await import('./drinks.js')
+ assert.equal(hasDrinksOpening(fixture()),false)
+ const f=edition2();assert.equal(hasDrinksOpening(f),true)
+ f.drinks_lesson.opening_hook.bridge_question='';assert.equal(hasDrinksOpening(f),false)
+})

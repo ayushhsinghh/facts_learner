@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 import ArticleImages from './ArticleImages.jsx'
 import PhotoCredit from './PhotoCredit.jsx'
 import CountryCarousel from './CountryCarousel.jsx'
-import { drinksPhotos,drinksScenes } from './drinks.js'
+import { drinksPhotos,drinksScenes,hasDrinksOpening } from './drinks.js'
 import { archiveUrl } from './navigation.js'
 import './physics.css'
 import './drinks.css'
@@ -22,16 +22,22 @@ export default function DrinksLesson({fact,narration,Heading,MarkdownContent,onO
  const bullets=items=><ul>{items.map((p,i)=><li key={i} data-narration-content>{p}</li>)}</ul>
  const photos=(section,entry=null)=>{const images=drinksPhotos(fact,section,entry);return images.length>2?<CountryCarousel images={images} label={`Photographs for ${section}`} onOpenImage={onOpenImage}/>:images.map(image=><Photo key={image.url} image={image} onOpenImage={onOpenImage}/>)}
  return <div className="physics-lesson drinks-lesson">
+  {hasDrinksOpening(fact)&&<Section {...props} id="drinks-opening" title={l.opening_hook.heading}>
+   {text(l.opening_hook.introduction)}{text(l.opening_hook.intriguing_detail)}
+   <p className="physics-goal" data-narration-content>{l.opening_hook.bridge_question}</p>
+  </Section>}
   <Section {...props} id="overview" title={l.question}><p className="physics-goal" data-narration-content>{l.learning_goal}</p>
    <dl className="drinks-essentials">{[['Origin and region',l.identity.country_names.join(', ')+' · '+l.identity.region],['Drink',l.identity.drink_type.replaceAll('_',' ')],['Alcohol',l.identity.alcohol_status.replaceAll('_',' ')]].map(([key,v])=><div key={key}><dt data-narration-content>{key}</dt><dd data-narration-content>{v}</dd></div>)}</dl>
    {l.identity.local_names.length>0&&<p className="physics-note" data-narration-content>{l.identity.local_names.join(' · ')}</p>}{text(l.introduction.explanation)}
-   <h3 data-narration-content>What makes it different</h3>{text(l.introduction.what_makes_it_unique)}{text(l.introduction.cultural_role)}<p className="physics-note" data-narration-content>{l.identity.strength_context}</p>
-   <ArticleImages fact={fact} placement="overview" onOpenImage={onOpenImage}/>{photos('overview')}
+   <h3 data-narration-content>What makes it different</h3>{text(l.introduction.what_makes_it_unique)}<h3 data-narration-content>Its place in everyday life</h3>{text(l.introduction.cultural_role)}<p className="physics-note" data-narration-content>{l.identity.strength_context}</p>
+   <ArticleImages fact={fact} placement="overview" onOpenImage={onOpenImage}/>{!fact.images?.overview&&photos('overview')}
   </Section>
   <Section {...props} id="drinks-origin" title="A place, a name, a story">{text(l.origin.account)}<p className="physics-note" data-narration-content>{l.origin.evidence_and_uncertainty}</p>{photos('origin')}
    <ol className="drinks-history">{l.history.map(h=><li key={h.id}><p className="drinks-period" data-narration-content>{h.period}</p><div><h3 data-narration-content>{h.event}</h3>{text(h.why_it_changed)}</div></li>)}</ol>{photos('history')}
   </Section>
-  <Section {...props} id="drinks-method" title="Then, and now"><div className="drinks-comparison">{[['Earlier methods',l.then_and_now.earlier_method],['Modern methods',l.then_and_now.modern_method]].map(([title,v])=><div key={title}><h3 data-narration-content>{title}</h3>{text(v)}</div>)}</div><h3 data-narration-content>What changed</h3>{text(l.then_and_now.what_changed)}<h3 data-narration-content>What remains</h3>{text(l.then_and_now.what_remains)}
+  <Section {...props} id="drinks-method" title="From tradition to today">
+   {l.production_evolution ? <div className="drinks-evolution">{[['historical','Historical making','historical_making'],['modern','Modern making','modern_making']].map(([era,title,section])=>{const p=l.production_evolution[era];return <div key={era} className="drinks-era"><h3 data-narration-content>{title}</h3>{text(p.context)}{photos(section)}<h4 data-narration-content>Tools</h4>{bullets(p.equipment)}<ol className="drinks-process">{p.steps.map((step,index)=><li key={index}>{text(step)}</li>)}</ol><h4 data-narration-content>The result in the glass</h4>{text(p.result)}</div>})}</div> : <div className="drinks-comparison">{[['Earlier methods',l.then_and_now.earlier_method],['Modern methods',l.then_and_now.modern_method]].map(([title,v])=><div key={title}><h3 data-narration-content>{title}</h3>{text(v)}</div>)}</div>}
+   <div className="drinks-comparison"><div><h3 data-narration-content>What changed</h3>{text(l.then_and_now.what_changed)}</div><div><h3 data-narration-content>What remains</h3>{text(l.then_and_now.what_remains)}</div></div><h3 data-narration-content>Details that shape the drink</h3>
    <ol className="drinks-process">{l.production_steps.map(p=><li key={p.id}><h3 data-narration-content>{p.title}</h3>{text(p.explanation)}<p className="physics-note" data-narration-content>{p.what_to_notice}</p>{photos('method',p.id)}</li>)}</ol>{photos('method')}
   </Section>
   <Section {...props} id="drinks-flavour" title="Understand the glass"><dl className="drinks-sensory">{['flavour','aroma','texture','finish','serving_temperature'].map(key=>[key,l.sensory_profile[key]]).map(([key,v])=><div key={key}><dt data-narration-content>{key.replaceAll('_',' ')}</dt><dd>{text(v)}</dd></div>)}</dl>
@@ -46,12 +52,12 @@ export default function DrinksLesson({fact,narration,Heading,MarkdownContent,onO
    <details className="physics-details"><summary>How this differs from the traditional preparation</summary>{text(r.traditional_preparation)}</details>
    {photos('recipe')}
   </Section>
-  <Section {...props} id="drinks-variations" title="How the drink travels">{l.variations.map(p=><div className="drinks-detail" key={p.id}><h3 data-narration-content>{p.name}</h3><p className="physics-note" data-narration-content>{p.place}</p>{text(p.difference)}{text(p.how_it_developed)}<p className="physics-note" data-narration-content>{p.evidence_and_uncertainty}</p>{photos('variations',p.id)}</div>)}{photos('variations')}
+  <Section {...props} id="drinks-variations" title="How the drink travels">{l.variations.map(p=><div className="drinks-detail" key={p.id}><h3 data-narration-content>{p.name}</h3><p className="physics-note" data-narration-content>{p.place}</p>{text(p.difference)}{photos('variations',p.id)}<h4 data-narration-content>Why this version developed</h4>{text(p.how_it_developed)}<p className="physics-note" data-narration-content>{p.evidence_and_uncertainty}</p></div>)}{photos('variations')}
   </Section>
   <Section {...props} id="drinks-serving" title="Serve it with context"><h3 data-narration-content>Glassware and temperature</h3>{text(l.serving_context.glassware)}{text(l.serving_context.pairing_and_customs)}{l.serving_context.alcohol_free_option&&<><h3 data-narration-content>An alcohol-free direction</h3>{text(l.serving_context.alcohol_free_option)}</>}{text(l.serving_context.practical_notes)}{photos('serving')}
    <details className="physics-details"><summary>Adjust the result</summary>{l.troubleshooting.map((p,i)=><div className="drinks-detail" key={i}><h3 data-narration-content>{p.problem}</h3>{text(p.cause)}{text(p.fix)}</div>)}</details>
   </Section>
-  {scenes.length>0&&<Section {...props} id="drinks-photographs" title="Through the lens"><CountryCarousel images={scenes} label="Photographs of the drink and its setting" onOpenImage={onOpenImage}/></Section>}
+  {scenes.length>0&&<Section {...props} id="drinks-photographs" title="A closer look at the drink"><CountryCarousel images={scenes} label="Photographs of the drink and its setting" onOpenImage={onOpenImage}/></Section>}
   <Section {...props} id="drinks-check" title="Keep the idea">{l.knowledge_checks.map((p,i)=><div className="drinks-detail" key={i}><h3 data-narration-content>{p.question}</h3><details className="physics-details"><summary>Reveal answer</summary>{text(p.answer)}{text(p.explanation)}</details></div>)}{bullets(l.takeaways)}<div className="physics-next"><h3 data-narration-content>Another glass, another story</h3><ul>{l.related_drinks.map(p=><li key={p}><Link to={archiveUrl('drinks',p)}>{p}</Link></li>)}</ul></div></Section>
  </div>
 }

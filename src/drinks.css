@@ -31,3 +31,8 @@
  .drinks-cue{padding:16px 20px}
 }
 @media(max-width:720px){.drinks-lesson #drinks-recipe .drinks-essentials{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.drinks-era + .drinks-era{margin-top:48px}
+.drinks-era h4{font:400 1.5rem/1.35 var(--serif);margin:28px 0 12px}
+.drinks-evolution{margin-bottom:40px}
+.drinks-era .drinks-process{margin-top:24px}
