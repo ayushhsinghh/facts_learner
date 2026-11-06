@@ -265,7 +265,7 @@ Controls use gently rounded `12px` corners and rectangular proportions. Signatur
 
 ### Fact Aside
 
-- **Style:** A flat Raised Night inset combines an italic Instrument Serif quotation with key figures or statistics. It has no border radius and no card shadow.
+- **Style:** A flat Raised Night inset combines an italic Instrument Serif quotation with key figures or statistics. It has no border radius and no card shadow. 
 - **Responsive:** The two-column composition collapses to one column and bleeds to the mobile reading edge.
 
 ### Physics Lesson
