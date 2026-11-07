@@ -21,7 +21,7 @@ export default function AgricultureLesson({fact,narration,Heading,MarkdownConten
   const l=fact.agriculture_lesson,c=l.field_context,e=l.indian_case_study,props={Heading,narration}
   const text=value=><MarkdownContent narration={narration} standalone={false}>{value}</MarkdownContent>
   const bullets=items=><ul>{items.map((v,i)=><li key={i} data-narration-content>{v}</li>)}</ul>
-  const photos=(section,stepId=null)=>agriculturePhotos(fact,section,stepId).map(image=><Photo key={image.url} image={image} onOpenImage={onOpenImage}/>)
+  const photos=(section,stepId=null)=>{const images=agriculturePhotos(fact,section,stepId);return images.length>2?<CountryCarousel images={images} label={`Photographs for ${section}`} onOpenImage={onOpenImage}/>:images.length>0?<div className={images.length>1?'agriculture-photo-pair':undefined}>{images.map(image=><Photo key={image.url} image={image} onOpenImage={onOpenImage}/>)}</div>:null}
   const scenes=agricultureScenes(fact)
   return <div className="physics-lesson agriculture-lesson">
     <Section {...props} id="overview" title={l.question}>
@@ -40,6 +40,7 @@ export default function AgricultureLesson({fact,narration,Heading,MarkdownConten
     </Section>
     <Section {...props} id="agriculture-process" title="Follow what happens">
       {l.diagram&&<AgricultureDiagram diagram={l.diagram} steps={l.process_steps}/>}
+      <ArticleImages fact={fact} slot="how_it_works" onOpenImage={onOpenImage}/>
       <ol className="agriculture-process">{l.process_steps.map(s=><li key={s.id} id={`agriculture-step-${s.id}`} tabIndex={-1}><h3 data-narration-content>{s.title}</h3>{text(s.action)}<p data-narration-content><strong>What changes:</strong> {s.what_changes}</p>{text(s.why_it_matters)}<p className="agriculture-observe" data-narration-content><strong>What to notice:</strong> {s.what_to_notice}</p><h4 data-narration-content>This depends on</h4>{bullets(s.conditions)}{photos('process',s.id)}</li>)}</ol>{photos('process')}
     </Section>
     <Section {...props} id="agriculture-case" title={e.title}>
@@ -57,7 +58,7 @@ export default function AgricultureLesson({fact,narration,Heading,MarkdownConten
       {l.misconceptions.map((v,i)=><div className="agriculture-explanation" key={i}><h3 data-narration-content>{v.belief}</h3>{text(v.correction)}{text(v.explanation)}</div>)}
       {l.optional_depth.length>0&&<div className="agriculture-explanation"><h3>A little more detail</h3>{l.optional_depth.map((v,i)=><details className="physics-details" key={i}><summary>{v.title}</summary>{text(v.explanation)}</details>)}</div>}
     </Section>
-    {scenes.length>0&&<Section {...props} id="agriculture-photographs" title="See the idea in the field"><CountryCarousel images={scenes} label="Photographs of the farming concept and its setting" onOpenImage={onOpenImage}/></Section>}
+    {scenes.length>0&&<Section {...props} id="agriculture-photographs" title="A closer look in the field"><CountryCarousel images={scenes} label="Photographs of the farming concept and its setting" onOpenImage={onOpenImage}/></Section>}
     <Section {...props} id="agriculture-check" title="Check your understanding">{l.knowledge_checks.map((v,i)=><div className="physics-check" key={i}><h3 data-narration-content>{v.question}</h3><details className="physics-details"><summary>Reveal answer</summary>{text(v.answer)}{text(v.explanation)}</details></div>)}</Section>
     <Section {...props} id="remember" title="Keep the main idea">{bullets(l.takeaways)}<div className="physics-next"><h3>Keep exploring</h3><ul>{l.related_topics.map(topic=><li key={topic}><Link to={archiveUrl('agriculture',topic)}>{topic}</Link></li>)}</ul></div></Section>
   </div>

@@ -52,10 +52,10 @@ export function hasAgricultureLesson(fact) {
     &&records(l.optional_depth,['title','explanation'])&&l.optional_depth.length<=3
     &&records(l.knowledge_checks,['question','answer','explanation'])&&l.knowledge_checks.length>=1&&l.knowledge_checks.length<=3
     &&texts(l.takeaways)&&l.takeaways.length>=2&&l.takeaways.length<=5&&texts(l.related_topics)&&l.related_topics.length>=1&&l.related_topics.length<=6
-    &&records(l.photos,['id','section_id','kind','subject'])&&l.photos.length<=6&&unique(l.photos)&&new Set(l.photos.map(p=>p.section_id)).size===l.photos.length
+    &&records(l.photos,['id','section_id','kind','subject'])&&l.photos.length<=18&&unique(l.photos)
     &&l.photos.every(p=>['overview','context','process','case','tradeoffs','limits'].includes(p.section_id)
       &&['crop','tool','material','process','named_place','person','historical_object'].includes(p.kind)
-      &&texts(p.queries)&&p.queries.length>=1&&p.queries.length<=2&&p.queries.every(q=>q.length<=160)
+      &&texts(p.queries)&&p.queries.length>=1&&p.queries.length<=3&&p.queries.every(q=>q.length<=160)
       &&(p.step_id===null||(p.section_id==='process'&&s.some(step=>step.id===p.step_id)))))
 }
 export function agriculturePhotos(fact,section,stepId=null) {
@@ -74,5 +74,5 @@ export function agricultureScenes(fact) {
     const credit=countryPhoto(value)
     if(!credit||seen.has(credit.source_url))return []
     seen.add(credit.source_url);return [{url:credit.url,credit,alt:credit.description,caption:credit.title}]
-  }).sort((a,b)=>Number(Boolean(a.credit.popular_pick))-Number(Boolean(b.credit.popular_pick))).slice(0,6)
+  }).sort((a,b)=>Number(Boolean(a.credit.popular_pick))-Number(Boolean(b.credit.popular_pick))).slice(0,12)
 }

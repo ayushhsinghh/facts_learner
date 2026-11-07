@@ -37,3 +37,7 @@
   .agriculture-layer { padding: 20px; }
   .agriculture-context-limit,.agriculture-observe { padding: 16px 20px; }
 }
+
+.agriculture-photo-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px;margin-block:32px}
+.agriculture-photo-pair .agriculture-photograph{margin:0;min-width:0}
+@media(max-width:720px){.agriculture-photo-pair{grid-template-columns:1fr}}

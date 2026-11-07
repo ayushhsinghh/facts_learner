@@ -65,3 +65,14 @@ test('repaired photo plans bind to overview, crop context and case sections',()=
   f.image_credits.agriculture_photo_2.provider='unsplash'
   assert.equal(agriculturePhotos(f,'case').length,0)
 })
+test('Expanded photos can share a section and bind to each process step',()=>{
+ const f=fixture(),p=f.agriculture_lesson.photos[0]
+ for(let i=1;i<12;i++)f.agriculture_lesson.photos.push({...p,id:`detail_${i}`,queries:['Straw mulch','Mulching field','Crop residue']})
+ assert.equal(hasAgricultureLesson(f),true)
+ f.image_credits=Object.fromEntries(f.agriculture_lesson.photos.map((p,i)=>[`agriculture_photo_${i}`,{...photo,source_url:photo.source_url+i,agriculture_photo:true,photo_id:p.id,section_id:p.section_id,step_id:p.step_id}]))
+ assert.equal(agriculturePhotos(f,'process','cover').length,12)
+})
+test('Expanded Agriculture carousel supports twelve distinct photographs',()=>{
+ const f=fixture();f.image_credits=Object.fromEntries(Array.from({length:15},(_,i)=>[`agriculture_scene_${i}`,{...photo,source_url:photo.source_url+i,agriculture_carousel:true}]))
+ assert.equal(agricultureScenes(f).length,12)
+})
