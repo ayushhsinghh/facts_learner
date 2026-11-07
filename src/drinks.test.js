@@ -48,3 +48,22 @@ test('Opening hook is optional for saved articles and only renders when complete
  const f=edition2();assert.equal(hasDrinksOpening(f),true)
  f.drinks_lesson.opening_hook.bridge_question='';assert.equal(hasDrinksOpening(f),false)
 })
+test('Optional notes do not send complete lessons back to the generic reader',()=>{
+ for(const factory of [fixture,edition2]){
+  const f=factory(),l=f.drinks_lesson
+  delete l.identity.strength_context;l.origin.evidence_and_uncertainty=null
+  l.science.forEach(p=>delete p.limits);l.variations.forEach(p=>p.evidence_and_uncertainty=null)
+  assert.equal(hasDrinksLesson(f),true)
+  l.science[0].limits=123;assert.equal(hasDrinksLesson(f),false)
+ }
+})
+test('Historical notes share one collection without hiding their factual content',async()=>{
+ const {drinksHistoryNotes}=await import('./drinks.js')
+ const f=edition2(),l=f.drinks_lesson
+ l.origin.evidence_and_uncertainty='The earliest attribution is disputed.'
+ l.variations[0].evidence_and_uncertainty='  The earliest attribution is disputed. '
+ l.variations[1].evidence_and_uncertainty=null
+ assert.deepEqual(drinksHistoryNotes(f),[{title:'Origin',text:'The earliest attribution is disputed.'}])
+ l.origin.evidence_and_uncertainty=null;l.variations[0].evidence_and_uncertainty=undefined
+ assert.deepEqual(drinksHistoryNotes(f),[])
+})

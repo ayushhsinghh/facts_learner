@@ -1,5 +1,6 @@
 import { countryPhoto } from './country.js'
 const text=v=>typeof v==='string'&&Boolean(v.trim())
+const optionalText=v=>v==null||text(v)
 const texts=v=>Array.isArray(v)&&v.every(text)
 const rows=(v,keys)=>Array.isArray(v)&&v.every(p=>p&&keys.every(k=>text(p[k])))
 const ids=v=>v.every(p=>/^[a-z][a-z0-9_-]{0,47}$/.test(p.id))&&new Set(v.map(p=>p.id)).size===v.length
@@ -11,10 +12,11 @@ export function hasDrinksOpening(f){
 export function hasDrinksLesson(f){
  const l=f?.drinks_lesson,r=l?.recipe,i=l?.identity
  if(!(f?.category==='drinks'&&f.schema_version==='2.0'&&f.article_type==='drinks_lesson'&&l&&i&&r))return false
- if(!['name','region','strength_context'].every(k=>text(i[k]))||!texts(i.country_names)||!i.country_names.length||!texts(i.local_names)||!['cocktail','mocktail','wine','spirit','beer','fermented_drink','traditional_beverage','non_alcoholic'].includes(i.drink_type)||!['alcoholic','non_alcoholic','varies'].includes(i.alcohol_status))return false
- for(const [key,fields] of Object.entries({introduction:['explanation','what_makes_it_unique','cultural_role'],origin:['account','evidence_and_uncertainty'],then_and_now:['earlier_method','modern_method','what_changed','what_remains'],sensory_profile:['flavour','aroma','texture','finish','serving_temperature'],serving_context:['glassware','pairing_and_customs','practical_notes']}))if(!fields.every(k=>text(l[key]?.[k])))return false
+ if(!['name','region'].every(k=>text(i[k]))||!texts(i.country_names)||!i.country_names.length||!texts(i.local_names)||!['cocktail','mocktail','wine','spirit','beer','fermented_drink','traditional_beverage','non_alcoholic'].includes(i.drink_type)||!['alcoholic','non_alcoholic','varies'].includes(i.alcohol_status))return false
+ for(const [key,fields] of Object.entries({introduction:['explanation','what_makes_it_unique','cultural_role'],origin:['account'],then_and_now:['earlier_method','modern_method','what_changed','what_remains'],sensory_profile:['flavour','aroma','texture','finish','serving_temperature'],serving_context:['glassware','pairing_and_customs','practical_notes']}))if(!fields.every(k=>text(l[key]?.[k])))return false
  if(!['hook','question','learning_goal'].every(k=>text(l[k])))return false
- for(const [key,fields,lo,hi] of [['history',['id','period','event','why_it_changed'],2,6],['ingredients',['id','name','role','effect'],2,10],['production_steps',['id','title','explanation','what_to_notice'],2,6],['science',['id','title','mechanism','explanation','observable_cue','limits'],0,3],['variations',['id','name','place','difference','how_it_developed','evidence_and_uncertainty'],1,6]])if(!rows(l[key],fields)||l[key].length<lo||l[key].length>hi||!ids(l[key]))return false
+ for(const [key,fields,lo,hi] of [['history',['id','period','event','why_it_changed'],2,6],['ingredients',['id','name','role','effect'],2,10],['production_steps',['id','title','explanation','what_to_notice'],2,6],['science',['id','title','mechanism','explanation','observable_cue'],0,3],['variations',['id','name','place','difference','how_it_developed'],1,6]])if(!rows(l[key],fields)||l[key].length<lo||l[key].length>hi||!ids(l[key]))return false
+ if(!optionalText(i.strength_context)||!optionalText(l.origin.evidence_and_uncertainty)||l.science.some(p=>!optionalText(p.limits))||l.variations.some(p=>!optionalText(p.evidence_and_uncertainty)))return false
  if(l.science_focus_id!==null&&!l.science.some(s=>s.id===l.science_focus_id))return false
  if(l.serving_context.alcohol_free_option!==null&&!text(l.serving_context.alcohol_free_option))return false
  if(!['title','traditional_preparation','adaptation_notes'].every(k=>text(r[k]))||!['home_mixed','serving_adaptation','alcohol_free_interpretation'].includes(r.preparation_type)||!['alcoholic','non_alcoholic'].includes(r.alcohol_status))return false
@@ -49,4 +51,14 @@ export function drinksScenes(f){
   if(!/^drinks_scene_\d+$/.test(key)||!v?.drinks_carousel)return []
   const c=countryPhoto(v);if(!c||seen.has(c.source_url)||f.drinks_lesson?.content_version===2&&!['unsplash','pixabay'].includes(c.provider))return [];seen.add(c.source_url);return [{url:c.url,credit:c,alt:c.description,caption:c.title}]
  }).sort((a,b)=>Number(Boolean(a.credit.popular_pick))-Number(Boolean(b.credit.popular_pick))).slice(0,12)
+}
+
+export function drinksHistoryNotes(fact){
+ const l=fact?.drinks_lesson,seen=new Set()
+ return [{title:'Origin',text:l?.origin?.evidence_and_uncertainty},...(l?.variations||[]).map(p=>({title:p.name,text:p.evidence_and_uncertainty}))].filter(p=>{
+  if(!text(p.text))return false
+  const key=p.text.trim().replace(/\s+/g,' ').toLowerCase()
+  if(seen.has(key))return false
+  seen.add(key);return true
+ })
 }
