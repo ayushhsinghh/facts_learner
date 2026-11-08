@@ -16,7 +16,7 @@ import PsychologyLesson from './PsychologyLesson.jsx'
 import { hasPsychologyLesson } from './psychology.js'
 import IndiaLesson from './IndiaLesson.jsx'
 import DrinksLesson from './DrinksLesson.jsx'
-import { hasDrinksOpening, hasDrinksLesson } from './drinks.js'
+import { hasDrinksLesson } from './drinks.js'
 import FoodLesson from './FoodLesson.jsx'
 import { hasFoodLesson } from './food.js'
 import FashionLesson from './FashionLesson.jsx'
@@ -1115,12 +1115,12 @@ function FactView({ fact, onReset, onBack }) {
 
       <nav className="reading-nav" aria-label="On this page">
         <div className="reading-nav-glass">
-          {isDrinksLesson&&hasDrinksOpening(fact)&&<a href="#drinks-opening">Before the first sip</a>}
-          <a href="#overview">{isCountryProfile?'Start here':'Overview'}</a>
+          {isDrinksLesson&&<a href="#drinks-opening">Opening</a>}
+          <a href="#overview">{isCountryProfile?'Start here':isDrinksLesson?'Meet the drink':'Overview'}</a>
           {isDrinksLesson ? <>
-            <a href="#drinks-origin">Origin</a><a href="#drinks-method">Then & now</a><a href="#drinks-flavour">Flavour</a>
+            <a href="#drinks-origin">Story</a><a href="#drinks-method">Making</a>
             {fact.drinks_lesson.science.length>0&&<a href="#drinks-science">Science</a>}
-            <a href="#drinks-recipe">Make it</a><a href="#drinks-variations">Variations</a><a href="#drinks-check">Remember</a>
+            <a href="#drinks-recipe">Make it</a><a href="#drinks-variations">Explore</a><a href="#drinks-check">Takeaways</a>
           </> : isNatureLesson ? <>
             {fact.nature_lesson.recognition_features.length>0&&<a href="#nature-recognition">Look closely</a>}
             <a href="#nature-explanation">Explanation</a>

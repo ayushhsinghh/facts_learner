@@ -67,3 +67,41 @@ test('Historical notes share one collection without hiding their factual content
  l.origin.evidence_and_uncertainty=null;l.variations[0].evidence_and_uncertainty=undefined
  assert.deepEqual(drinksHistoryNotes(f),[])
 })
+const edition3=()=>JSON.parse(fs.readFileSync(new URL('./fixtures/drinks-lesson-v3.json',import.meta.url)))
+test('Third edition routes to the reader with making comparisons and six detailed discoveries',async()=>{
+ const {drinksView}=await import('./drinks.js');const f=edition3()
+ assert.equal(hasDrinksLesson(f),true);assert.equal(f.drinks_lesson.explore_drinks.length,6)
+ const v=drinksView(f);assert.equal(v.opening,f.drinks_lesson.opening);assert.equal(v.making.stages.length,3)
+ assert.equal(v.making.comparisons[1].relationship,'contemporary_alternative')
+ assert.ok(v.explore.some(p=>p.relationship==='related_drink'));assert.equal(v.related.length,0)
+})
+test('Third edition rejects invalid bindings and maintains alcohol and recipe checks',()=>{
+ for(const mutate of [l=>l.making.stages[0].id='unknown',l=>l.explore_drinks[0].relationship='descendant',l=>l.explore_drinks[1].name=l.explore_drinks[0].name,l=>l.photos[0].entry_id='unknown',l=>l.recipe.ingredients[0].contains_alcohol=true,l=>l.science_focus_id=null]){
+  const f=edition3();mutate(f.drinks_lesson);assert.equal(hasDrinksLesson(f),false)
+ }
+})
+test('Third edition supports thirty photo requests and all eight detailed related drinks',()=>{
+ const f=edition3(),l=f.drinks_lesson
+ for(let i=6;i<8;i++){l.explore_drinks.push({...l.explore_drinks[0],id:`extra_${i}`,name:`Example ${i}`});l.photos.push({...l.photos[0],id:`extra_photo_${i}`,section_id:'explore',entry_id:`extra_${i}`})}
+ while(l.photos.length<30)l.photos.push({...l.photos[0],id:`extra_photo_${l.photos.length}`})
+ assert.equal(hasDrinksLesson(f),true)
+ l.photos.push({...l.photos[0],id:'overflow'});assert.equal(hasDrinksLesson(f),false)
+})
+test('Saved editions keep working with a single opening and one preparation sequence',async()=>{
+ const {drinksView}=await import('./drinks.js')
+ for(const f of [fixture(),edition2()]){
+  const v=drinksView(f);assert.equal(v.making.stages.length,f.drinks_lesson.production_steps.length)
+  assert.equal(v.opening.question.endsWith('?'),true)
+ }
+})
+
+test('Saved lessons retain distinctive and preparation context without repeating step lists',async()=>{
+ const {drinksView}=await import('./drinks.js'),f=edition2(),v=drinksView(f)
+ assert.equal(v.distinction,f.drinks_lesson.introduction.what_makes_it_unique)
+ for(const [index,era] of ['historical','modern'].entries()){
+  assert.equal(v.making.details[index].context,f.drinks_lesson.production_evolution[era].context)
+  assert.deepEqual(v.making.details[index].equipment,f.drinks_lesson.production_evolution[era].equipment)
+  assert.equal(v.making.details[index].result,f.drinks_lesson.production_evolution[era].result)
+ }
+ assert.equal(drinksView(edition3()).making.details.length,0)
+})

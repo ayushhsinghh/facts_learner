@@ -36,3 +36,26 @@
 .drinks-era h4{font:400 1.5rem/1.35 var(--serif);margin:28px 0 12px}
 .drinks-evolution{margin-bottom:40px}
 .drinks-era .drinks-process{margin-top:24px}
+
+.drinks-ingredient{margin-block:32px}
+.drinks-ingredient.has-photo{display:grid;grid-template-columns:132px minmax(0,1fr);gap:24px;align-items:start}
+.drinks-ingredient h4,.drinks-explore-entry h4,.drinks-method-change h4{font:400 1.8rem/1.2 var(--serif);margin:0 0 12px}
+.drinks-thumbnails{display:grid;gap:12px}
+.drinks-photo-compact{margin:0}
+.drinks-photo-compact img{width:132px;height:112px;object-fit:contain;background:var(--night-soft)}
+.drinks-photo-compact figcaption{margin-top:4px;min-height:24px}
+.drinks-photo-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.drinks-method-change,.drinks-explore-entry{margin-block:36px}
+.drinks-method-change h5,.drinks-explore-entry h5{font:500 1rem/1.5 'DM Sans', sans-serif;margin:24px 0 8px}
+.drinks-explore-entry.has-photo{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(0,1fr);gap:32px;align-items:start}
+.drinks-explore-entry .drinks-photo{margin-top:0}
+.drinks-explore-entry .drinks-photo img{max-height:400px}
+.drinks-explore-link{display:inline-block;margin-top:12px;text-underline-offset:4px}
+.drinks-lesson #drinks-variations .physics-section-body{max-width:100%}
+.drinks-explore-group+.drinks-explore-group{margin-top:56px}
+@media(max-width:720px){
+ .drinks-ingredient.has-photo{grid-template-columns:88px minmax(0,1fr);gap:16px}
+ .drinks-photo-compact img{width:88px;height:88px}
+ .drinks-explore-entry.has-photo,.drinks-photo-pair{grid-template-columns:1fr}
+ .drinks-explore-entry.has-photo{gap:16px}
+}
