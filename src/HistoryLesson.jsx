@@ -1,0 +1,50 @@
+import { useRef,useState } from 'react'
+import { Link } from 'react-router-dom'
+import ArticleImages from './ArticleImages.jsx'
+import PhotoCredit from './PhotoCredit.jsx'
+import CountryCarousel from './CountryCarousel.jsx'
+import { historyPhotos,historyScenes } from './history.js'
+import { archiveUrl } from './navigation.js'
+import './physics.css'
+import './history.css'
+function Section({id,title,Heading,narration,children}){
+ const ref=useRef(null)
+ return <section id={id} className="physics-section" ref={ref}><Heading narrationId={id} narration={narration} targetRef={ref}>{title}</Heading><div className="physics-section-body">{children}</div></section>
+}
+function Photo({image,onOpenImage,onFailure}){
+ const [failed,setFailed]=useState(false)
+ if(failed)return null
+ return <figure className="history-photo"><button type="button" aria-label={`Enlarge historical image: ${image.caption}`} onClick={()=>onOpenImage(image)}><img src={image.url} alt={image.alt} width={image.credit.width||undefined} height={image.credit.height||undefined} loading="lazy" decoding="async" onError={()=>{setFailed(true);onFailure(image.url)}}/></button><figcaption>{image.caption}<PhotoCredit credit={image.credit}/></figcaption></figure>
+}
+const recordTypes={contemporary:'Record from the time',later_memory:'Later recollection',later_depiction:'Later depiction'}
+const indiaTypes={contemporary_context:'At the same time',documented_impact:'Documented impact',indirect_effect:'An indirect effect'}
+const legacyTypes={direct_continuity:'A continuing legacy',indirect_influence:'A later influence',commemoration:'How it is remembered'}
+export default function HistoryLesson({fact,narration,Heading,MarkdownContent,onOpenImage}){
+ const l=fact.history_lesson,props={Heading,narration},[failed,setFailed]=useState(()=>new Set())
+ const text=v=><MarkdownContent narration={narration} standalone={false}>{v}</MarkdownContent>
+ const images=(section,entry=null)=>historyPhotos(fact,section,entry).filter(p=>!failed.has(p.url))
+ const photos=(section,entry=null)=>{const items=images(section,entry);return items.length>2?<CountryCarousel images={items} label={`Historical images for ${section}`} onOpenImage={onOpenImage}/>:<div className={items.length===2?'history-photo-pair':undefined}>{items.map(image=><Photo image={image} key={image.url} onOpenImage={onOpenImage} onFailure={url=>setFailed(old=>new Set([...old,url]))}/>)}</div>}
+ const scenes=historyScenes(fact),figure=id=>l.figures.find(p=>p.id===id)
+ return <div className="physics-lesson history-lesson">
+  <Section {...props} id="overview" title={l.opening.heading}>{text(l.opening.scene)}<p className="physics-goal" data-narration-content>{l.opening.question}</p><dl className="history-essentials">{[['When',l.identity.date_label],['Historical setting',l.identity.historical_region],['Location today',l.identity.modern_location]].map(([label,value])=><div key={label}><dt data-narration-content>{label}</dt><dd data-narration-content>{value}</dd></div>)}</dl>{text(l.identity.scope)}<ArticleImages fact={fact} placement="overview" onOpenImage={onOpenImage}/>{photos('overview')}
+   {l.key_terms.length>0&&<details className="physics-details"><summary>Words and names you will meet</summary><dl>{l.key_terms.map(p=><div key={p.term}><dt data-narration-content>{p.term}</dt><dd>{text(p.meaning)}</dd></div>)}</dl></details>}
+  </Section>
+  <Section {...props} id="history-setting" title="The world before the turning point"><h3 data-narration-content>The place</h3>{text(l.setting.geography)}<p className="physics-note" data-narration-content>{l.setting.locations.join(' · ')}</p>{photos('setting')}<h3 data-narration-content>Power and politics</h3>{text(l.setting.political_climate)}<h3 data-narration-content>Life on the ground</h3>{text(l.setting.everyday_conditions)}</Section>
+  <Section {...props} id="history-causes" title="Why it happened">{l.causes.map(p=><div className="history-entry" key={p.id}><h3 data-narration-content>{p.title}</h3><p className="history-context" data-narration-content>{p.kind==='structural'?'A long-term pressure':'A trigger'}</p>{text(p.explanation)}{text(p.connection)}{photos('causes',p.id)}</div>)}{photos('causes')}</Section>
+  <Section {...props} id="history-chronology" title="How the story unfolded"><ol className="history-chronology">{l.chronology.map(p=><li key={p.id} id={`history-event-${p.id}`}><div className="history-date" data-narration-content>{p.date_label}</div><div><h3 data-narration-content>{p.title}</h3>{text(p.what_happened)}{text(p.why_it_matters)}{p.figure_ids.length>0&&<p className="physics-note">People and groups: {p.figure_ids.map((id,index)=><span key={id}>{index>0?', ':''}<a href={`#history-person-${id}`}>{figure(id).name}</a></span>)}</p>}{photos('chronology',p.id)}</div></li>)}</ol>{photos('chronology')}</Section>
+  <Section {...props} id="history-people" title="People, choices, and consequences">{l.figures.map(p=><div className={`history-person${images('people',p.id).length?' has-photo':''}`} key={p.id} id={`history-person-${p.id}`}><div><h3 data-narration-content>{p.name}</h3><p className="history-context" data-narration-content>{p.role}</p>{text(p.objective)}{text(p.actions)}{text(p.impact)}</div>{photos('people',p.id)}</div>)}
+   <h3 className="history-subheading" data-narration-content>Decisions that mattered</h3>{l.decisions.map(p=><div className="history-entry" key={p.id}><h4 data-narration-content>{p.title}</h4><p className="physics-note"><a href={`#history-person-${p.figure_id}`}>{figure(p.figure_id).name}</a> · <a href={`#history-event-${p.chronology_id}`}>See this moment in the chronology</a></p><p data-narration-content><strong>The options:</strong> {p.options}</p><p data-narration-content><strong>The choice:</strong> {p.choice}</p>{text(p.consequence)}{photos('people',p.id)}</div>)}{photos('people')}
+  </Section>
+  <Section {...props} id="history-evidence" title="Their accounts, our understanding">{text(l.evidence.introduction)}
+   {l.evidence.records.map(p=><div className="history-record" key={p.id}><h3 data-narration-content>{p.title}</h3><p className="history-context" data-narration-content>{recordTypes[p.relationship]} · {p.created_when}</p><p className="physics-note" data-narration-content>{p.creator}</p>{text(p.account)}<div className="history-evidence-comparison"><div><h4 data-narration-content>What this record shows</h4>{text(p.what_it_shows)}</div><div><h4 data-narration-content>What it leaves out</h4>{text(p.limits)}</div></div>{photos('evidence',p.id)}</div>)}
+   <h3 className="history-subheading" data-narration-content>How historians understand it today</h3>{text(l.evidence.modern_understanding)}
+   {l.evidence.updates.map(p=><div className="history-entry" key={p.id}><h4 data-narration-content>{p.title}</h4><p className="history-context" data-narration-content>{p.method.replaceAll('_',' ')}</p>{text(p.finding)}{text(p.what_changed)}{p.remaining_question&&<details className="physics-details"><summary>A question that remains</summary>{text(p.remaining_question)}</details>}{photos('evidence',p.id)}</div>)}{photos('evidence')}
+  </Section>
+  <Section {...props} id="history-india" title="India on the same timeline">{text(l.india.introduction)}{l.india.connections.map(p=><div className="history-entry" key={p.id}><h3 data-narration-content>{p.title}</h3><p className="history-context" data-narration-content>{p.date_label} · {indiaTypes[p.relationship]}</p>{text(p.what_happened)}{text(p.connection)}{text(p.distinction)}{photos('india',p.id)}</div>)}{photos('india')}</Section>
+  <Section {...props} id="history-mechanism" title={l.mechanism.title}>{text(l.mechanism.problem)}{text(l.mechanism.explanation)}<dl className="history-factors">{l.mechanism.steps.map(p=><div key={p.id}><dt data-narration-content>{p.factor}</dt><dd>{text(p.effect)}{photos('mechanism',p.id)}</dd></div>)}</dl><ArticleImages fact={fact} placement="explanation" onOpenImage={onOpenImage}/>{text(l.mechanism.why_it_mattered)}{l.mechanism.limits&&<details className="physics-details"><summary>More about this explanation</summary>{text(l.mechanism.limits)}</details>}{photos('mechanism')}</Section>
+  <Section {...props} id="history-consequences" title="What changed, and for whom?"><h3 data-narration-content>The immediate result</h3>{text(l.outcome.immediate_result)}<h3 data-narration-content>Why this moment stands out</h3>{text(l.outcome.why_distinctive)}{l.consequences.map(p=><div className="history-entry" key={p.id}><h3 data-narration-content>{p.title}</h3><p className="physics-note" data-narration-content>{p.place_and_period}</p>{text(p.change)}{text(p.causal_connection)}{photos('consequences',p.id)}</div>)}{photos('consequences')}</Section>
+  <Section {...props} id="history-legacy" title="Where the past remains visible">{l.legacy.map(p=><div className="history-entry" key={p.id}><h3 data-narration-content>{p.title}</h3><p className="history-context" data-narration-content>{legacyTypes[p.relationship]} · {p.place}</p>{text(p.trace)}{text(p.explanation)}{photos('legacy',p.id)}</div>)}{photos('legacy')}</Section>
+  {scenes.length>0&&<Section {...props} id="history-photographs" title="The places today"><p className="physics-note" data-narration-content>Present-day photographs of the places and material setting discussed in this lesson.</p><CountryCarousel images={scenes} label="Present-day places connected with the historical setting" onOpenImage={onOpenImage}/></Section>}
+  <Section {...props} id="remember" title="Keep the story in mind"><ul>{l.takeaways.map(p=><li data-narration-content key={p}>{p}</li>)}</ul>{l.knowledge_checks.map((p,index)=><div className="physics-check" key={index}><h3 data-narration-content>{p.question}</h3><details className="physics-details"><summary>Reveal answer</summary>{text(p.answer)}{text(p.explanation)}</details></div>)}<div className="physics-next"><h3 data-narration-content>Follow another thread</h3><ul>{l.related_topics.map(topic=><li key={topic}><Link to={archiveUrl('history',topic)}>{topic}</Link></li>)}</ul></div></Section>
+ </div>
+}

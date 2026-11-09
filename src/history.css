@@ -1,0 +1,30 @@
+.history-reader :is(.fact-nav,.fact-meta,.fact-taxonomy,.source-section,.fact-end){border-block:0}
+.history-reader .fact-body{padding-top:64px}
+.history-lesson{max-width:1120px}
+.history-lesson .physics-section-body{max-width:75ch}
+.history-lesson #history-chronology .physics-section-body{max-width:100%}
+.history-essentials{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px 40px}
+.history-essentials dt{color:var(--muted)}
+.history-entry+.history-entry,.history-record+.history-record{margin-top:48px}
+.history-lesson .history-context{color:var(--signal-strong);font-size:.875rem}
+.history-lesson .history-subheading{margin-top:48px}
+.history-lesson .history-chronology{list-style:none;padding:0;margin:0}
+.history-chronology>li{display:grid;grid-template-columns:minmax(130px,1fr) minmax(0,5fr);gap:32px;margin-block:0 48px;scroll-margin-top:32px}
+.history-date{color:var(--signal-strong);font-size:1rem;line-height:1.6;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}
+.history-chronology>li>div:last-child{max-width:75ch;min-width:0}
+.history-person{margin-bottom:40px;scroll-margin-top:32px}
+.history-person.has-photo{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:40px;align-items:start}
+.history-evidence-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}
+.history-photo{margin:28px 0}
+.history-photo>button{display:block;width:100%;padding:0;border:0;background:transparent;cursor:zoom-in}
+.history-photo img{display:block;width:100%;height:auto;max-height:620px;object-fit:contain}
+.history-photo figcaption{margin-top:12px;color:var(--muted);font-size:.875rem;line-height:1.6}
+.history-photo-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.history-person.has-photo .history-photo{margin-top:0}
+@media(max-width:720px){
+ .history-reader .fact-body{padding-top:40px}
+ .history-essentials,.history-chronology>li,.history-person.has-photo,.history-evidence-comparison,.history-photo-pair{grid-template-columns:1fr;gap:12px}
+ .history-essentials{gap:0}
+ .history-chronology>li{margin-bottom:40px}
+ .history-date{font-weight:500}
+}
