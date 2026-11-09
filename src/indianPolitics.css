@@ -1,0 +1,37 @@
+.indian-politics-reader :is(.fact-nav,.fact-meta,.fact-taxonomy,.source-section,.fact-end){border-block:0}
+.indian-politics-reader .fact-body{padding-top:64px}
+.politics-lesson{max-width:1120px}
+.politics-lesson .physics-section-body{max-width:75ch}
+.politics-essentials{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 40px;margin-block:36px}
+.politics-essentials dt,.politics-actor dt{color:var(--muted);font-size:.875rem}
+.politics-essentials dd{margin:6px 0 0}
+.politics-actor{margin-block:0 48px;scroll-margin-top:32px}
+.politics-actor.has-photo{display:grid;grid-template-columns:minmax(0,3fr) minmax(0,2fr);gap:40px}
+.politics-actor dl{margin-bottom:0}
+.politics-actor dd{margin:4px 0 20px}
+.politics-entry+.politics-entry{margin-top:48px}
+.politics-lesson .politics-context{color:var(--signal-strong);font-size:.875rem}
+.politics-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:36px}
+.politics-lesson .politics-process{padding-left:1.5em}
+.politics-process>li{padding-left:12px;margin-bottom:48px;scroll-margin-top:32px}
+.politics-process>li::marker{color:var(--signal-strong)}
+.politics-example>li{margin-bottom:24px}
+.politics-change{display:grid;grid-template-columns:120px minmax(0,1fr);gap:32px;margin-bottom:40px}
+.politics-change time{color:var(--signal-strong);font-variant-numeric:tabular-nums}
+.politics-photo{margin:28px 0 36px;min-width:0}
+.politics-photo>button{display:block;width:100%;padding:0;border:0;background:none;cursor:zoom-in}
+.politics-photo img{display:block;width:100%;max-height:500px;object-fit:contain;border-radius:8px;background:var(--surface)}
+.politics-photo figcaption{display:flex;align-items:flex-start;gap:12px;margin-top:10px;font-size:.8rem;line-height:1.6;color:var(--muted)}
+.politics-photo-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.politics-actor .politics-photo{margin-top:0}
+.politics-lesson :is(h3,h4){scroll-margin-top:32px}
+.politics-lesson :is(a,button,summary):focus-visible{outline:2px solid var(--signal-strong);outline-offset:5px}
+.politics-lesson :is(.politics-entry,.politics-actor){overflow-wrap:anywhere}
+@media(max-width:720px){
+ .indian-politics-reader .fact-body{padding-top:40px}
+ .politics-actor.has-photo,.politics-comparison,.politics-essentials,.politics-photo-pair,.politics-change{grid-template-columns:minmax(0,1fr);gap:16px}
+ .politics-actor.has-photo{gap:8px}
+ .politics-photo img{max-height:400px}
+ .politics-lesson .politics-process{padding-left:1.2em}
+ .politics-process>li{padding-left:4px}
+}
