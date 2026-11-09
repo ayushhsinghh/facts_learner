@@ -1,0 +1,34 @@
+.culture-reader :is(.fact-nav,.fact-meta,.fact-taxonomy,.source-section,.fact-end){border-block:0}
+.culture-reader .fact-body{padding-top:64px}
+.culture-lesson{max-width:1120px}
+.culture-lesson .physics-section-body{max-width:75ch}
+.culture-lesson #culture-markers .physics-section-body{max-width:100%}
+.culture-essentials{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:24px 40px}
+.culture-essentials dt{color:var(--muted)}
+.culture-essentials dd{margin-top:8px}
+.culture-entry+.culture-entry{margin-top:48px}
+.culture-comparison{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:32px}
+.culture-lesson .culture-comparison h4{margin-top:12px;color:var(--signal-strong)}
+.culture-history{list-style:none;padding:0;margin:40px 0}
+.culture-history li{display:grid;grid-template-columns:minmax(100px,1fr) minmax(0,4fr);gap:24px;padding-block:12px}
+.culture-history li>span{color:var(--signal-strong);font-variant-numeric:tabular-nums}
+.culture-marker{margin-block:56px}
+.culture-marker.has-photo{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(0,1fr);gap:48px;align-items:start}
+.culture-marker-architecture.has-photo,.culture-marker-celebration.has-photo{display:block}
+.culture-marker-architecture>div:first-child,.culture-marker-celebration>div:first-child{max-width:75ch}
+.culture-photo{margin:28px 0}
+.culture-photo>button{display:block;width:100%;padding:0;border:0;background:transparent;cursor:zoom-in}
+.culture-photo img{display:block;width:100%;height:auto;max-height:620px;object-fit:contain}
+.culture-photo figcaption{margin-top:12px;color:var(--muted);font-size:.875rem;line-height:1.6}
+.culture-marker.has-photo>.culture-photo,.culture-marker.has-photo>div>.culture-photo{margin-top:0}
+.culture-photo-pair{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px}
+.culture-relationship{color:var(--signal-strong)}
+.culture-lesson .culture-drivers{margin-block:32px}
+@media(max-width:720px){
+ .culture-reader .fact-body{padding-top:40px}
+ .culture-essentials,.culture-comparison,.culture-marker.has-photo,.culture-history li,.culture-photo-pair{grid-template-columns:1fr;gap:12px}
+ .culture-essentials{gap:0}
+ .culture-marker{margin-block:40px}
+ .culture-history li{padding-block:20px}
+ .culture-marker.has-photo{gap:16px}
+}
